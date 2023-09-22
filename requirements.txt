@@ -1,3 +1,4 @@
+Django==4.2.5
 autoflake==2.2.1
 black==23.9.1
 flake8==6.1.0
