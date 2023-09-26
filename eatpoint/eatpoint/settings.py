@@ -77,16 +77,25 @@ WSGI_APPLICATION = "eatpoint.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
-        "NAME": os.getenv("DB_NAME", default="eatpoint"),
-        "USER": os.getenv("POSTGRES_USER", default="dbuser"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="12341234"),
-        "HOST": os.getenv("DB_HOST", default="127.0.0.1"),
-        "PORT": os.getenv("DB_PORT", default="5432"),
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.postgresql"),
+            "NAME": os.getenv("DB_NAME", default="eatpoint"),
+            "USER": os.getenv("POSTGRES_USER", default="dbuser"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="12341234"),
+            "HOST": os.getenv("DB_HOST", default="127.0.0.1"),
+            "PORT": os.getenv("DB_PORT", default="5432"),
+        }
+    }
 
 
 # Password validation
