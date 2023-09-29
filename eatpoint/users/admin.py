@@ -17,8 +17,5 @@ class UserAdmin(admin.ModelAdmin):
         "updated_at",
     )
     list_filter = ("username", "email")
-    search_fields = ("username",)
+    search_fields = ("username", "email")
     empty_value_display = "-пусто-"
-
-    class Meta:
-        verbose_name = "Пользователь"
