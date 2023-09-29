@@ -129,7 +129,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     @staticmethod
     def _generate_confirm_code():
         random.seed()
-        return str(random.randint(10000, 99999))
+        return str(random.randint(100000, 999999))
 
     def _generate_jwt_token(self):
         dt = datetime.now()

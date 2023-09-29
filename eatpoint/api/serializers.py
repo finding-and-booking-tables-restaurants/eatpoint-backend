@@ -108,7 +108,7 @@ class SignUpSerializer(serializers.Serializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150)
+    email = serializers.CharField(max_length=150)
     confirmation_code = serializers.CharField(
         max_length=150,
     )
@@ -117,16 +117,16 @@ class TokenSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("username", "confirmation_code", "token")
+        fields = ("email", "confirmation_code", "token")
         model = User
 
     def validate(self, data):
-        username = data.get("username")
+        email = data.get("email")
         confirmation_code = data.get("confirmation_code")
-        if username is None:
-            raise serializers.ValidationError("Необходимо ввести username")
+        if email is None:
+            raise serializers.ValidationError("Необходимо ввести email")
         if confirmation_code is None:
             raise serializers.ValidationError(
-                "Необходимо ввести присланный confirmation code"
+                "Необходимо ввести 6-ти значный код из эл.почты"
             )
         return data

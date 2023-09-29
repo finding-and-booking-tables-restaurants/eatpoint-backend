@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -59,13 +58,14 @@ class SignUp(APIView):
         user, created = User.objects.get_or_create(
             username=request.data.get("username"),
             email=request.data.get("email"),
+            is_active=False,
         )
-
+        user.confirmation_code = user.token_code
         user.save()
 
         send_mail(
             "Код подтверждения EatPoint",
-            default_token_generator.make_token(user),
+            user.confirmation_code,
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
             fail_silently=False,
@@ -82,13 +82,15 @@ class TokenView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        username = request.data.get("username")
+        email = request.data.get("email")
         confirmation_code = request.data.get("confirmation_code")
-        if not User.objects.filter(username=username).exists():
+        if not User.objects.filter(email=email).exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
-        user = User.objects.get(username=username)
-        if default_token_generator.check_token(user, confirmation_code):
+        user = User.objects.get(email=email)
+        if user.confirmation_code == confirmation_code:
+            user.is_active = True
+            user.save()
             return Response(
-                {"token_code": user.token_code}, status=status.HTTP_201_CREATED
+                {"token": user.token}, status=status.HTTP_201_CREATED
             )
         return Response(status=status.HTTP_400_BAD_REQUEST)
