@@ -36,7 +36,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
                 token, settings.SECRET_KEY, algorithms="HS256"
             )
         except exceptions.AuthenticationFailed:
-            msg = "Invalid authentication. Could not decode token."
+            msg = "Ошибка аутентификации. Невозможно декодировать токен."
             raise exceptions.AuthenticationFailed(msg)
 
         try:
@@ -46,7 +46,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed(msg)
 
         if not user.is_active:
-            msg = "Данный пользователь не активирован"
+            msg = "Данный пользователь не активирован."
             raise exceptions.AuthenticationFailed(msg)
 
         return user, token

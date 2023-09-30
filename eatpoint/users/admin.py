@@ -14,6 +14,7 @@ class UserAdmin(admin.ModelAdmin):
         "is_active",
         "created_at",
         "updated_at",
+        "confirmation_code",
     )
     list_filter = (
         "email",
@@ -24,3 +25,7 @@ class UserAdmin(admin.ModelAdmin):
         "last_name",
     )
     empty_value_display = "-пусто-"
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"

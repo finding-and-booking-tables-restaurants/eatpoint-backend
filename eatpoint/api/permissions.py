@@ -35,7 +35,7 @@ class IsUser(permissions.BasePermission):
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        return obj.author == request.user
+        return obj.user == request.user
 
 
 class IsRestaurateur(permissions.BasePermission):
@@ -43,7 +43,7 @@ class IsRestaurateur(permissions.BasePermission):
         return request.user.is_restaurateur
 
     def has_object_permission(self, request, view, obj):
-        return obj.author == request.user
+        return obj.user == request.user
 
 
 class ReadOnly(permissions.BasePermission):

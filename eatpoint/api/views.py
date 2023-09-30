@@ -33,11 +33,11 @@ class UserView(viewsets.ModelViewSet):
     def me(self, request):
         serializer_class = MeSerializer
         if request.method == "GET":
-            serializer = serializer_class(request._user, many=False)
+            serializer = serializer_class(request.user, many=False)
             return Response(serializer.data)
 
         if request.method == "PATCH":
-            user = User.objects.get(email=request._user)
+            user = User.objects.get(email=request.user)
             serializer = serializer_class(
                 user, data=request.data, partial=True
             )
