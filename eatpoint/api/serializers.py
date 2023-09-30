@@ -5,12 +5,13 @@ from users.models import ROLE_CHOICES, User
 
 class UserSerializer(serializers.ModelSerializer):
     telephone = serializers.CharField(
-        validators=RegexValidator(
-            regex=r"^\+?1?\d{9,15}$",
-            message="Неверный формат номера",
-        ),
+        validators=[
+            RegexValidator(
+                regex=r"^\+?1?\d{9,15}$",
+                message="Неверный формат номера",
+            )
+        ],
         max_length=17,
-        unique=True,
     )
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
@@ -47,12 +48,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 class MeSerializer(serializers.ModelSerializer):
     telephone = serializers.CharField(
-        validators=RegexValidator(
-            regex=r"^\+?1?\d{9,15}$",
-            message="Неверный формат номера",
-        ),
+        validators=[
+            RegexValidator(
+                regex=r"^\+?1?\d{9,15}$",
+                message="Неверный формат номера",
+            )
+        ],
         max_length=17,
-        unique=True,
     )
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
@@ -74,12 +76,13 @@ class MeSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.Serializer):
     telephone = serializers.CharField(
-        validators=RegexValidator(
-            regex=r"^\+?1?\d{9,15}$",
-            message="Неверный формат номера",
-        ),
+        validators=[
+            RegexValidator(
+                regex=r"^\+?1?\d{9,15}$",
+                message="Неверный формат номера",
+            )
+        ],
         max_length=17,
-        unique=True,
     )
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
@@ -105,12 +108,13 @@ class SignUpSerializer(serializers.Serializer):
 
 class TokenSerializer(serializers.ModelSerializer):
     telephone = serializers.CharField(
-        validators=RegexValidator(
-            regex=r"^\+?1?\d{9,15}$",
-            message="Неверный формат номера",
-        ),
+        validators=[
+            RegexValidator(
+                regex=r"^\+?1?\d{9,15}$",
+                message="Неверный формат номера",
+            )
+        ],
         max_length=17,
-        unique=True,
     )
     confirmation_code = serializers.CharField(
         max_length=150,

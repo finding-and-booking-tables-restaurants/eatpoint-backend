@@ -24,10 +24,12 @@ ROLE_CHOICES = (
 
 class User(PermissionsMixin, AbstractBaseUser):
     telephone = models.CharField(
-        validators=RegexValidator(
-            regex=r"^\+?1?\d{9,15}$",
-            message="Неверный формат номера",
-        ),
+        validators=[
+            RegexValidator(
+                regex=r"^\+?1?\d{9,15}$",
+                message="Неверный формат номера",
+            )
+        ],
         max_length=17,
         unique=True,
     )
