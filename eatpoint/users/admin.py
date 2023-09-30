@@ -7,7 +7,6 @@ from .models import User
 class UserAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "username",
         "email",
         "first_name",
         "last_name",
@@ -16,6 +15,12 @@ class UserAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
-    list_filter = ("username", "email")
-    search_fields = ("username", "email")
+    list_filter = (
+        "email",
+        "last_name",
+    )
+    search_fields = (
+        "email",
+        "last_name",
+    )
     empty_value_display = "-пусто-"

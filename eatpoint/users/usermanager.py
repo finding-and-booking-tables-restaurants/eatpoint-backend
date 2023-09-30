@@ -2,15 +2,12 @@ from django.contrib.auth.models import BaseUserManager
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, username, email, password, role):
-        if not username:
-            raise ValueError("Необходимо ввести username")
+    def create_user(self, email, password, role="user"):
         if not email:
             raise ValueError("Необходимо ввести email")
 
         user = self.model(
             email=self.normalize_email(email),
-            username=username,
             role=role,
         )
 
@@ -18,14 +15,8 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, email, password, role):
-        user = self.create_user(
-            username,
-            email,
-            password=password,
-            role=role,
-        )
+    def create_superuser(self, email, password):
+        user = self.create_user(email, password, role="superuser")
         user.is_admin = True
-        user.role = "superuser"
         user.save(using=self._db)
         return user

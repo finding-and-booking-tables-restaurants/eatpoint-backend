@@ -157,7 +157,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.TokenAuthentication",
-        # 'api.backends.JWTAuthentication',
+        "api.backends.JWTAuthentication",
     ),
 }
 

@@ -1,19 +1,9 @@
-from django.core.validators import RegexValidator
 from rest_framework import serializers
 
 from users.models import ROLE_CHOICES, User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        max_length=150,
-        validators=[
-            RegexValidator(
-                regex=r"^[\w.@+-]+",
-                message="Используйте допустимые символы в username",
-            )
-        ],
-    )
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150, required=False)
     last_name = serializers.CharField(max_length=150, required=False)
@@ -21,7 +11,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
-            "username",
             "email",
             "first_name",
             "last_name",
@@ -31,31 +20,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         email = data.get("email")
-        username = data.get("username")
-        if (
-            User.objects.filter(email=email).exists()
-            or User.objects.filter(username=username).exists()
-        ):
+        if User.objects.filter(email=email).exists():
             raise serializers.ValidationError(
                 "Пользователь с таким email уже зарегистрирован..."
-            )
-        if username is not None and username.lower() == "me":
-            raise serializers.ValidationError(
-                f"username {username} зарезервировано!"
             )
         return data
 
 
 class MeSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        max_length=150,
-        validators=[
-            RegexValidator(
-                regex=r"^[\w.@+-]+",
-                message="Используйте допустимые символы в username",
-            )
-        ],
-    )
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150, required=False)
     last_name = serializers.CharField(max_length=150, required=False)
@@ -65,7 +37,6 @@ class MeSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = (
-            "username",
             "email",
             "first_name",
             "last_name",
@@ -75,31 +46,17 @@ class MeSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        max_length=150,
-        validators=[
-            RegexValidator(
-                regex=r"^[\w.@+-]+",
-                message="Используйте допустимые символы в username",
-            )
-        ],
-    )
     email = serializers.EmailField(max_length=254)
 
     def validate(self, data):
         email = data.get("email")
-        username = data.get("username")
-        if not User.objects.filter(username=username, email=email).exists():
-            if (
-                User.objects.filter(email=email).exists()
-                or User.objects.filter(username=username).exists()
-            ):
-                raise serializers.ValidationError(
-                    "Пользователь с таким email уже зарегистрирован..."
-                )
-        if username is not None and username.lower() == "me":
+        if not User.objects.filter(email=email).exists():
+            return data
+
+        user = User.objects.get(email=email)
+        if user.is_active:
             raise serializers.ValidationError(
-                f"Имя {username} зарезервировано!"
+                "Пользователь с таким email уже активирован..."
             )
         return data
 
@@ -108,9 +65,9 @@ class SignUpSerializer(serializers.Serializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(max_length=150)
+    email = serializers.EmailField(max_length=254)
     confirmation_code = serializers.CharField(
-        max_length=150,
+        max_length=6,
     )
     token = serializers.CharField(
         max_length=255, required=False, read_only=True

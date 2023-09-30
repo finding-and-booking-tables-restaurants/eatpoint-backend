@@ -19,8 +19,8 @@ class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     filter_backends = (filters.SearchFilter,)
-    search_fields = ("username",)
-    lookup_field = "username"
+    search_fields = ("email",)
+    lookup_field = "email"
     http_method_names = ["get", "post", "patch", "delete"]
     permission_classes = (IsAdmin | IsSuperUser,)
 
@@ -37,7 +37,7 @@ class UserView(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         if request.method == "PATCH":
-            user = User.objects.get(username=request._user)
+            user = User.objects.get(email=request._user)
             serializer = serializer_class(
                 user, data=request.data, partial=True
             )
@@ -56,18 +56,20 @@ class SignUp(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user, created = User.objects.get_or_create(
-            username=request.data.get("username"),
             email=request.data.get("email"),
             is_active=False,
         )
-        user.confirmation_code = user.token_code
+        message = user.confirm_code
+        user.confirmation_code = message
         user.save()
 
         send_mail(
-            "Код подтверждения EatPoint",
-            user.confirmation_code,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
+            subject="Код подтверждения EatPoint",
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[
+                user.email,
+            ],
             fail_silently=False,
         )
 

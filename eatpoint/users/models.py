@@ -4,7 +4,6 @@ import random
 import jwt
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.core.validators import RegexValidator
 from django.db import models
 
 from .usermanager import UserManager
@@ -25,19 +24,6 @@ ROLE_CHOICES = (
 
 
 class User(PermissionsMixin, AbstractBaseUser):
-    username = models.CharField(
-        verbose_name="Имя пользователя",
-        db_index=True,
-        max_length=150,
-        unique=True,
-        validators=[
-            RegexValidator(
-                regex=r"^[\w.@+-]+",
-                message="Используйте допустимые символы в username",
-            )
-        ],
-    )
-
     email = models.EmailField(
         verbose_name="Адрес эл.почты",
         max_length=254,
@@ -58,19 +44,20 @@ class User(PermissionsMixin, AbstractBaseUser):
     )
 
     role = models.CharField(
-        "User`s role",
+        "Роль пользователя",
         max_length=20,
         default=USER,
         choices=ROLE_CHOICES,
     )
 
     confirmation_code = models.CharField(
-        "Confirmation code",
-        max_length=150,
+        "Код подтверждения",
+        max_length=6,
         blank=True,
     )
 
     is_active = models.BooleanField(default=True)
+
     is_admin = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -79,14 +66,15 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     objects = UserManager()
 
-    USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = ["email", "role"]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
     class Meta:
-        unique_together = ["username", "email"]
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
 
     def __str__(self):
-        return self.username
+        return self.email
 
     def has_perm(self, perm, obj=None):
         return True
@@ -123,7 +111,7 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self._generate_jwt_token()
 
     @property
-    def token_code(self):
+    def confirm_code(self):
         return self._generate_confirm_code()
 
     @staticmethod
