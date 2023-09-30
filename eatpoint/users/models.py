@@ -9,14 +9,12 @@ from django.db import models
 from .usermanager import UserManager
 
 USER = "user"
-RESTAURATEUR = "restaurateur"
 MODERATOR = "moderator"
 ADMIN = "admin"
 SUPERUSER = "superuser"
 
 ROLE_CHOICES = (
     (USER, "Пользователь"),
-    (RESTAURATEUR, "Ресторатор"),
     (MODERATOR, "Модератор"),
     (ADMIN, "Администратор"),
     (SUPERUSER, "Суперюзер"),
@@ -24,40 +22,40 @@ ROLE_CHOICES = (
 
 
 class User(PermissionsMixin, AbstractBaseUser):
+    telephone = models.PositiveSmallIntegerField(
+        verbose_name="Номер телефона",
+    )
     email = models.EmailField(
-        verbose_name="Адрес эл.почты",
+        verbose_name="email address",
         max_length=254,
         db_index=True,
         unique=True,
     )
 
     first_name = models.CharField(
-        "Имя",
+        "First name",
         max_length=150,
-        blank=True,
     )
 
     last_name = models.CharField(
-        "Фамилия",
+        "Last name",
         max_length=150,
-        blank=True,
     )
 
     role = models.CharField(
-        "Роль пользователя",
+        "User`s role",
         max_length=20,
         default=USER,
         choices=ROLE_CHOICES,
     )
 
     confirmation_code = models.CharField(
-        "Код подтверждения",
-        max_length=6,
+        "Confirmation code",
+        max_length=150,
         blank=True,
     )
 
     is_active = models.BooleanField(default=True)
-
     is_admin = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -67,11 +65,10 @@ class User(PermissionsMixin, AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["role"]
 
     class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        unique_together = ["telephone", "email"]
 
     def __str__(self):
         return self.email
@@ -89,10 +86,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     @property
     def is_user(self):
         return self.role == USER
-
-    @property
-    def is_restaurateur(self):
-        return self.role == RESTAURATEUR
 
     @property
     def is_moderator(self):

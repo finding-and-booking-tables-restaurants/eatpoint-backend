@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class IsSuperUser(permissions.BasePermission):
+class IsSuperuser(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.user.is_authenticated:
             return request.user.is_superuser
@@ -35,15 +35,7 @@ class IsUser(permissions.BasePermission):
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
-
-
-class IsRestaurateur(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user.is_restaurateur
-
-    def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
+        return obj.author == request.user
 
 
 class ReadOnly(permissions.BasePermission):

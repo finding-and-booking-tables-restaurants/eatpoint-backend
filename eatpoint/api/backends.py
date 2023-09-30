@@ -29,14 +29,13 @@ class JWTAuthentication(authentication.BaseAuthentication):
     def authenticate_header(self, request):
         return f"Basic realm={self.www_authenticate_realm}"
 
-    @staticmethod
-    def _authenticate_credentials(request, token):
+    def _authenticate_credentials(self, request, token):
         try:
             payload = jwt.decode(
                 token, settings.SECRET_KEY, algorithms="HS256"
             )
         except exceptions.AuthenticationFailed:
-            msg = "Ошибка аутентификации. Невозможно декодировать токен."
+            msg = "Invalid authentication. Could not decode token."
             raise exceptions.AuthenticationFailed(msg)
 
         try:
@@ -46,7 +45,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed(msg)
 
         if not user.is_active:
-            msg = "Данный пользователь не активирован."
+            msg = "This user has been deactivated."
             raise exceptions.AuthenticationFailed(msg)
 
         return user, token
