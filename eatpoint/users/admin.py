@@ -15,6 +15,7 @@ class UserAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
         "confirmation_code",
+        "is_agreement",
     )
     list_filter = (
         "email",

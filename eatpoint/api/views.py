@@ -58,14 +58,16 @@ class SignUp(APIView):
             email=request.data.get("email"),
             first_name=request.data.get("first_name"),
             last_name=request.data.get("last_name"),
+            is_active=False,
+            is_agreement=False,
         )
         message = user.confirm_code
         user.confirmation_code = message
         user.save()
 
         send_mail(
-            "Confirmation code from YaMDB",
-            message,
+            "Код подтверждения EatPoint",
+            f"Код для подтверждения на сайте: {message}",
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
             fail_silently=False,
@@ -84,10 +86,25 @@ class TokenView(APIView):
         serializer.is_valid(raise_exception=True)
         telephone = request.data.get("telephone")
         confirmation_code = request.data.get("confirmation_code")
+
         if not User.objects.filter(telephone=telephone).exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
+
         user = User.objects.get(telephone=telephone)
-        if user.confirmation_code == confirmation_code:
+        if user.confirmation_code == confirmation_code and request.data.get(
+            "is_agreement"
+        ):
+            user.is_active = True
+            user.is_agreement = True
+            user.save()
+
+            send_mail(
+                "Аккаунт зарегистрирован",
+                "Для перехода в профиль нажмите на ссылку: ...",
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
             return Response(
                 {"token": user.token}, status=status.HTTP_201_CREATED
             )

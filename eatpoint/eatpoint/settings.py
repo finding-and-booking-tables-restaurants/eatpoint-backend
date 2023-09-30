@@ -172,6 +172,31 @@ SPECTACULAR_SETTINGS = {
 }
 
 # OTHER SETTINGS
-EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-# указываем директорию, в которую будут складываться файлы писем
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+
+USER = "user"
+MODERATOR = "moderator"
+ADMIN = "admin"
+SUPERUSER = "superuser"
+
+ROLE_CHOICES = (
+    (USER, "Пользователь"),
+    (MODERATOR, "Модератор"),
+    (ADMIN, "Администратор"),
+    (SUPERUSER, "Суперюзер"),
+)
+
+
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", default="mail@fake.ru")
+
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+    # указываем директорию, в которую будут складываться файлы писем
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+else:
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", default="mail@fake.ru")
+    EMAIL_HOST_PASSWORD = os.getenv(
+        "EMAIL_HOST_PASSWORD", default="your_password"
+    )
+    EMAIL_HOST = os.getenv("EMAIL_HOST", default="smtp.yandex.ru")
+    EMAIL_PORT = os.getenv("EMAIL_PORT", default="465")
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", default="True")

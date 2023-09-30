@@ -1,6 +1,7 @@
 from django.core.validators import RegexValidator
 from rest_framework import serializers
-from users.models import ROLE_CHOICES, User
+from users.models import User
+from django.conf import settings
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -16,7 +17,9 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
-    role = serializers.ChoiceField(choices=ROLE_CHOICES, required=False)
+    role = serializers.ChoiceField(
+        choices=settings.ROLE_CHOICES, required=False
+    )
 
     class Meta:
         fields = (
@@ -34,14 +37,19 @@ class UserSerializer(serializers.ModelSerializer):
         if (
             User.objects.filter(email=email).exists()
             or User.objects.filter(telephone=telephone).exists()
+        ) and (
+            User.objects.get(email=email).is_active
+            or User.objects.get(telephone=telephone).is_active
         ):
             raise serializers.ValidationError(
-                "А Вы точно зедсь первый раз?!"
-                "Я точно помню, что такие telephone и/или email уже видел :)"
+                "Аккаунт с таким телефоном и/или email активирован"
             )
-        if telephone is not None and telephone.lower() == "me":
+        if (
+            telephone is not None
+            and User.objects.get(telephone=telephone) == "me"
+        ):
             raise serializers.ValidationError(
-                f"telephone {telephone} зарезервировано!"
+                f"Номер {telephone} уже зарезервирован!"
             )
         return data
 
@@ -60,7 +68,7 @@ class MeSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
     role = serializers.ChoiceField(
-        choices=ROLE_CHOICES, required=False, read_only=True
+        choices=settings.ROLE_CHOICES, required=False, read_only=True
     )
 
     class Meta:
@@ -97,8 +105,7 @@ class SignUpSerializer(serializers.Serializer):
                 or User.objects.filter(telephone=telephone).exists()
             ):
                 raise serializers.ValidationError(
-                    "А Вы точно зедсь первый раз?!"
-                    "Я точно помню, что такие username и/или email уже видел!"
+                    "Пользователь с таким email или phone уже активирован..."
                 )
         return data
 
@@ -116,24 +123,23 @@ class TokenSerializer(serializers.ModelSerializer):
         ],
         max_length=17,
     )
-    confirmation_code = serializers.CharField(
-        max_length=150,
-    )
+    confirmation_code = serializers.CharField(max_length=150)
+    is_agreement = serializers.BooleanField(required=True)
     token = serializers.CharField(
         max_length=255, required=False, read_only=True
     )
 
     class Meta:
-        fields = ("telephone", "confirmation_code", "token")
+        fields = ("telephone", "confirmation_code", "is_agreement", "token")
         model = User
 
     def validate(self, data):
         telephone = data.get("telephone")
         confirmation_code = data.get("confirmation_code")
         if telephone is None:
-            raise serializers.ValidationError("Необходимо ввести telephone")
+            raise serializers.ValidationError("Необходимо ввести телефон")
         if confirmation_code is None:
             raise serializers.ValidationError(
-                "Необходимо ввести присланный confirmation code"
+                "Необходимо ввести 6-ти значный код из эл.почты/sms"
             )
         return data

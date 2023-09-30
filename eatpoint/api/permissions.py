@@ -38,6 +38,14 @@ class IsUser(permissions.BasePermission):
         return obj.author == request.user
 
 
+class IsRestaurateur(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_restaurateur
+
+    def has_object_permission(self, request, view, obj):
+        return obj.user == request.user
+
+
 class ReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS

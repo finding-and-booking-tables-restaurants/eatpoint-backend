@@ -9,18 +9,6 @@ from django.core.validators import RegexValidator
 
 from .usermanager import UserManager
 
-USER = "user"
-MODERATOR = "moderator"
-ADMIN = "admin"
-SUPERUSER = "superuser"
-
-ROLE_CHOICES = (
-    (USER, "Пользователь"),
-    (MODERATOR, "Модератор"),
-    (ADMIN, "Администратор"),
-    (SUPERUSER, "Суперюзер"),
-)
-
 
 class User(PermissionsMixin, AbstractBaseUser):
     telephone = models.CharField(
@@ -44,7 +32,6 @@ class User(PermissionsMixin, AbstractBaseUser):
         "First name",
         max_length=150,
     )
-
     last_name = models.CharField(
         "Last name",
         max_length=150,
@@ -53,8 +40,8 @@ class User(PermissionsMixin, AbstractBaseUser):
     role = models.CharField(
         "User`s role",
         max_length=20,
-        default=USER,
-        choices=ROLE_CHOICES,
+        default=settings.USER,
+        choices=settings.ROLE_CHOICES,
     )
 
     confirmation_code = models.CharField(
@@ -63,17 +50,17 @@ class User(PermissionsMixin, AbstractBaseUser):
         blank=True,
     )
 
-    is_active = models.BooleanField(default=True)
+    is_agreement = models.BooleanField("Agreement", default=False)
+    is_active = models.BooleanField("Active", default=True)
     is_admin = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
-
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["role"]
+    REQUIRED_FIELDS = []
 
     class Meta:
         unique_together = ["telephone", "email"]
@@ -93,19 +80,19 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     @property
     def is_user(self):
-        return self.role == USER
+        return self.role == settings.USER
 
     @property
     def is_moderator(self):
-        return self.role == MODERATOR
+        return self.role == settings.MODERATOR
 
     @property
     def is_administrator(self):
-        return self.role == ADMIN
+        return self.role == settings.ADMIN
 
     @property
     def is_superuser(self):
-        return self.role == SUPERUSER
+        return self.role == settings.SUPERUSER
 
     @property
     def token(self):
