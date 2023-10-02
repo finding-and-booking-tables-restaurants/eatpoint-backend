@@ -96,6 +96,8 @@ class Service(models.Model):
 
 
 class File(models.Model):
+    """Несколько изображений"""
+
     file = models.FileField(
         upload_to="establishment/images/poster",
     )
