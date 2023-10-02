@@ -317,7 +317,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text
+        return f"{self.author}: {self.text}"
 
 
 # class Reservation(models.Model):
