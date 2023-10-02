@@ -10,14 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
-from pathlib import Path
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -29,7 +28,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -44,6 +43,10 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "establishments.apps.EstablishmentsConfig",
+    "rest_framework",
+    "jwt",
+    "api.apps.ApiConfig",
+    "users.apps.UsersConfig",
 ]
 
 MIDDLEWARE = [
@@ -57,7 +60,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "eatpoint.urls"
-
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -102,7 +105,6 @@ else:
         }
     }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -137,7 +139,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 MEDIA_URL = "/media/"
@@ -148,9 +149,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+AUTH_USER_MODEL = "users.User"
+
 REST_FRAMEWORK = {
-    # YOUR SETTINGS
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+        "api.backends.JWTAuthentication",
+    ),
 }
 
 SPECTACULAR_SETTINGS = {
@@ -158,5 +167,34 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Документация для API сервиса",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    # OTHER SETTINGS
 }
+
+# OTHER SETTINGS
+
+USER = "user"
+MODERATOR = "moderator"
+ADMIN = "admin"
+SUPERUSER = "superuser"
+
+ROLE_CHOICES = (
+    (USER, "Пользователь"),
+    (MODERATOR, "Модератор"),
+    (ADMIN, "Администратор"),
+    (SUPERUSER, "Суперюзер"),
+)
+
+
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", default="mail@fake.ru")
+
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+    # указываем директорию, в которую будут складываться файлы писем
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+else:
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", default="mail@fake.ru")
+    EMAIL_HOST_PASSWORD = os.getenv(
+        "EMAIL_HOST_PASSWORD", default="your_password"
+    )
+    EMAIL_HOST = os.getenv("EMAIL_HOST", default="smtp.yandex.ru")
+    EMAIL_PORT = os.getenv("EMAIL_PORT", default="465")
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", default="True")
