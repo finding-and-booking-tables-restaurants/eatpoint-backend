@@ -95,6 +95,12 @@ class Service(models.Model):
         return self.name
 
 
+class File(models.Model):
+    file = models.FileField(
+        upload_to="establishment/images/poster",
+    )
+
+
 class Establishment(models.Model):
     """Заведение"""
 
@@ -130,10 +136,15 @@ class Establishment(models.Model):
     check = models.PositiveIntegerField(
         verbose_name="Средний чек",
     )
-    image = models.ImageField(  # несколько изображений отдельной моделью
+    poster = models.ImageField(
         verbose_name="Постер заведения",
         upload_to="establishment/images/poster",
         validators=None,
+    )
+    file = models.ManyToManyField(
+        File,
+        verbose_name="Изображения заведения",
+        related_name="files",
     )
     imagetables = models.ImageField(
         verbose_name="План",
@@ -156,6 +167,10 @@ class Establishment(models.Model):
     description = models.TextField(
         verbose_name="Описание заведения",
         max_length=5000,
+    )
+    is_verified = models.BooleanField(
+        verbose_name="Верификация заведения",
+        default=False,
     )
 
     class Meta:
@@ -201,6 +216,13 @@ class TableEstablishment(models.Model):
         default=False,
     )
 
+    class Meta:
+        verbose_name = "Стол заведения"
+        verbose_name_plural = "Столы заведения"
+
+    def __str__(self):
+        return f"{self.table}-{self.seats} {self.status}"
+
 
 class Event(models.Model):
     """События"""
@@ -214,11 +236,6 @@ class Event(models.Model):
         on_delete=models.CASCADE,
         related_name="event",
     )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="event",
-    )
     description = models.TextField(
         verbose_name="Описание события",
         max_length=5000,
@@ -228,13 +245,26 @@ class Event(models.Model):
         upload_to="establishment/images/event",
         validators=None,
     )
+    date_start = models.DateTimeField(
+        verbose_name="Начало события",
+    )
+    date_end = models.DateTimeField(
+        verbose_name="Окончание события",
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Событие"
         verbose_name_plural = "События"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name", "establishment", "date_start"],
+                name="unique_slots",
+            ),
+        ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name}: {self.date_start} - {self.date_end}"
 
 
 # class Worked(models.Model):
