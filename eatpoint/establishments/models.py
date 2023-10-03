@@ -190,7 +190,7 @@ class Establishment(models.Model):
     )
     telephone = models.IntegerField(
         verbose_name="Телефон",
-        validators=None,  # сделать валидатор для номера
+        # validators=None,  # сделать валидатор для номера? закомментил, т.к. не проходит миграция
     )
     social = models.CharField(
         verbose_name="Соц.сеть",

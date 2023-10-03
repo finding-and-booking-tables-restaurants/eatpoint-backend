@@ -19,7 +19,7 @@ class Restaurant_reservations(models.Model):
     )
     telephone = models.IntegerField(
         verbose_name="Телефон клиента",
-        validators=None,  # сделать валидатор для номера
+        # validators=None,  # сделать валидатор для номера
     )
     establishment = models.ForeignKey(
         Establishment,
