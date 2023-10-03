@@ -33,10 +33,12 @@ class Work(models.Model):
     lunch_start = models.TimeField(
         verbose_name="Начало обеда",
         blank=True,
+        null=True,
     )
     lunch_end = models.TimeField(
         verbose_name="Конец обеда",
         blank=True,
+        null=True,
     )
 
     class Meta:
@@ -294,7 +296,7 @@ class TableEstablishment(models.Model):
         ],
     )
     status = models.BooleanField(
-        verbose_name="Статус стола",
+        verbose_name="Статус стола занят/свободен",
         default=False,
     )
 
@@ -346,18 +348,6 @@ class Event(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.date_start} - {self.date_end}"
-
-
-# class Worked(models.Model):
-#     establishment = models.ForeignKey(
-#         Establishment,
-#         on_delete=models.SET_NULL,
-#         null=True,
-#     )
-#     day = models.ForeignKey(
-#         Day,
-#
-#     )
 
 
 class Review(models.Model):
