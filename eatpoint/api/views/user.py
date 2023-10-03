@@ -5,8 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import User
-from .permissions import IsAdmin, IsSuperuser, IsUser
-from .serializers import (
+from api.permissions import IsAdmin, IsSuperuser, IsUser
+from api.serializers.user import (
     MeSerializer,
     SignUpSerializer,
     TokenSerializer,
