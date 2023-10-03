@@ -111,7 +111,7 @@ class Service(models.Model):
         max_length=2000,
     )
     slug = models.SlugField(
-        verbose_name="Ссылка на услгу",
+        verbose_name="Ссылка на услугу",
         max_length=200,
         unique=True,
     )
@@ -190,6 +190,7 @@ class Establishment(models.Model):
     )
     telephone = models.IntegerField(
         verbose_name="Телефон",
+        validators=None,  # сделать валидатор для номера
     )
     social = models.CharField(
         verbose_name="Соц.сеть",
