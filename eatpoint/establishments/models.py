@@ -3,6 +3,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from users.models import User
 
 
+TIME_CHOICES = (("11:00", "dasd"), ("11:30", "asdsd"))
+
+
 class Day(models.TextChoices):
     """День недели"""
 
@@ -158,9 +161,12 @@ class Establishment(models.Model):
         verbose_name="Услуга заведения",
         related_name="establishments",
     )
-    # worked = models.ManyToManyField(
-    #
-    # )
+    worked = models.ManyToManyField(
+        Work,
+        through="WorkEstablishment",
+        verbose_name="Время работы",
+        null=True,
+    )
     busy = models.DateTimeField(
         verbose_name="Часы загруженности",
     )
@@ -210,6 +216,28 @@ class Establishment(models.Model):
 
 # class Social(models.Model):
 #     name
+
+
+class WorkEstablishment(models.Model):
+    order_dt = models.ForeignKey(
+        Work,
+        verbose_name="Время работы",
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    establishment = models.ForeignKey(
+        Establishment,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Время работы"
+        verbose_name_plural = "Время работы"
+
+    def __str__(self):
+        return f"{self.establishment.name}: {self.order_dt}"
 
 
 class FileEstablishment(models.Model):
