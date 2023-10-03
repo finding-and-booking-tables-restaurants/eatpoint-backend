@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import Work, Establishment, Kitchen, Table, Service, File
+from .models import Establishment, Kitchen, Table, Service, File, Work
 
 
 @admin.register(Work)
@@ -38,6 +38,10 @@ class TablesInLine(admin.TabularInline):
     model = Establishment.tables.through
 
 
+class WorkInLine(admin.TabularInline):
+    model = Establishment.worked.through
+
+
 class FileInLine(admin.TabularInline):
     model = Establishment.file.through
 
@@ -57,6 +61,7 @@ class EstablishmentAdmin(admin.ModelAdmin):
     inlines = (
         TablesInLine,
         FileInLine,
+        WorkInLine,
     )
 
     def preview(self, obj):
