@@ -1,23 +1,47 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
+from users.models import User
 
 
-User = get_user_model()
+class Day(models.TextChoices):
+    """День недели"""
+
+    MON = "Monday", "понедельник"
+    TUE = "Tuesday", "вторник"
+    WED = "Wednesday", "среда"
+    THU = "Thursday", "четверг"
+    FRI = "Friday", "пятница"
+    SAT = "Saturday", "суббота"
+    SUN = "Sunday", "воскресенье"
 
 
-# class Day(models.Model):
-#     name = models.CharField(
-#         verbose_name='День недели',
-#         max_length=100,
-#     )
-#
-#     class Meta:
-#         verbose_name = 'День недели'
-#         verbose_name_plural = 'Дни недели'
-#
-#     def __str__(self):
-#         return self.name
+class Work(models.Model):
+    name = models.CharField(
+        verbose_name="День недели",
+        max_length=100,
+        choices=Day.choices,
+    )
+    start = models.TimeField(
+        verbose_name="Начало работы",
+    )
+    end = models.TimeField(
+        verbose_name="Конец работы",
+    )
+    lunch_start = models.TimeField(
+        verbose_name="Начало обеда",
+        blank=True,
+    )
+    lunch_end = models.TimeField(
+        verbose_name="Конец обеда",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Время работы"
+        verbose_name_plural = "Время работы"
+
+    def __str__(self):
+        return self.name
 
 
 class Kitchen(models.Model):
@@ -96,10 +120,9 @@ class Service(models.Model):
 
 
 class File(models.Model):
-    """Несколько изображений"""
-
-    file = models.FileField(
-        upload_to="establishment/images/poster",
+    image = models.ImageField(
+        verbose_name="Изображение заведения",
+        upload_to="establishment/images/est_image",
     )
 
 
@@ -113,16 +136,22 @@ class Establishment(models.Model):
     )
     address = models.CharField(
         verbose_name="Адрес заведения",
+        max_length=1000,
     )
     kitchen = models.ManyToManyField(
         Kitchen,
         verbose_name="Кухня заведения",
         related_name="establishments",
     )
-    tables = models.ManyToManyField(  # проверить на манутумени
+    tables = models.ManyToManyField(
         Table,
         through="TableEstablishment",
-        verbose_name="Стол заведения",
+        verbose_name="Столы заведения",
+    )
+    file = models.ManyToManyField(
+        File,
+        through="FileEstablishment",
+        verbose_name="Изображения заведения",
     )
     services = models.ManyToManyField(
         Service,
@@ -135,23 +164,16 @@ class Establishment(models.Model):
     busy = models.DateTimeField(
         verbose_name="Часы загруженности",
     )
-    check = models.PositiveIntegerField(
-        verbose_name="Средний чек",
-    )
+    # check = models.PositiveIntegerField(
+    #     verbose_name="Средний чек",
+    # )
     poster = models.ImageField(
         verbose_name="Постер заведения",
         upload_to="establishment/images/poster",
-        validators=None,
-    )
-    file = models.ManyToManyField(
-        File,
-        verbose_name="Изображения заведения",
-        related_name="files",
     )
     imagetables = models.ImageField(
         verbose_name="План",
         upload_to="establishment/images/tables",
-        validators=None,
     )
     email = models.EmailField(
         verbose_name="Email",
@@ -160,7 +182,6 @@ class Establishment(models.Model):
     )
     telephone = models.IntegerField(
         verbose_name="Телефон",
-        validators=None,  # сделать валидатор для номера
     )
     social = models.CharField(
         verbose_name="Соц.сеть",
@@ -182,9 +203,40 @@ class Establishment(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
 
 # class Social(models.Model):
 #     name
+
+
+class FileEstablishment(models.Model):
+    """Несколько изображений"""
+
+    name = models.CharField(
+        verbose_name="Описание изображения",
+        max_length=100,
+    )
+    image = models.ForeignKey(
+        File,
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    establishment = models.ForeignKey(
+        Establishment,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Изображение заведения"
+        verbose_name_plural = "Изображения заведения"
+
+    def __str__(self):
+        return f"{self.name}: {self.image}"
 
 
 class TableEstablishment(models.Model):
@@ -245,7 +297,6 @@ class Event(models.Model):
     image = models.ImageField(
         verbose_name="Постер события",
         upload_to="establishment/images/event",
-        validators=None,
     )
     date_start = models.DateTimeField(
         verbose_name="Начало события",
@@ -295,7 +346,7 @@ class Review(models.Model):
         related_name="review",
     )
     text = models.TextField(
-        validators="Текст отзыва",
+        verbose_name="Текст отзыва",
         max_length=500,
     )
     created = models.DateTimeField(
@@ -310,27 +361,7 @@ class Review(models.Model):
             models.UniqueConstraint(
                 fields=["establishment", "author"], name="uniquereview"
             ),
-            models.CheckConstraint(
-                check=~models.Q(user=models.F("establishment")),
-                name="reviewuniq",
-            ),
         ]
 
     def __str__(self):
         return f"{self.author}: {self.text}"
-
-
-# class Reservation(models.Model):
-#     user = models.ForeignKey(
-#         User,
-#         related_name='reservation',
-#         on_delete=models.CASCADE,
-#     )
-#     establishment = models.ForeignKey(
-#         Establishment,
-#         related_name='reservation',
-#     )
-#
-#     class Meta:
-#         verbose_name = 'Бронирование'
-#         verbose_name_plural = 'Бронирование'
