@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.mail import send_mail
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -47,6 +48,12 @@ class UserView(viewsets.ModelViewSet):
             )
 
 
+@extend_schema_view(
+    post=extend_schema(
+        summary="Регистрация пользователя",
+        tags=["Аутентификация & Авторизация"],
+    ),
+)
 class SignUp(APIView):
     serializer_class = SignUpSerializer
 
@@ -78,6 +85,12 @@ class SignUp(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema_view(
+    post=extend_schema(
+        summary="Подтверждение пользователя",
+        tags=["Аутентификация & Авторизация"],
+    ),
+)
 class TokenView(APIView):
     serializer_class = TokenSerializer
 
