@@ -5,22 +5,19 @@ from phonenumber_field.modelfields import PhoneNumberField
 from users.models import User
 
 
-TIME_CHOICES = (("11:00", "dasd"), ("11:30", "asdsd"))
-
-
 class Day(models.TextChoices):
     """День недели"""
 
-    MON = "Monday", "понедельник"
-    TUE = "Tuesday", "вторник"
-    WED = "Wednesday", "среда"
-    THU = "Thursday", "четверг"
-    FRI = "Friday", "пятница"
-    SAT = "Saturday", "суббота"
-    SUN = "Sunday", "воскресенье"
+    MON = "понедельник"
+    TUE = "вторник"
+    WED = "среда"
+    THU = "четверг"
+    FRI = "пятница"
+    SAT = "суббота"
+    SUN = "воскресенье"
 
 
-class Check(models.TextChoices):
+class AverageCheck(models.TextChoices):
     MIN = "до 1000"
     LIT = "1000 - 2000"
     MID = "2000 - 3000"
@@ -180,9 +177,10 @@ class Establishment(models.Model):
     busy_end = models.DateTimeField(
         verbose_name="Часы загруженности конец",
     )
-    check = models.CharField(
+    average_check = models.CharField(
         verbose_name="Средний чек",
-        choices=Check.choices,
+        max_length=120,
+        choices=AverageCheck.choices,
     )
     poster = models.ImageField(
         verbose_name="Постер заведения",
