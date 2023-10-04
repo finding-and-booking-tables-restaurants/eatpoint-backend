@@ -6,7 +6,7 @@ from .models import Establishment, Kitchen, Table, Service, File, Work
 
 @admin.register(Work)
 class WorkAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "start", "end", "lunch_start", "lunch_end")
+    list_display = ("id", "name", "start", "end")
     empty_value_display = "-пусто-"
 
 
