@@ -30,16 +30,6 @@ class Work(models.Model):
     end = models.TimeField(
         verbose_name="Конец работы",
     )
-    lunch_start = models.TimeField(
-        verbose_name="Начало обеда",
-        blank=True,
-        null=True,
-    )
-    lunch_end = models.TimeField(
-        verbose_name="Конец обеда",
-        blank=True,
-        null=True,
-    )
 
     class Meta:
         verbose_name = "Время работы"
@@ -222,17 +212,17 @@ class Establishment(models.Model):
 
 
 class WorkEstablishment(models.Model):
-    order_dt = models.ForeignKey(
-        Work,
-        verbose_name="Время работы",
-        on_delete=models.SET_NULL,
-        null=True,
-    )
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
+    )
+    order_dt = models.ForeignKey(
+        Work,
+        verbose_name="Время работы",
+        on_delete=models.SET_NULL,
+        null=True,
     )
 
     class Meta:
@@ -240,7 +230,7 @@ class WorkEstablishment(models.Model):
         verbose_name_plural = "Время работы"
 
     def __str__(self):
-        return f"{self.establishment.name}: {self.order_dt}"
+        return self.order_dt.name
 
 
 class FileEstablishment(models.Model):
