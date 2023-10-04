@@ -1,5 +1,9 @@
 from django.conf import settings
 from django.core.mail import send_mail
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -14,14 +18,42 @@ from api.serializers.user import (
 )
 
 
+@extend_schema(tags=["Пользователи"], methods=["GET", "PATCH"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Список пользователей",
+    ),
+    # me=extend_schema(
+    #     summary="Детальная информация о текущем пользователе",
+    # ),
+    retrieve=extend_schema(
+        summary="Детальная информация о пользователе (id=номер телефона)",
+    ),
+    # destroy=extend_schema(
+    #     summary="Детальная информация о пользователе (id=номер телефона)",
+    # ),
+    partial_update=extend_schema(
+        summary="Изменить профиль пользователя с id=номер телефона",
+    ),
+)
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     filter_backends = (filters.SearchFilter,)
     lookup_field = "telephone"
-    http_method_names = ["get", "post", "patch", "delete"]
+    http_method_names = ["get", "patch"]
     permission_classes = (IsAdmin | IsSuperuser,)
 
+    @extend_schema(
+        summary="Редактирование профиля",
+        description="Override a specific method",
+        methods=["PATCH"],
+    )
+    @extend_schema(
+        summary="Профиль пользователя",
+        description="Override a specific method",
+        methods=["GET"],
+    )
     @action(
         url_path="me",
         methods=["get", "patch"],
@@ -47,6 +79,12 @@ class UserView(viewsets.ModelViewSet):
             )
 
 
+@extend_schema(tags=["SignUp"], methods=["POST"])
+@extend_schema_view(
+    post=extend_schema(
+        summary="Регистрация",
+    ),
+)
 class SignUp(APIView):
     serializer_class = SignUpSerializer
 
@@ -78,6 +116,12 @@ class SignUp(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["SignUp"], methods=["POST"])
+@extend_schema_view(
+    post=extend_schema(
+        summary="Получить токен",
+    ),
+)
 class TokenView(APIView):
     serializer_class = TokenSerializer
 

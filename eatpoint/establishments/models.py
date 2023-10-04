@@ -203,6 +203,7 @@ class Establishment(models.Model):
         verbose_name="Верификация заведения",
         default=False,
     )
+    # добавить владельцаcd
 
     class Meta:
         verbose_name = "Заведение"
