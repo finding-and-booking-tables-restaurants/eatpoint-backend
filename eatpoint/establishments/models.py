@@ -126,6 +126,12 @@ class File(models.Model):
 class Establishment(models.Model):
     """Заведение"""
 
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="establishment",
+        verbose_name="Владелец",
+    )
     name = models.CharField(
         verbose_name="Название заведения",
         max_length=200,
