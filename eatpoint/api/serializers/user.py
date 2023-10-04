@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from users.models import User
@@ -71,16 +72,6 @@ class MeSerializer(serializers.ModelSerializer):
         choices=settings.ROLE_CHOICES, required=False, read_only=True
     )
 
-    class Meta:
-        fields = (
-            "telephone",
-            "email",
-            "first_name",
-            "last_name",
-            "role",
-        )
-        model = User
-
 
 class SignUpSerializer(serializers.Serializer):
     telephone = serializers.CharField(
@@ -92,7 +83,8 @@ class SignUpSerializer(serializers.Serializer):
         ],
         max_length=17,
     )
-    password = serializers.CharField(max_length=254)
+    role = serializers.ChoiceField(choices=settings.ROLE_CHOICES)
+    password = serializers.CharField(write_only=True)
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
@@ -109,6 +101,21 @@ class SignUpSerializer(serializers.Serializer):
                     "Пользователь с таким email или phone уже активирован..."
                 )
         return data
+
+    class Meta:
+        model = User
+        fields = (
+            "telephone",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "password",
+        )
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)

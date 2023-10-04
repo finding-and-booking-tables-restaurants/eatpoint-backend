@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import User
-from api.permissions import IsUser
+from api.permissions import IsUser, IsRestaurateur
 from api.serializers.user import (
     MeSerializer,
     SignUpSerializer,
@@ -31,7 +31,7 @@ class UserView(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     lookup_field = "telephone"
     http_method_names = ["get", "patch"]
-    permission_classes = (IsUser,)
+    permission_classes = (IsUser | IsRestaurateur,)
 
     @action(
         url_path="me",
@@ -73,7 +73,6 @@ class SignUp(APIView):
         user, created = User.objects.get_or_create(
             telephone=request.data.get("telephone"),
             email=request.data.get("email"),
-            password=request.data.get("password"),
             first_name=request.data.get("first_name"),
             last_name=request.data.get("last_name"),
             is_active=False,
@@ -81,6 +80,7 @@ class SignUp(APIView):
         )
         message = user.confirm_code
         user.confirmation_code = message
+        user.set_password(request.data.get("password"))
         user.save()
 
         send_mail(

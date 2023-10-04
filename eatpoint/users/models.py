@@ -61,7 +61,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["telephone"]
+    REQUIRED_FIELDS = []
 
     class Meta:
         unique_together = ["telephone", "email"]
