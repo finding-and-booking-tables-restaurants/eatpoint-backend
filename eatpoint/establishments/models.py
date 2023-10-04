@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from phonenumber_field.modelfields import PhoneNumberField
+
 from users.models import User
 
 
@@ -159,8 +161,11 @@ class Establishment(models.Model):
         verbose_name="Время работы",
         null=True,
     )
-    busy = models.DateTimeField(
-        verbose_name="Часы загруженности",
+    busy_start = models.DateTimeField(
+        verbose_name="Часы загруженности начало",
+    )
+    busy_end = models.DateTimeField(
+        verbose_name="Часы загруженности конец",
     )
     # check = models.PositiveIntegerField(
     #     verbose_name="Средний чек",
@@ -178,9 +183,7 @@ class Establishment(models.Model):
         max_length=254,
         unique=True,
     )
-    telephone = models.IntegerField(
-        verbose_name="Телефон",
-    )
+    telephone = PhoneNumberField()
     social = models.CharField(
         verbose_name="Соц.сеть",
         max_length=1000,
