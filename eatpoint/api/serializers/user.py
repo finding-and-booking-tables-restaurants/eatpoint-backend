@@ -92,6 +92,7 @@ class SignUpSerializer(serializers.Serializer):
         ],
         max_length=17,
     )
+    password = serializers.CharField(max_length=254)
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)

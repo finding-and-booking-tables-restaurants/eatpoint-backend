@@ -52,6 +52,7 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     is_agreement = models.BooleanField("Agreement", default=False)
     is_active = models.BooleanField("Active", default=True)
+    is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -60,7 +61,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["telephone"]
 
     class Meta:
         unique_together = ["telephone", "email"]
@@ -75,24 +76,12 @@ class User(PermissionsMixin, AbstractBaseUser):
         return True
 
     @property
-    def is_staff(self):
-        return self.is_admin
-
-    @property
     def is_user(self):
         return self.role == settings.USER
 
     @property
-    def is_moderator(self):
-        return self.role == settings.MODERATOR
-
-    @property
-    def is_administrator(self):
-        return self.role == settings.ADMIN
-
-    @property
-    def is_superuser(self):
-        return self.role == settings.SUPERUSER
+    def is_restorateur(self):
+        return self.role == settings.RESTORATEUR
 
     @property
     def token(self):

@@ -11,6 +11,8 @@ class UserAdmin(admin.ModelAdmin):
         "first_name",
         "last_name",
         "role",
+        "is_staff",
+        "is_admin",
         "is_active",
         "created_at",
         "updated_at",

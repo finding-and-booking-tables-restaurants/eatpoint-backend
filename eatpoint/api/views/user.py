@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import User
-from api.permissions import IsAdmin, IsSuperuser, IsUser
+from api.permissions import IsUser
 from api.serializers.user import (
     MeSerializer,
     SignUpSerializer,
@@ -15,13 +15,23 @@ from api.serializers.user import (
 )
 
 
+@extend_schema_view(
+    retrieve=extend_schema(
+        summary="Получение профиля пользователя",
+        tags=["Профиль"],
+    ),
+    partial_update=extend_schema(
+        summary="Частичное изменение профиля пользователя",
+        tags=["Профиль"],
+    ),
+)
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     filter_backends = (filters.SearchFilter,)
     lookup_field = "telephone"
-    http_method_names = ["get", "post", "patch", "delete"]
-    permission_classes = (IsAdmin | IsSuperuser,)
+    http_method_names = ["get", "patch"]
+    permission_classes = (IsUser,)
 
     @action(
         url_path="me",
@@ -63,6 +73,7 @@ class SignUp(APIView):
         user, created = User.objects.get_or_create(
             telephone=request.data.get("telephone"),
             email=request.data.get("email"),
+            password=request.data.get("password"),
             first_name=request.data.get("first_name"),
             last_name=request.data.get("last_name"),
             is_active=False,
@@ -87,7 +98,7 @@ class SignUp(APIView):
 
 @extend_schema_view(
     post=extend_schema(
-        summary="Подтверждение пользователя",
+        summary="Подтверждение и активация пользователя",
         tags=["Аутентификация & Авторизация"],
     ),
 )

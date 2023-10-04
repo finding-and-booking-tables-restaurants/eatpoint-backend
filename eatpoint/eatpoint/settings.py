@@ -176,12 +176,11 @@ USER = "user"
 MODERATOR = "moderator"
 ADMIN = "admin"
 SUPERUSER = "superuser"
+RESTORATEUR = "restorateur"
 
 ROLE_CHOICES = (
     (USER, "Пользователь"),
-    (MODERATOR, "Модератор"),
-    (ADMIN, "Администратор"),
-    (SUPERUSER, "Суперюзер"),
+    (RESTORATEUR, "Ресторатор"),
 )
 
 
