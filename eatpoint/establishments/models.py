@@ -20,6 +20,13 @@ class Day(models.TextChoices):
     SUN = "Sunday", "воскресенье"
 
 
+class Check(models.TextChoices):
+    MIN = "до 1000"
+    LIT = "1000 - 2000"
+    MID = "2000 - 3000"
+    MAX = "от 3000"
+
+
 class Work(models.Model):
     name = models.CharField(
         verbose_name="День недели",
@@ -173,9 +180,10 @@ class Establishment(models.Model):
     busy_end = models.DateTimeField(
         verbose_name="Часы загруженности конец",
     )
-    # check = models.PositiveIntegerField(
-    #     verbose_name="Средний чек",
-    # )
+    check = models.CharField(
+        verbose_name="Средний чек",
+        choices=Check.choices,
+    )
     poster = models.ImageField(
         verbose_name="Постер заведения",
         upload_to="establishment/images/poster",
