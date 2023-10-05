@@ -4,9 +4,7 @@ from django.contrib.auth.models import BaseUserManager
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(
-        self, telephone, email=None, password=None, role=None, **extra_fields
-    ):
+    def create_user(self, telephone, email, password, role, **extra_fields):
         if not telephone:
             raise ValueError("Необходимо ввести телефон")
         if not email:
@@ -19,16 +17,14 @@ class UserManager(BaseUserManager):
             raise ValueError("Необходимо ввести last_name")
 
         email = self.normalize_email(email)
-        user = self.model(
-            telephone=telephone, email=email, role=role, **extra_fields
-        )
+        user = self.model(telephone, email, role, **extra_fields)
         user.is_staff = False
         user.is_superuser = False
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email=None, password=None, **extra_fields):
+    def create_superuser(self, email, password, **extra_fields):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.is_staff = True

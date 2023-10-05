@@ -5,22 +5,13 @@ import jwt
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.core.validators import RegexValidator
+from phonenumber_field.modelfields import PhoneNumberField
 
 from .usermanager import UserManager
 
 
 class User(PermissionsMixin, AbstractBaseUser):
-    telephone = models.CharField(
-        validators=[
-            RegexValidator(
-                regex=r"^\+?1?\d{9,15}$",
-                message="Неверный формат номера",
-            )
-        ],
-        max_length=17,
-        unique=True,
-    )
+    telephone = PhoneNumberField(unique=True)
     email = models.EmailField(
         verbose_name="email address",
         max_length=254,
@@ -40,7 +31,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     role = models.CharField(
         "User`s role",
         max_length=20,
-        default=settings.USER,
         choices=settings.ROLE_CHOICES,
     )
 

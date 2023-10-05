@@ -1,26 +1,16 @@
 from django.contrib.auth.password_validation import validate_password
-from django.core.validators import RegexValidator
 from rest_framework import serializers
 from users.models import User
 from django.conf import settings
+from phonenumber_field.serializerfields import PhoneNumberField
 
 
 class UserSerializer(serializers.ModelSerializer):
-    telephone = serializers.CharField(
-        validators=[
-            RegexValidator(
-                regex=r"^\+?1?\d{9,15}$",
-                message="Неверный формат номера",
-            )
-        ],
-        max_length=17,
-    )
+    telephone = PhoneNumberField()
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
-    role = serializers.ChoiceField(
-        choices=settings.ROLE_CHOICES, required=False
-    )
+    role = serializers.CharField()
 
     class Meta:
         fields = (
@@ -35,6 +25,10 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, data):
         email = data.get("email")
         telephone = data.get("telephone")
+        if data.get("role") not in (settings.USER, settings.RESTORATEUR):
+            raise serializers.ValidationError(
+                "Роль должна быть 'user' или 'restorateur'"
+            )
         if (
             User.objects.filter(email=email).exists()
             or User.objects.filter(telephone=telephone).exists()
@@ -56,51 +50,29 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
-    telephone = serializers.CharField(
-        validators=[
-            RegexValidator(
-                regex=r"^\+?1?\d{9,15}$",
-                message="Неверный формат номера",
-            )
-        ],
-        max_length=17,
-    )
+    telephone = PhoneNumberField()
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
-    role = serializers.ChoiceField(
-        choices=settings.ROLE_CHOICES, required=False, read_only=True
-    )
+
+    class Meta:
+        model = User
+        fields = (
+            "telephone",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+        )
 
 
 class SignUpSerializer(serializers.Serializer):
-    telephone = serializers.CharField(
-        validators=[
-            RegexValidator(
-                regex=r"^\+?1?\d{9,15}$",
-                message="Неверный формат номера",
-            )
-        ],
-        max_length=17,
-    )
-    role = serializers.ChoiceField(choices=settings.ROLE_CHOICES)
+    telephone = PhoneNumberField()
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
-
-    def validate(self, data):
-        email = data.get("email")
-        telephone = data.get("telephone")
-        if not User.objects.filter(telephone=telephone, email=email).exists():
-            if (
-                User.objects.filter(email=email).exists()
-                or User.objects.filter(telephone=telephone).exists()
-            ):
-                raise serializers.ValidationError(
-                    "Пользователь с таким email или phone уже активирован..."
-                )
-        return data
+    role = serializers.CharField()
 
     class Meta:
         model = User
@@ -113,6 +85,23 @@ class SignUpSerializer(serializers.Serializer):
             "password",
         )
 
+    def validate(self, data):
+        email = data.get("email")
+        telephone = data.get("telephone")
+        if data.get("role") not in (settings.USER, settings.RESTORATEUR):
+            raise serializers.ValidationError(
+                "Роль должна быть 'user' или 'restorateur'"
+            )
+        if not User.objects.filter(telephone=telephone, email=email).exists():
+            if (
+                User.objects.filter(email=email).exists()
+                or User.objects.filter(telephone=telephone).exists()
+            ):
+                raise serializers.ValidationError(
+                    "Пользователь с таким email или phone уже активирован..."
+                )
+        return data
+
     def validate_password(self, value):
         validate_password(value)
         return value
@@ -122,15 +111,7 @@ class SignUpSerializer(serializers.Serializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
-    telephone = serializers.CharField(
-        validators=[
-            RegexValidator(
-                regex=r"^\+?1?\d{9,15}$",
-                message="Неверный формат номера",
-            )
-        ],
-        max_length=17,
-    )
+    telephone = PhoneNumberField()
     confirmation_code = serializers.CharField(max_length=150)
     is_agreement = serializers.BooleanField(required=True)
     token = serializers.CharField(
@@ -138,8 +119,8 @@ class TokenSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("telephone", "confirmation_code", "is_agreement", "token")
         model = User
+        fields = ("telephone", "confirmation_code", "is_agreement", "token")
 
     def validate(self, data):
         telephone = data.get("telephone")
@@ -148,6 +129,6 @@ class TokenSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Необходимо ввести телефон")
         if confirmation_code is None:
             raise serializers.ValidationError(
-                "Необходимо ввести 6-ти значный код из эл.почты/sms"
+                "Необходимо ввести 6-ти значный код из эл.почты"
             )
         return data

@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import User
@@ -31,13 +32,13 @@ class UserView(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     lookup_field = "telephone"
     http_method_names = ["get", "patch"]
-    permission_classes = (IsUser | IsRestaurateur,)
+    permission_classes = (IsAdminUser,)
 
     @action(
         url_path="me",
         methods=["get", "patch"],
         detail=False,
-        permission_classes=(IsUser,),
+        permission_classes=(IsUser | IsRestaurateur,),
     )
     def me(self, request):
         serializer_class = MeSerializer
@@ -73,6 +74,7 @@ class SignUp(APIView):
         user, created = User.objects.get_or_create(
             telephone=request.data.get("telephone"),
             email=request.data.get("email"),
+            role=request.data.get("role"),
             first_name=request.data.get("first_name"),
             last_name=request.data.get("last_name"),
             is_active=False,
