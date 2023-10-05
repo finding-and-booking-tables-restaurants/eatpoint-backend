@@ -54,7 +54,11 @@ class User(PermissionsMixin, AbstractBaseUser):
     REQUIRED_FIELDS = []
 
     class Meta:
-        unique_together = ["telephone", "email"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("telephone", "email"), name="phone_email_unique"
+            )
+        ]
 
     def __str__(self):
         return self.email
