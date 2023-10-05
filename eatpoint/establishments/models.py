@@ -1,49 +1,37 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from phonenumber_field.modelfields import PhoneNumberField
+
+from core.choices import DAY_CHOICES, TIME_CHOICES, CHECK_CHOICES
+from core.constants import MAX_SEATS, MIN_SEATS
 from users.models import User
-
-
-TIME_CHOICES = (("11:00", "dasd"), ("11:30", "asdsd"))
-
-
-class Day(models.TextChoices):
-    """День недели"""
-
-    MON = "Monday", "понедельник"
-    TUE = "Tuesday", "вторник"
-    WED = "Wednesday", "среда"
-    THU = "Thursday", "четверг"
-    FRI = "Friday", "пятница"
-    SAT = "Saturday", "суббота"
-    SUN = "Sunday", "воскресенье"
 
 
 class Work(models.Model):
     name = models.CharField(
         verbose_name="День недели",
         max_length=100,
-        choices=Day.choices,
+        choices=DAY_CHOICES,
     )
-    start = models.TimeField(
-        verbose_name="Начало работы",
+    start = models.CharField(
+        verbose_name="Начало работы", choices=TIME_CHOICES, max_length=145
     )
-    end = models.TimeField(
-        verbose_name="Конец работы",
-    )
-    lunch_start = models.TimeField(
-        verbose_name="Начало обеда",
-        blank=True,
-        null=True,
-    )
-    lunch_end = models.TimeField(
-        verbose_name="Конец обеда",
-        blank=True,
-        null=True,
+    end = models.CharField(
+        verbose_name="Конец работы", choices=TIME_CHOICES, max_length=145
     )
 
     class Meta:
         verbose_name = "Время работы"
         verbose_name_plural = "Время работы"
+
+    def clean(self):
+        if self.start >= self.end:
+            raise ValidationError(
+                {
+                    "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
+                }
+            )
 
     def __str__(self):
         return self.name
@@ -134,6 +122,12 @@ class File(models.Model):
 class Establishment(models.Model):
     """Заведение"""
 
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="establishment",
+        verbose_name="Владелец",
+    )
     name = models.CharField(
         verbose_name="Название заведения",
         max_length=200,
@@ -169,12 +163,21 @@ class Establishment(models.Model):
         verbose_name="Время работы",
         null=True,
     )
-    busy = models.DateTimeField(
-        verbose_name="Часы загруженности",
+    busy_start = models.CharField(
+        verbose_name="Часы загруженности начало",
+        choices=TIME_CHOICES,
+        max_length=10,
     )
-    # check = models.PositiveIntegerField(
-    #     verbose_name="Средний чек",
-    # )
+    busy_end = models.CharField(
+        verbose_name="Часы загруженности конец",
+        choices=TIME_CHOICES,
+        max_length=10,
+    )
+    average_check = models.CharField(
+        verbose_name="Средний чек",
+        max_length=120,
+        choices=CHECK_CHOICES,
+    )
     poster = models.ImageField(
         verbose_name="Постер заведения",
         upload_to="establishment/images/poster",
@@ -188,9 +191,7 @@ class Establishment(models.Model):
         max_length=254,
         unique=True,
     )
-    telephone = models.IntegerField(
-        verbose_name="Телефон",
-    )
+    telephone = PhoneNumberField()
     social = models.CharField(
         verbose_name="Соц.сеть",
         max_length=1000,
@@ -203,7 +204,6 @@ class Establishment(models.Model):
         verbose_name="Верификация заведения",
         default=False,
     )
-    # добавить владельцаcd
 
     class Meta:
         verbose_name = "Заведение"
@@ -211,6 +211,14 @@ class Establishment(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        if self.busy_start >= self.busy_end:
+            raise ValidationError(
+                {
+                    "busy_end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
+                }
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -222,17 +230,17 @@ class Establishment(models.Model):
 
 
 class WorkEstablishment(models.Model):
-    order_dt = models.ForeignKey(
-        Work,
-        verbose_name="Время работы",
-        on_delete=models.SET_NULL,
-        null=True,
-    )
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
+    )
+    order_dt = models.ForeignKey(
+        Work,
+        verbose_name="Время работы",
+        on_delete=models.SET_NULL,
+        null=True,
     )
 
     class Meta:
@@ -240,7 +248,7 @@ class WorkEstablishment(models.Model):
         verbose_name_plural = "Время работы"
 
     def __str__(self):
-        return f"{self.establishment.name}: {self.order_dt}"
+        return self.order_dt.name
 
 
 class FileEstablishment(models.Model):
@@ -287,11 +295,11 @@ class TableEstablishment(models.Model):
         verbose_name="Количество мест",
         validators=[
             MaxValueValidator(
-                100,  # заменить на константы
+                MAX_SEATS,
                 message="Количество мест слишком большое",
             ),
             MinValueValidator(
-                1,  # заменить на константы
+                MIN_SEATS,
                 message="Количество мест не может быть меньше 1",
             ),
         ],
