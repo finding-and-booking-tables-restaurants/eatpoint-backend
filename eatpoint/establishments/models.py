@@ -3,25 +3,9 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
-from establishments.services import time_generator, choices_generator
+from core.choices import DAY_CHOICES, TIME_CHOICES, CHECK_CHOICES
+from core.constants import MAX_SEATS, MIN_SEATS
 from users.models import User
-
-
-DAYS = [
-    "понедельник",
-    "вторник",
-    "среда",
-    "четверг",
-    "пятница",
-    "суббота",
-    "воскресенье",
-]
-CHECKS = ["до 1000", "1000 - 2000", "2000 - 3000", "от 3000"]
-
-
-TIME_CHOICES = choices_generator(time_generator())
-CHECK_CHOICES = choices_generator(CHECKS)
-DAY_CHOICES = choices_generator(DAYS)
 
 
 class Work(models.Model):
@@ -220,7 +204,6 @@ class Establishment(models.Model):
         verbose_name="Верификация заведения",
         default=False,
     )
-    # добавить владельцаcd
 
     class Meta:
         verbose_name = "Заведение"
@@ -312,11 +295,11 @@ class TableEstablishment(models.Model):
         verbose_name="Количество мест",
         validators=[
             MaxValueValidator(
-                100,  # заменить на константы
+                MAX_SEATS,
                 message="Количество мест слишком большое",
             ),
             MinValueValidator(
-                1,  # заменить на константы
+                MIN_SEATS,
                 message="Количество мест не может быть меньше 1",
             ),
         ],
