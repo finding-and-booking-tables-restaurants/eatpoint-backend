@@ -2,9 +2,9 @@ from django.conf import settings
 from django.core.mail import send_mail
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, status, viewsets, mixins
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import User
@@ -31,33 +31,30 @@ from api.serializers.user import (
     # destroy=extend_schema(
     #     summary="Детальная информация о пользователе (id=номер телефона)",
     # ),
-    partial_update=extend_schema(
-        summary="Изменить профиль пользователя с id=номер телефона",
-    ),
 )
-class UserView(viewsets.ModelViewSet):
+class UserViewSet(
+    mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
+):
+    allowed_methods = ["get"]
     serializer_class = UserSerializer
     queryset = User.objects.all()
     filter_backends = (filters.SearchFilter,)
     lookup_field = "telephone"
-    http_method_names = ["get", "patch"]
-    permission_classes = (IsAdminUser,)
+    permission_classes = [IsAdminUser]
 
     @extend_schema(
         summary="Редактирование профиля",
-        description="Override a specific method",
         methods=["PATCH"],
     )
     @extend_schema(
         summary="Профиль пользователя",
-        description="Override a specific method",
         methods=["GET"],
     )
     @action(
         url_path="me",
         methods=["get", "patch"],
         detail=False,
-        permission_classes=(IsUser | IsRestaurateur,),
+        permission_classes=(IsUser | IsRestaurateur, IsAuthenticated),
     )
     def me(self, request):
         serializer_class = MeSerializer
@@ -66,7 +63,7 @@ class UserView(viewsets.ModelViewSet):
             return Response(serializer.data)
 
         if request.method == "PATCH":
-            user = User.objects.get(telephone=request._user)
+            user = User.objects.get(telephone=request._user.telephone)
             serializer = serializer_class(
                 user, data=request.data, partial=True
             )

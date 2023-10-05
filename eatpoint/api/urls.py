@@ -5,7 +5,7 @@ from api.views.establishments import EstablishmentViewSet
 from api.views.user import (
     SignUp,
     TokenView,
-    UserView,
+    UserViewSet,
 )
 
 router = DefaultRouter()
@@ -13,7 +13,7 @@ router = DefaultRouter()
 router.register(
     "establishments", EstablishmentViewSet, basename="establishments"
 )
-router.register("users", UserView),
+router.register("users", UserViewSet, basename="users"),
 
 urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),

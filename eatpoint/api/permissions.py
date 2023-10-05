@@ -1,9 +1,11 @@
+from django.conf import settings
 from rest_framework import permissions
 
 
 class IsUser(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated
+        if request.user.is_authenticated:
+            return request.user.role == settings.USER
 
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user
@@ -11,7 +13,8 @@ class IsUser(permissions.BasePermission):
 
 class IsRestaurateur(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_restaurateur
+        if request.user.is_authenticated:
+            return request.user.role == settings.RESTORATEUR
 
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user
