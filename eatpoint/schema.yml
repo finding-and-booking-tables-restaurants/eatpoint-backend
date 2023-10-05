@@ -1,0 +1,439 @@
+openapi: 3.0.3
+info:
+  title: EatPoint API
+  version: 1.0.0
+  description: Документация для API сервиса
+paths:
+  /api/v1/auth/signup/:
+    post:
+      operationId: api_v1_auth_signup_create
+      summary: Регистрация
+      tags:
+      - SignUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignUp'
+          description: ''
+  /api/v1/auth/token/:
+    post:
+      operationId: api_v1_auth_token_create
+      summary: Получить токен
+      tags:
+      - SignUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Token'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Token'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Token'
+        required: true
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+          description: ''
+  /api/v1/establishments/:
+    get:
+      operationId: api_v1_establishments_list
+      summary: Получить список заведений
+      tags:
+      - Establishment
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Establishment'
+          description: ''
+  /api/v1/establishments/{id}/:
+    get:
+      operationId: api_v1_establishments_retrieve
+      summary: Детальная информация о заведении
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заведение.
+        required: true
+      tags:
+      - Establishment
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Establishment'
+          description: ''
+  /api/v1/users/:
+    get:
+      operationId: api_v1_users_list
+      summary: Список пользователей
+      parameters:
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Пользователи
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/{telephone}/:
+    get:
+      operationId: api_v1_users_retrieve
+      summary: Детальная информация о пользователе (id=номер телефона)
+      parameters:
+      - in: path
+        name: telephone
+        schema:
+          type: string
+        required: true
+      tags:
+      - Пользователи
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: api_v1_users_partial_update
+      summary: Изменить профиль пользователя с id=номер телефона
+      parameters:
+      - in: path
+        name: telephone
+        schema:
+          type: string
+        required: true
+      tags:
+      - Пользователи
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/me/:
+    get:
+      operationId: api_v1_users_me_retrieve
+      description: Override a specific method
+      summary: Профиль пользователя
+      tags:
+      - Пользователи
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: api_v1_users_me_partial_update
+      description: Override a specific method
+      summary: Редактирование профиля
+      tags:
+      - Пользователи
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+components:
+  schemas:
+    Establishment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        worked:
+          type: string
+          readOnly: true
+        kitchen:
+          type: array
+          items:
+            $ref: '#/components/schemas/Kitchen'
+          readOnly: true
+        name:
+          type: string
+          title: Название заведения
+          maxLength: 200
+        address:
+          type: string
+          title: Адрес заведения
+          maxLength: 1000
+        busy:
+          type: string
+          format: date-time
+          title: Часы загруженности
+        poster:
+          type: string
+          format: uri
+          title: Постер заведения
+        imagetables:
+          type: string
+          format: uri
+          title: План
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        telephone:
+          type: integer
+          title: Телефон
+        social:
+          type: string
+          title: Соц.сеть
+          maxLength: 1000
+        description:
+          type: string
+          title: Описание заведения
+          maxLength: 5000
+        is_verified:
+          type: boolean
+          title: Верификация заведения
+        tables:
+          type: array
+          items:
+            type: integer
+            title: Столы заведения
+          readOnly: true
+          title: Столы заведения
+        file:
+          type: array
+          items:
+            type: integer
+            title: Изображения заведения
+          readOnly: true
+          title: Изображения заведения
+        services:
+          type: array
+          items:
+            type: integer
+            title: Услуга заведения
+          title: Услуга заведения
+      required:
+      - address
+      - busy
+      - description
+      - email
+      - file
+      - id
+      - imagetables
+      - kitchen
+      - name
+      - poster
+      - services
+      - social
+      - tables
+      - telephone
+      - worked
+    Kitchen:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Название кухни
+          maxLength: 200
+        description:
+          type: string
+          title: Описание кухни
+          maxLength: 2000
+        slug:
+          type: string
+          title: Ссылка на кухню
+          maxLength: 200
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - description
+      - id
+      - name
+      - slug
+    PatchedUser:
+      type: object
+      properties:
+        telephone:
+          type: string
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+    RoleEnum:
+      enum:
+      - user
+      - moderator
+      - admin
+      - superuser
+      type: string
+      description: |-
+        * `user` - Пользователь
+        * `moderator` - Модератор
+        * `admin` - Администратор
+        * `superuser` - Суперюзер
+    SignUp:
+      type: object
+      properties:
+        telephone:
+          type: string
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+      required:
+      - email
+      - first_name
+      - last_name
+      - telephone
+    Token:
+      type: object
+      properties:
+        telephone:
+          type: string
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        confirmation_code:
+          type: string
+          maxLength: 150
+        is_agreement:
+          type: boolean
+        token:
+          type: string
+          readOnly: true
+          maxLength: 255
+      required:
+      - confirmation_code
+      - is_agreement
+      - telephone
+      - token
+    User:
+      type: object
+      properties:
+        telephone:
+          type: string
+          pattern: ^\+?1?\d{9,15}$
+          maxLength: 17
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - email
+      - first_name
+      - last_name
+      - telephone
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"

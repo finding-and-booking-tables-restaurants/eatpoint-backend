@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.mail import send_mail
+
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -16,14 +17,22 @@ from api.serializers.user import (
 )
 
 
+@extend_schema(tags=["Пользователи"], methods=["GET", "PATCH"])
 @extend_schema_view(
-    retrieve=extend_schema(
-        summary="Получение профиля пользователя",
-        tags=["Профиль"],
+    list=extend_schema(
+        summary="Список пользователей",
     ),
+    # me=extend_schema(
+    #     summary="Детальная информация о текущем пользователе",
+    # ),
+    retrieve=extend_schema(
+        summary="Детальная информация о пользователе (id=номер телефона)",
+    ),
+    # destroy=extend_schema(
+    #     summary="Детальная информация о пользователе (id=номер телефона)",
+    # ),
     partial_update=extend_schema(
-        summary="Частичное изменение профиля пользователя",
-        tags=["Профиль"],
+        summary="Изменить профиль пользователя с id=номер телефона",
     ),
 )
 class UserView(viewsets.ModelViewSet):
@@ -34,6 +43,16 @@ class UserView(viewsets.ModelViewSet):
     http_method_names = ["get", "patch"]
     permission_classes = (IsAdminUser,)
 
+    @extend_schema(
+        summary="Редактирование профиля",
+        description="Override a specific method",
+        methods=["PATCH"],
+    )
+    @extend_schema(
+        summary="Профиль пользователя",
+        description="Override a specific method",
+        methods=["GET"],
+    )
     @action(
         url_path="me",
         methods=["get", "patch"],
@@ -59,10 +78,10 @@ class UserView(viewsets.ModelViewSet):
             )
 
 
+@extend_schema(tags=["SignUp"], methods=["POST"])
 @extend_schema_view(
     post=extend_schema(
-        summary="Регистрация пользователя",
-        tags=["Аутентификация & Авторизация"],
+        summary="Регистрация",
     ),
 )
 class SignUp(APIView):
@@ -98,10 +117,10 @@ class SignUp(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["SignUp"], methods=["POST"])
 @extend_schema_view(
     post=extend_schema(
-        summary="Подтверждение и активация пользователя",
-        tags=["Аутентификация & Авторизация"],
+        summary="Получить токен",
     ),
 )
 class TokenView(APIView):
