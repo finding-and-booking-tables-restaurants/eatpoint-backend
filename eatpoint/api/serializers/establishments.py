@@ -33,16 +33,22 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(
         source="order_dt.name",
     )
-    start = serializers.ReadOnlyField(
+    start = serializers.TimeField(
         source="order_dt.start",
+        format="%I:%M",
     )
-    end = serializers.ReadOnlyField(
+    end = serializers.TimeField(
         source="order_dt.end",
+        format="%I:%M",
     )
 
     class Meta:
         model = WorkEstablishment
-        fields = "__all__"
+        fields = [
+            "name",
+            "start",
+            "end",
+        ]
 
 
 class TableEstablishmentSerializer(serializers.ModelSerializer):
