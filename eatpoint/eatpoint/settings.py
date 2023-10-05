@@ -43,10 +43,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "phonenumber_field",
-    "establishments.apps.EstablishmentsConfig",
     "jwt",
-    "api.apps.ApiConfig",
     "users.apps.UsersConfig",
+    "establishments.apps.EstablishmentsConfig",
+    "api.apps.ApiConfig",
+    "core.apps.CoreConfig",
 ]
 
 MIDDLEWARE = [
