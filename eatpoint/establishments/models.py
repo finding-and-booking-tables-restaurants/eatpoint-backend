@@ -1,45 +1,53 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
+from establishments.services import time_generator, choices_generator
 from users.models import User
 
 
-class Day(models.TextChoices):
-    """День недели"""
+DAYS = [
+    "понедельник",
+    "вторник",
+    "среда",
+    "четверг",
+    "пятница",
+    "суббота",
+    "воскресенье",
+]
+CHECKS = ["до 1000", "1000 - 2000", "2000 - 3000", "от 3000"]
 
-    MON = "понедельник"
-    TUE = "вторник"
-    WED = "среда"
-    THU = "четверг"
-    FRI = "пятница"
-    SAT = "суббота"
-    SUN = "воскресенье"
 
-
-class AverageCheck(models.TextChoices):
-    MIN = "до 1000"
-    LIT = "1000 - 2000"
-    MID = "2000 - 3000"
-    MAX = "от 3000"
+TIME_CHOICES = choices_generator(time_generator())
+CHECK_CHOICES = choices_generator(CHECKS)
+DAY_CHOICES = choices_generator(DAYS)
 
 
 class Work(models.Model):
     name = models.CharField(
         verbose_name="День недели",
         max_length=100,
-        choices=Day.choices,
+        choices=DAY_CHOICES,
     )
-    start = models.TimeField(
-        verbose_name="Начало работы",
+    start = models.CharField(
+        verbose_name="Начало работы", choices=TIME_CHOICES, max_length=145
     )
-    end = models.TimeField(
-        verbose_name="Конец работы",
+    end = models.CharField(
+        verbose_name="Конец работы", choices=TIME_CHOICES, max_length=145
     )
 
     class Meta:
         verbose_name = "Время работы"
         verbose_name_plural = "Время работы"
+
+    def clean(self):
+        if self.start >= self.end:
+            raise ValidationError(
+                {
+                    "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
+                }
+            )
 
     def __str__(self):
         return self.name
@@ -171,16 +179,20 @@ class Establishment(models.Model):
         verbose_name="Время работы",
         null=True,
     )
-    busy_start = models.DateTimeField(
+    busy_start = models.CharField(
         verbose_name="Часы загруженности начало",
+        choices=TIME_CHOICES,
+        max_length=10,
     )
-    busy_end = models.DateTimeField(
+    busy_end = models.CharField(
         verbose_name="Часы загруженности конец",
+        choices=TIME_CHOICES,
+        max_length=10,
     )
     average_check = models.CharField(
         verbose_name="Средний чек",
         max_length=120,
-        choices=AverageCheck.choices,
+        choices=CHECK_CHOICES,
     )
     poster = models.ImageField(
         verbose_name="Постер заведения",
@@ -216,6 +228,14 @@ class Establishment(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        if self.busy_start >= self.busy_end:
+            raise ValidationError(
+                {
+                    "busy_end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
+                }
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
