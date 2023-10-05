@@ -1,6 +1,21 @@
+from drf_spectacular.utils import (
+    extend_schema_field,
+)
 from rest_framework import serializers
 
-from establishments.models import Establishment, WorkEstablishment, Kitchen
+from establishments.models import (
+    Establishment,
+    WorkEstablishment,
+    Kitchen,
+    Work,
+    TableEstablishment,
+)
+
+
+class WorkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Work
+        fields = "__all__"
 
 
 class KitchenSerializer(serializers.ModelSerializer):
@@ -24,32 +39,45 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
     end = serializers.ReadOnlyField(
         source="order_dt.end",
     )
-    lunch_start = serializers.ReadOnlyField(
-        source="order_dt.lunch_start",
-    )
-    lunch_end = serializers.ReadOnlyField(
-        source="order_dt.lunch_end",
-    )
 
     class Meta:
         model = WorkEstablishment
+        fields = "__all__"
+
+
+class TableEstablishmentSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source="table.id")
+    name = serializers.ReadOnlyField(source="table.name")
+    description = serializers.ReadOnlyField(source="table.description")
+    slug = serializers.ReadOnlyField(source="table.slug")
+
+    class Meta:
+        model = TableEstablishment
         fields = [
+            "id",
             "name",
-            "start",
-            "end",
-            "lunch_start",
-            "lunch_end",
+            "description",
+            "slug",
+            "seats",
+            "status",
         ]
 
 
 class EstablishmentSerializer(serializers.ModelSerializer):
     worked = serializers.SerializerMethodField("get_work")
     kitchen = KitchenSerializer(read_only=True, many=True)
+    tables = serializers.SerializerMethodField("get_table")
 
     class Meta:
         fields = "__all__"
         model = Establishment
 
+    @extend_schema_field(WorkSerializer(many=True))
     def get_work(self, obj):
         order_dt = WorkEstablishment.objects.filter(establishment=obj)
         return WorkEstablishmentSerializer(order_dt, many=True).data
+
+    @extend_schema_field(TableEstablishmentSerializer(many=True))
+    def get_table(self, obj):
+        table = TableEstablishment.objects.filter(establishment=obj)
+        return TableEstablishmentSerializer(table, many=True).data
