@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.mail import send_mail
+from django.db import IntegrityError
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import filters, status, viewsets, mixins
@@ -88,31 +89,39 @@ class SignUp(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user, created = User.objects.get_or_create(
-            telephone=request.data.get("telephone"),
-            email=request.data.get("email"),
-            role=request.data.get("role"),
-            first_name=request.data.get("first_name"),
-            last_name=request.data.get("last_name"),
-            is_active=False,
-            is_agreement=False,
-        )
-        user.set_password(request.data.get("password"))
-        message = user.confirm_code
-        user.confirmation_code = message
-        user.save()
+        try:
+            user, created = User.objects.get_or_create(
+                telephone=request.data.get("telephone"),
+                email=request.data.get("email"),
+                role=request.data.get("role"),
+                first_name=request.data.get("first_name"),
+                last_name=request.data.get("last_name"),
+                is_active=False,
+                is_agreement=False,
+            )
+            user.set_password(request.data.get("password"))
+            message = user.confirm_code
+            user.confirmation_code = message
+            user.save()
+            send_mail(
+                "Код подтверждения EatPoint",
+                f"Код для подтверждения на сайте: {message}",
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
 
-        send_mail(
-            "Код подтверждения EatPoint",
-            f"Код для подтверждения на сайте: {message}",
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
-
-        if created:
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_200_OK)
+            if created:
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                "На Ваш email отправлен код подтверждения",
+                status=status.HTTP_200_OK,
+            )
+        except IntegrityError:
+            return Response(
+                "Аккаунт уже зарегистрирован, " "авторизуйтесь...",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 @extend_schema(tags=["SignUp"], methods=["POST"])
@@ -134,6 +143,11 @@ class TokenView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         user = User.objects.get(telephone=telephone)
+        if user.is_active:
+            return Response(
+                "Аккаунт уже зарегистрирован, авторизуйтесь",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if user.confirmation_code == confirmation_code and request.data.get(
             "is_agreement"
         ):
