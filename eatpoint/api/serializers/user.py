@@ -132,3 +132,18 @@ class TokenSerializer(serializers.ModelSerializer):
                 "Необходимо ввести 6-ти значный код из эл.почты"
             )
         return data
+
+
+class CodeSerializer(serializers.ModelSerializer):
+    telephone = PhoneNumberField()
+    is_agreement = serializers.BooleanField(required=True)
+
+    class Meta:
+        model = User
+        fields = ("telephone", "is_agreement")
+
+    def validate(self, data):
+        telephone = data.get("telephone")
+        if telephone is None:
+            raise serializers.ValidationError("Необходимо ввести телефон")
+        return data

@@ -14,6 +14,7 @@ from api.serializers.user import (
     SignUpSerializer,
     TokenSerializer,
     UserSerializer,
+    CodeSerializer,
 )
 
 
@@ -96,9 +97,9 @@ class SignUp(APIView):
             is_active=False,
             is_agreement=False,
         )
+        user.set_password(request.data.get("password"))
         message = user.confirm_code
         user.confirmation_code = message
-        user.set_password(request.data.get("password"))
         user.save()
 
         send_mail(
@@ -117,7 +118,7 @@ class SignUp(APIView):
 @extend_schema(tags=["SignUp"], methods=["POST"])
 @extend_schema_view(
     post=extend_schema(
-        summary="Получить токен",
+        summary="Получить код подтверждения",
     ),
 )
 class TokenView(APIView):
@@ -138,6 +139,7 @@ class TokenView(APIView):
         ):
             user.is_active = True
             user.is_agreement = True
+            user.confirmation_code = ""
             user.save()
 
             send_mail(
@@ -154,3 +156,35 @@ class TokenView(APIView):
             "Вы ввели не правильный код",
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+@extend_schema(tags=["SignUp"], methods=["POST"])
+@extend_schema_view(
+    post=extend_schema(
+        summary="Обновление кода подтверждения",
+    ),
+)
+class ConfirmCodeRefresh(APIView):
+    serializer_class = CodeSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        telephone = request.data.get("telephone")
+
+        if not User.objects.filter(telephone=telephone).exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        user = User.objects.get(telephone=telephone)
+        user.confirmation_code = user.confirm_code
+        message = user.confirmation_code
+        user.save()
+
+        send_mail(
+            "Код подтверждения EatPoint",
+            f"Код для подтверждения на сайте: {message}",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+        return Response(status=status.HTTP_200_OK)
