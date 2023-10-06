@@ -221,6 +221,150 @@ paths:
           description: ''
 components:
   schemas:
+    AverageCheckEnum:
+      enum:
+      - до 1000
+      - 1000 - 2000
+      - 2000 - 3000
+      - от 3000
+      type: string
+      description: |-
+        * `до 1000` - до 1000
+        * `1000 - 2000` - 1000 - 2000
+        * `2000 - 3000` - 2000 - 3000
+        * `от 3000` - от 3000
+    BusyEndEnum:
+      enum:
+      - 08:00
+      - 08:30
+      - 09:00
+      - 09:30
+      - '10:00'
+      - '10:30'
+      - '11:00'
+      - '11:30'
+      - '12:00'
+      - '12:30'
+      - '13:00'
+      - '13:30'
+      - '14:00'
+      - '14:30'
+      - '15:00'
+      - '15:30'
+      - '16:00'
+      - '16:30'
+      - '17:00'
+      - '17:30'
+      type: string
+      description: |-
+        * `08:00` - 08:00
+        * `08:30` - 08:30
+        * `09:00` - 09:00
+        * `09:30` - 09:30
+        * `10:00` - 10:00
+        * `10:30` - 10:30
+        * `11:00` - 11:00
+        * `11:30` - 11:30
+        * `12:00` - 12:00
+        * `12:30` - 12:30
+        * `13:00` - 13:00
+        * `13:30` - 13:30
+        * `14:00` - 14:00
+        * `14:30` - 14:30
+        * `15:00` - 15:00
+        * `15:30` - 15:30
+        * `16:00` - 16:00
+        * `16:30` - 16:30
+        * `17:00` - 17:00
+        * `17:30` - 17:30
+    BusyStartEnum:
+      enum:
+      - 08:00
+      - 08:30
+      - 09:00
+      - 09:30
+      - '10:00'
+      - '10:30'
+      - '11:00'
+      - '11:30'
+      - '12:00'
+      - '12:30'
+      - '13:00'
+      - '13:30'
+      - '14:00'
+      - '14:30'
+      - '15:00'
+      - '15:30'
+      - '16:00'
+      - '16:30'
+      - '17:00'
+      - '17:30'
+      type: string
+      description: |-
+        * `08:00` - 08:00
+        * `08:30` - 08:30
+        * `09:00` - 09:00
+        * `09:30` - 09:30
+        * `10:00` - 10:00
+        * `10:30` - 10:30
+        * `11:00` - 11:00
+        * `11:30` - 11:30
+        * `12:00` - 12:00
+        * `12:30` - 12:30
+        * `13:00` - 13:00
+        * `13:30` - 13:30
+        * `14:00` - 14:00
+        * `14:30` - 14:30
+        * `15:00` - 15:00
+        * `15:30` - 15:30
+        * `16:00` - 16:00
+        * `16:30` - 16:30
+        * `17:00` - 17:00
+        * `17:30` - 17:30
+    EndEnum:
+      enum:
+      - 08:00
+      - 08:30
+      - 09:00
+      - 09:30
+      - '10:00'
+      - '10:30'
+      - '11:00'
+      - '11:30'
+      - '12:00'
+      - '12:30'
+      - '13:00'
+      - '13:30'
+      - '14:00'
+      - '14:30'
+      - '15:00'
+      - '15:30'
+      - '16:00'
+      - '16:30'
+      - '17:00'
+      - '17:30'
+      type: string
+      description: |-
+        * `08:00` - 08:00
+        * `08:30` - 08:30
+        * `09:00` - 09:00
+        * `09:30` - 09:30
+        * `10:00` - 10:00
+        * `10:30` - 10:30
+        * `11:00` - 11:00
+        * `11:30` - 11:30
+        * `12:00` - 12:00
+        * `12:30` - 12:30
+        * `13:00` - 13:00
+        * `13:30` - 13:30
+        * `14:00` - 14:00
+        * `14:30` - 14:30
+        * `15:00` - 15:00
+        * `15:30` - 15:30
+        * `16:00` - 16:00
+        * `16:30` - 16:30
+        * `17:00` - 17:00
+        * `17:30` - 17:30
     Establishment:
       type: object
       properties:
@@ -228,12 +372,19 @@ components:
           type: integer
           readOnly: true
         worked:
-          type: string
+          type: array
+          items:
+            $ref: '#/components/schemas/Work'
           readOnly: true
         kitchen:
           type: array
           items:
             $ref: '#/components/schemas/Kitchen'
+          readOnly: true
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableEstablishment'
           readOnly: true
         name:
           type: string
@@ -243,10 +394,18 @@ components:
           type: string
           title: Адрес заведения
           maxLength: 1000
-        busy:
-          type: string
-          format: date-time
-          title: Часы загруженности
+        busy_start:
+          allOf:
+          - $ref: '#/components/schemas/BusyStartEnum'
+          title: Часы загруженности начало
+        busy_end:
+          allOf:
+          - $ref: '#/components/schemas/BusyEndEnum'
+          title: Часы загруженности конец
+        average_check:
+          allOf:
+          - $ref: '#/components/schemas/AverageCheckEnum'
+          title: Средний чек
         poster:
           type: string
           format: uri
@@ -260,8 +419,8 @@ components:
           format: email
           maxLength: 254
         telephone:
-          type: integer
-          title: Телефон
+          type: string
+          maxLength: 128
         social:
           type: string
           title: Соц.сеть
@@ -273,13 +432,9 @@ components:
         is_verified:
           type: boolean
           title: Верификация заведения
-        tables:
-          type: array
-          items:
-            type: integer
-            title: Столы заведения
-          readOnly: true
-          title: Столы заведения
+        owner:
+          type: integer
+          title: Владелец
         file:
           type: array
           items:
@@ -295,7 +450,9 @@ components:
           title: Услуга заведения
       required:
       - address
-      - busy
+      - average_check
+      - busy_end
+      - busy_start
       - description
       - email
       - file
@@ -303,6 +460,7 @@ components:
       - imagetables
       - kitchen
       - name
+      - owner
       - poster
       - services
       - social
@@ -333,6 +491,24 @@ components:
       - id
       - name
       - slug
+    NameEnum:
+      enum:
+      - понедельник
+      - вторник
+      - среда
+      - четверг
+      - пятница
+      - суббота
+      - воскресенье
+      type: string
+      description: |-
+        * `понедельник` - понедельник
+        * `вторник` - вторник
+        * `среда` - среда
+        * `четверг` - четверг
+        * `пятница` - пятница
+        * `суббота` - суббота
+        * `воскресенье` - воскресенье
     PatchedUser:
       type: object
       properties:
@@ -386,6 +562,82 @@ components:
       - first_name
       - last_name
       - telephone
+    StartEnum:
+      enum:
+      - 08:00
+      - 08:30
+      - 09:00
+      - 09:30
+      - '10:00'
+      - '10:30'
+      - '11:00'
+      - '11:30'
+      - '12:00'
+      - '12:30'
+      - '13:00'
+      - '13:30'
+      - '14:00'
+      - '14:30'
+      - '15:00'
+      - '15:30'
+      - '16:00'
+      - '16:30'
+      - '17:00'
+      - '17:30'
+      type: string
+      description: |-
+        * `08:00` - 08:00
+        * `08:30` - 08:30
+        * `09:00` - 09:00
+        * `09:30` - 09:30
+        * `10:00` - 10:00
+        * `10:30` - 10:30
+        * `11:00` - 11:00
+        * `11:30` - 11:30
+        * `12:00` - 12:00
+        * `12:30` - 12:30
+        * `13:00` - 13:00
+        * `13:30` - 13:30
+        * `14:00` - 14:00
+        * `14:30` - 14:30
+        * `15:00` - 15:00
+        * `15:30` - 15:30
+        * `16:00` - 16:00
+        * `16:30` - 16:30
+        * `17:00` - 17:00
+        * `17:30` - 17:30
+    TableEstablishment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Название стола
+          readOnly: true
+        description:
+          type: string
+          title: Описание стола
+          readOnly: true
+        slug:
+          type: string
+          title: Ссылка на стол
+          readOnly: true
+        seats:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Количество мест
+        status:
+          type: boolean
+          title: Статус стола занят/свободен
+      required:
+      - description
+      - id
+      - name
+      - seats
+      - slug
     Token:
       type: object
       properties:
@@ -431,6 +683,29 @@ components:
       - first_name
       - last_name
       - telephone
+    Work:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          allOf:
+          - $ref: '#/components/schemas/NameEnum'
+          title: День недели
+        start:
+          allOf:
+          - $ref: '#/components/schemas/StartEnum'
+          title: Начало работы
+        end:
+          allOf:
+          - $ref: '#/components/schemas/EndEnum'
+          title: Конец работы
+      required:
+      - end
+      - id
+      - name
+      - start
   securitySchemes:
     tokenAuth:
       type: apiKey
