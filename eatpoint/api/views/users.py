@@ -21,20 +21,13 @@ from api.serializers.users import (
 )
 
 
-@extend_schema(tags=["Пользователи"], methods=["GET", "PATCH"])
+@extend_schema(tags=["Пользователи"])
 @extend_schema_view(
-    list=extend_schema(
-        summary="Список пользователей",
-    ),
-    # me=extend_schema(
-    #     summary="Детальная информация о текущем пользователе",
-    # ),
+    list=extend_schema(summary="Список пользователей", methods=["GET"]),
     retrieve=extend_schema(
         summary="Детальная информация о пользователе (id=номер телефона)",
+        methods=["GET"],
     ),
-    # destroy=extend_schema(
-    #     summary="Детальная информация о пользователе (id=номер телефона)",
-    # ),
 )
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
@@ -54,7 +47,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         methods=["GET", "PATCH"],
         detail=False,
-        permission_classes=(IsUser | IsRestaurateur, IsAuthenticated),
+        permission_classes=(
+            IsUser | IsRestaurateur | IsAdminUser,
+            IsAuthenticated,
+        ),
     )
     def me(self, request):
         serializer_class = MeSerializer
@@ -167,7 +163,7 @@ class TokenView(APIView):
             )
             return Response(
                 # {"token": user.token},
-                "Аккаунт зарегистрирован",
+                "Аккаунт зарегистрирован, можете войти в систему",
                 status=status.HTTP_201_CREATED,
             )
         return Response(

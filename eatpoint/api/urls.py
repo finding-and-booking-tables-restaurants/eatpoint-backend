@@ -20,7 +20,7 @@ router.register("users", UserViewSet, basename="users"),
 urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),
     path("v1/auth/confirm-code/", TokenView.as_view()),
-    path("v1/auth/confirm-code/refresh/", ConfirmCodeRefresh.as_view()),
+    path("v1/auth/confirm-code-refresh/", ConfirmCodeRefresh.as_view()),
     path(
         "v1/reset-password/",
         DjoserUserViewSet.as_view({"post": "reset_password"}),
@@ -31,7 +31,6 @@ urlpatterns = [
         DjoserUserViewSet.as_view({"post": "reset_password_confirm"}),
         name="reset_password_confirm",
     ),
-    # path("v1/login/", include('djoser.urls')),
     path("v1/login/", include("djoser.urls.jwt")),
     path("v1/", include(router.urls)),
 ]

@@ -108,7 +108,7 @@ class SignUpSerializer(serializers.Serializer):
         telephone = data.get("telephone")
         if data.get("role") not in (settings.CLIENT, settings.RESTORATEUR):
             raise serializers.ValidationError(
-                "Роль должна быть 'user' или 'restorateur'"
+                f"Роль может быть {settings.CLIENT} или {settings.RESTORATEUR}"
             )
         if not User.objects.filter(telephone=telephone, email=email).exists():
             if (
