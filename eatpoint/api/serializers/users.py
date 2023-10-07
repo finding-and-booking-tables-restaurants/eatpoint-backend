@@ -62,8 +62,12 @@ class UserSerializer(serializers.ModelSerializer):
 class MeSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField()
     email = serializers.EmailField(max_length=254)
-    first_name = serializers.CharField(max_length=150)
-    last_name = serializers.CharField(max_length=150)
+    first_name = serializers.CharField(
+        max_length=150, validators=[string_validator]
+    )
+    last_name = serializers.CharField(
+        max_length=150, validators=[string_validator]
+    )
 
     class Meta:
         model = User
