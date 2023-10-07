@@ -1,15 +1,25 @@
 from django.contrib.auth.password_validation import validate_password
+from django.core.validators import RegexValidator
 from rest_framework import serializers
 from users.models import User
 from django.conf import settings
 from phonenumber_field.serializerfields import PhoneNumberField
 
 
+string_validator = RegexValidator(
+    r"^[a-zA-Zа-яА-Я]+$", "Имя и Фамилия должны содержать только буквы"
+)
+
+
 class UserSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField()
     email = serializers.EmailField(max_length=254)
-    first_name = serializers.CharField(max_length=150)
-    last_name = serializers.CharField(max_length=150)
+    first_name = serializers.CharField(
+        max_length=150, validators=[string_validator]
+    )
+    last_name = serializers.CharField(
+        max_length=150, validators=[string_validator]
+    )
     role = serializers.CharField()
 
     class Meta:
@@ -70,8 +80,12 @@ class SignUpSerializer(serializers.Serializer):
     telephone = PhoneNumberField()
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(max_length=254)
-    first_name = serializers.CharField(max_length=150)
-    last_name = serializers.CharField(max_length=150)
+    first_name = serializers.CharField(
+        max_length=150, validators=[string_validator]
+    )
+    last_name = serializers.CharField(
+        max_length=150, validators=[string_validator]
+    )
     role = serializers.CharField()
 
     class Meta:

@@ -59,11 +59,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     def me(self, request):
         serializer_class = MeSerializer
         if request.method == "GET":
-            serializer = serializer_class(request._user, many=False)
+            serializer = serializer_class(request.user, many=False)
             return Response(serializer.data)
 
         if request.method == "PATCH":
-            user = User.objects.get(telephone=request._user.telephone)
+            user = User.objects.get(telephone=request.user.telephone)
             serializer = serializer_class(
                 user, data=request.data, partial=True
             )
