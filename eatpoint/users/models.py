@@ -71,7 +71,7 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     @property
     def is_user(self):
-        return self.role == settings.USER
+        return self.role == settings.CLIENT
 
     @property
     def is_restorateur(self):

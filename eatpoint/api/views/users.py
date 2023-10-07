@@ -1,16 +1,18 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError
+from djoser import views
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
-from rest_framework import filters, status, viewsets, mixins
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from users.models import User
 from api.permissions import IsUser, IsRestaurateur
-from api.serializers.user import (
+from api.serializers.users import (
     MeSerializer,
     SignUpSerializer,
     TokenSerializer,
@@ -34,10 +36,7 @@ from api.serializers.user import (
     #     summary="Детальная информация о пользователе (id=номер телефона)",
     # ),
 )
-class UserViewSet(
-    mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
-):
-    allowed_methods = ["get"]
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     filter_backends = (filters.SearchFilter,)
@@ -53,8 +52,7 @@ class UserViewSet(
         methods=["GET"],
     )
     @action(
-        url_path="me",
-        methods=["get", "patch"],
+        methods=["GET", "PATCH"],
         detail=False,
         permission_classes=(IsUser | IsRestaurateur, IsAuthenticated),
     )
@@ -119,7 +117,7 @@ class SignUp(APIView):
             )
         except IntegrityError:
             return Response(
-                "Аккаунт уже зарегистрирован, " "авторизуйтесь...",
+                "Аккаунт уже зарегистрирован, авторизуйтесь...",
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -138,6 +136,12 @@ class TokenView(APIView):
         serializer.is_valid(raise_exception=True)
         telephone = request.data.get("telephone")
         confirmation_code = request.data.get("confirmation_code")
+        is_agreement = request.data.get("is_agreement")
+        if not is_agreement:
+            return Response(
+                "Необходимо согласиться с Условиями пользования.",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if not User.objects.filter(telephone=telephone).exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -148,9 +152,7 @@ class TokenView(APIView):
                 "Аккаунт уже зарегистрирован, авторизуйтесь",
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if user.confirmation_code == confirmation_code and request.data.get(
-            "is_agreement"
-        ):
+        if user.confirmation_code == confirmation_code:
             user.is_active = True
             user.is_agreement = True
             user.confirmation_code = ""
@@ -164,7 +166,9 @@ class TokenView(APIView):
                 fail_silently=False,
             )
             return Response(
-                {"token": user.token}, status=status.HTTP_201_CREATED
+                # {"token": user.token},
+                "Аккаунт зарегистрирован",
+                status=status.HTTP_201_CREATED,
             )
         return Response(
             "Вы ввели не правильный код",
@@ -202,3 +206,16 @@ class ConfirmCodeRefresh(APIView):
             fail_silently=False,
         )
         return Response(status=status.HTTP_200_OK)
+
+
+@extend_schema(tags=["Password"], methods=["POST"])
+@extend_schema_view(
+    reset_password=extend_schema(
+        summary="Сброс пароля",
+    ),
+    reset_password_confirm=extend_schema(
+        summary="Подтверждение сброса пароля",
+    ),
+)
+class DjoserUserViewSet(views.UserViewSet):
+    pass

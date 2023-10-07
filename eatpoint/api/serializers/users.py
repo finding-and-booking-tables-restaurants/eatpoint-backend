@@ -25,9 +25,9 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, data):
         email = data.get("email")
         telephone = data.get("telephone")
-        if data.get("role") not in (settings.USER, settings.RESTORATEUR):
+        if data.get("role") not in (settings.CLIENT, settings.RESTORATEUR):
             raise serializers.ValidationError(
-                "Роль должна быть 'user' или 'restorateur'"
+                f"Роль должна быть {settings.CLIENT} или {settings.RESTORATEUR}"
             )
         if (
             User.objects.filter(email=email).exists()
@@ -88,7 +88,7 @@ class SignUpSerializer(serializers.Serializer):
     def validate(self, data):
         email = data.get("email")
         telephone = data.get("telephone")
-        if data.get("role") not in (settings.USER, settings.RESTORATEUR):
+        if data.get("role") not in (settings.CLIENT, settings.RESTORATEUR):
             raise serializers.ValidationError(
                 "Роль должна быть 'user' или 'restorateur'"
             )
