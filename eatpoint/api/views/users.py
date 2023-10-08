@@ -74,7 +74,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 @extend_schema(tags=["SignUp"], methods=["POST"])
 @extend_schema_view(
     post=extend_schema(
-        summary="Регистрация",
+        summary="Регистрация аккаунта",
     ),
 )
 class SignUp(APIView):
@@ -121,7 +121,7 @@ class SignUp(APIView):
 @extend_schema(tags=["SignUp"], methods=["POST"])
 @extend_schema_view(
     post=extend_schema(
-        summary="Получить код подтверждения",
+        summary="Подтвердить регистрацию",
     ),
 )
 class TokenView(APIView):
@@ -145,7 +145,7 @@ class TokenView(APIView):
         user = User.objects.get(telephone=telephone)
         if user.is_active:
             return Response(
-                "Аккаунт уже зарегистрирован, авторизуйтесь",
+                "Аккаунт уже зарегистрирован, войдите в систему",
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if user.confirmation_code == confirmation_code:
@@ -175,7 +175,7 @@ class TokenView(APIView):
 @extend_schema(tags=["SignUp"], methods=["POST"])
 @extend_schema_view(
     post=extend_schema(
-        summary="Обновление кода подтверждения",
+        summary="Получить кода подтверждения повторно",
     ),
 )
 class ConfirmCodeRefresh(APIView):
@@ -190,6 +190,11 @@ class ConfirmCodeRefresh(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         user = User.objects.get(telephone=telephone)
+        if user.is_active:
+            return Response(
+                "Аккаунт уже активирован, можете войти в систему",
+                status=status.HTTP_200_OK,
+            )
         user.confirmation_code = user.confirm_code
         message = user.confirmation_code
         user.save()
@@ -201,7 +206,9 @@ class ConfirmCodeRefresh(APIView):
             [user.email],
             fail_silently=False,
         )
-        return Response(status=status.HTTP_200_OK)
+        return Response(
+            "Код подтверждения отправлен на email", status=status.HTTP_200_OK
+        )
 
 
 @extend_schema(tags=["Password"], methods=["POST"])
