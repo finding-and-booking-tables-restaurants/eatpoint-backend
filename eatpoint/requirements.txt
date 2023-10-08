@@ -65,3 +65,4 @@ tzdata==2023.3
 uritemplate==4.1.1
 urllib3==2.0.5
 virtualenv==20.24.5
+username-validator==0.0.1

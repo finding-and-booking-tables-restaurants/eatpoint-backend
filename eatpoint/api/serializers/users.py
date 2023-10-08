@@ -4,6 +4,7 @@ from rest_framework import serializers
 from users.models import User
 from django.conf import settings
 from phonenumber_field.serializerfields import PhoneNumberField
+from username_validator import UsernameValidator
 
 
 string_validator = RegexValidator(
@@ -15,10 +16,10 @@ class UserSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField()
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(
-        max_length=150, validators=[string_validator]
+        max_length=150, validators=[string_validator, UsernameValidator]
     )
     last_name = serializers.CharField(
-        max_length=150, validators=[string_validator]
+        max_length=150, validators=[string_validator, UsernameValidator]
     )
     role = serializers.CharField()
 
@@ -63,10 +64,10 @@ class MeSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField()
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(
-        max_length=150, validators=[string_validator]
+        max_length=150, validators=[string_validator, UsernameValidator]
     )
     last_name = serializers.CharField(
-        max_length=150, validators=[string_validator]
+        max_length=150, validators=[string_validator, UsernameValidator]
     )
 
     class Meta:
@@ -85,10 +86,10 @@ class SignUpSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(
-        max_length=150, validators=[string_validator]
+        max_length=150, validators=[string_validator, UsernameValidator]
     )
     last_name = serializers.CharField(
-        max_length=150, validators=[string_validator]
+        max_length=150, validators=[string_validator, UsernameValidator]
     )
     role = serializers.CharField()
 
