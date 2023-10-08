@@ -9,6 +9,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 from users.models import User
 from api.permissions import IsUser, IsRestaurateur
@@ -21,7 +25,7 @@ from api.serializers.users import (
 )
 
 
-@extend_schema(tags=["Пользователи"])
+@extend_schema(tags=["Users"])
 @extend_schema_view(
     list=extend_schema(summary="Список пользователей", methods=["GET"]),
     retrieve=extend_schema(
@@ -221,4 +225,24 @@ class ConfirmCodeRefresh(APIView):
     ),
 )
 class DjoserUserViewSet(views.UserViewSet):
+    pass
+
+
+@extend_schema(tags=["Login"])
+@extend_schema_view(
+    post=extend_schema(
+        summary="Логин",
+    ),
+)
+class MyTokenObtainPairView(TokenObtainPairView):
+    pass
+
+
+@extend_schema(tags=["Login"])
+@extend_schema_view(
+    post=extend_schema(
+        summary="Обновление JWT токена",
+    ),
+)
+class MyTokenRefreshView(TokenRefreshView):
     pass

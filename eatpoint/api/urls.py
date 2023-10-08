@@ -8,6 +8,8 @@ from api.views.users import (
     UserViewSet,
     ConfirmCodeRefresh,
     DjoserUserViewSet,
+    MyTokenObtainPairView,
+    MyTokenRefreshView,
 )
 
 router = DefaultRouter()
@@ -31,6 +33,10 @@ urlpatterns = [
         DjoserUserViewSet.as_view({"post": "reset_password_confirm"}),
         name="reset_password_confirm",
     ),
-    path("v1/login/", include("djoser.urls.jwt")),
+    path(
+        "v1/login/jwt/create/", MyTokenObtainPairView.as_view(), name="login"
+    ),
+    path("v1/login/jwt/refresh/", MyTokenRefreshView.as_view(), name="login"),
+    # path("v1/login/", include("djoser.urls.jwt")),
     path("v1/", include(router.urls)),
 ]
