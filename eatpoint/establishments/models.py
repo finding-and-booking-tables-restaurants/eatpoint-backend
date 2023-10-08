@@ -392,3 +392,30 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.author}: {self.text}"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name="favorite",
+        on_delete=models.CASCADE,
+    )
+    establishment = models.ForeignKey(
+        Establishment,
+        related_name="favorite",
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = "Избранное"
+        verbose_name_plural = "Избранное"
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "establishment"], name="uniquefavorit"
+            ),
+            models.CheckConstraint(
+                check=~models.Q(user=models.F("establishment")),
+                name="favoriteuniq",
+            ),
+        ]
