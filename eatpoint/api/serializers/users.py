@@ -12,17 +12,20 @@ string_validator = RegexValidator(
 )
 
 
-class UserSerializer(serializers.ModelSerializer):
+class MyBaseSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField()
     email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(
-        max_length=150, validators=[string_validator, UsernameValidator]
+        max_length=150, validators=[string_validator]
     )
     last_name = serializers.CharField(
-        max_length=150, validators=[string_validator, UsernameValidator]
+        max_length=150, validators=[string_validator]
     )
-    role = serializers.CharField()
+    UsernameValidator().validate_confusables(str(first_name))
+    UsernameValidator().validate_confusables(str(last_name))
 
+
+class UserSerializer(MyBaseSerializer):
     class Meta:
         fields = (
             "telephone",
@@ -60,16 +63,7 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
 
-class MeSerializer(serializers.ModelSerializer):
-    telephone = PhoneNumberField()
-    email = serializers.EmailField(max_length=254)
-    first_name = serializers.CharField(
-        max_length=150, validators=[string_validator, UsernameValidator]
-    )
-    last_name = serializers.CharField(
-        max_length=150, validators=[string_validator, UsernameValidator]
-    )
-
+class MeSerializer(MyBaseSerializer):
     class Meta:
         model = User
         fields = (
@@ -81,17 +75,8 @@ class MeSerializer(serializers.ModelSerializer):
         )
 
 
-class SignUpSerializer(serializers.Serializer):
-    telephone = PhoneNumberField()
-    password = serializers.CharField(write_only=True)
-    email = serializers.EmailField(max_length=254)
-    first_name = serializers.CharField(
-        max_length=150, validators=[string_validator, UsernameValidator]
-    )
-    last_name = serializers.CharField(
-        max_length=150, validators=[string_validator, UsernameValidator]
-    )
-    role = serializers.CharField()
+class SignUpSerializer(MyBaseSerializer):
+    extra_kwargs = {"password": {"write_only": True}}
 
     class Meta:
         model = User
@@ -103,6 +88,15 @@ class SignUpSerializer(serializers.Serializer):
             "role",
             "password",
         )
+
+    def create(self, validated_data):
+        password = validated_data.pop("password", None)
+        instance = self.Meta.model(**validated_data)
+        instance.email = instance.email.lower()
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance
 
     def validate(self, data):
         email = data.get("email")
@@ -125,21 +119,13 @@ class SignUpSerializer(serializers.Serializer):
         validate_password(value)
         return value
 
-    def create(self, validated_data):
-        return User.objects.create(**validated_data)
 
-
-class TokenSerializer(serializers.ModelSerializer):
-    telephone = PhoneNumberField()
-    confirmation_code = serializers.CharField(max_length=150)
+class ConfirmCodeSerializer(MyBaseSerializer):
     is_agreement = serializers.BooleanField(required=True)
-    token = serializers.CharField(
-        max_length=255, required=False, read_only=True
-    )
 
     class Meta:
         model = User
-        fields = ("telephone", "confirmation_code", "is_agreement", "token")
+        fields = ("telephone", "confirmation_code", "is_agreement")
 
     def validate(self, data):
         telephone = data.get("telephone")
@@ -153,8 +139,7 @@ class TokenSerializer(serializers.ModelSerializer):
         return data
 
 
-class CodeSerializer(serializers.ModelSerializer):
-    telephone = PhoneNumberField()
+class ConfirmCodeRefreshSerializer(MyBaseSerializer):
     is_agreement = serializers.BooleanField(required=True)
 
     class Meta:

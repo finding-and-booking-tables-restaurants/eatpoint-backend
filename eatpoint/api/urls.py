@@ -4,9 +4,9 @@ from rest_framework.routers import DefaultRouter
 from api.views.establishments import EstablishmentViewSet
 from api.views.users import (
     SignUp,
-    TokenView,
+    ConfirmCodeView,
     UserViewSet,
-    ConfirmCodeRefresh,
+    ConfirmCodeRefreshView,
     DjoserUserViewSet,
     MyTokenObtainPairView,
     MyTokenRefreshView,
@@ -21,8 +21,8 @@ router.register("users", UserViewSet, basename="users"),
 
 urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),
-    path("v1/auth/confirm-code/", TokenView.as_view()),
-    path("v1/auth/confirm-code-refresh/", ConfirmCodeRefresh.as_view()),
+    path("v1/auth/confirm-code/", ConfirmCodeView.as_view()),
+    path("v1/auth/confirm-code-refresh/", ConfirmCodeRefreshView.as_view()),
     path(
         "v1/reset-password/",
         DjoserUserViewSet.as_view({"post": "reset_password"}),
@@ -36,7 +36,9 @@ urlpatterns = [
     path(
         "v1/login/jwt/create/", MyTokenObtainPairView.as_view(), name="login"
     ),
-    path("v1/login/jwt/refresh/", MyTokenRefreshView.as_view(), name="login"),
+    path(
+        "v1/login/jwt/refresh/", MyTokenRefreshView.as_view(), name="refresh"
+    ),
     # path("v1/login/", include("djoser.urls.jwt")),
     path("v1/", include(router.urls)),
 ]

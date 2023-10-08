@@ -19,9 +19,9 @@ from api.permissions import IsUser, IsRestaurateur
 from api.serializers.users import (
     MeSerializer,
     SignUpSerializer,
-    TokenSerializer,
+    ConfirmCodeSerializer,
     UserSerializer,
-    CodeSerializer,
+    ConfirmCodeRefreshSerializer,
 )
 
 
@@ -128,8 +128,8 @@ class SignUp(APIView):
         summary="Подтвердить регистрацию",
     ),
 )
-class TokenView(APIView):
-    serializer_class = TokenSerializer
+class ConfirmCodeView(APIView):
+    serializer_class = ConfirmCodeSerializer
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -182,8 +182,8 @@ class TokenView(APIView):
         summary="Получить кода подтверждения повторно",
     ),
 )
-class ConfirmCodeRefresh(APIView):
-    serializer_class = CodeSerializer
+class ConfirmCodeRefreshView(APIView):
+    serializer_class = ConfirmCodeRefreshSerializer
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
