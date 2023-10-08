@@ -4,7 +4,6 @@ from rest_framework import serializers
 from users.models import User
 from django.conf import settings
 from phonenumber_field.serializerfields import PhoneNumberField
-from username_validator import UsernameValidator
 
 
 string_validator = RegexValidator(
@@ -14,15 +13,12 @@ string_validator = RegexValidator(
 
 class MyBaseSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField()
-    email = serializers.EmailField(max_length=254)
     first_name = serializers.CharField(
         max_length=150, validators=[string_validator]
     )
     last_name = serializers.CharField(
         max_length=150, validators=[string_validator]
     )
-    UsernameValidator().validate_confusables(str(first_name))
-    UsernameValidator().validate_confusables(str(last_name))
 
 
 class UserSerializer(MyBaseSerializer):
