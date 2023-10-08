@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views.establishments import EstablishmentViewSet
+from api.views.establishments import EstablishmentViewSet, ReviewViewSet
 from api.views.user import (
     SignUp,
     TokenView,
@@ -12,6 +12,11 @@ router = DefaultRouter()
 
 router.register(
     "establishments", EstablishmentViewSet, basename="establishments"
+)
+router.register(
+    r"establishment/(?P<establishment_id>\d+)/reviews",
+    ReviewViewSet,
+    basename="review",
 )
 router.register("users", UserView),
 
