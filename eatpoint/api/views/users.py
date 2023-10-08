@@ -133,7 +133,7 @@ class TokenView(APIView):
         telephone = request.data.get("telephone")
         confirmation_code = request.data.get("confirmation_code")
         is_agreement = request.data.get("is_agreement")
-        if not is_agreement:
+        if str(is_agreement).lower() not in ("true", "1", 1, True):
             return Response(
                 "Необходимо согласиться с Условиями пользования.",
                 status=status.HTTP_400_BAD_REQUEST,
