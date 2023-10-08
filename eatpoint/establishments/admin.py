@@ -3,7 +3,16 @@ from django import forms
 from django.utils.safestring import mark_safe
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
-from .models import Establishment, Kitchen, Table, Service, File, Work
+from .models import (
+    Establishment,
+    Kitchen,
+    Table,
+    Service,
+    File,
+    Work,
+    Event,
+    Review,
+)
 
 
 class ContactForm(forms.ModelForm):
@@ -13,9 +22,20 @@ class ContactForm(forms.ModelForm):
         }
 
 
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ("id",)
+
+
 @admin.register(Work)
 class WorkAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "start", "end")
+    empty_value_display = "-пусто-"
+
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ("id",)
     empty_value_display = "-пусто-"
 
 
