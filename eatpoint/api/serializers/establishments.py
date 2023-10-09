@@ -1,3 +1,5 @@
+from django.db.models import Avg
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema_field,
 )
@@ -9,8 +11,10 @@ from establishments.models import (
     Kitchen,
     ZoneEstablishment,
     Favorite,
-    Event,
     Review,
+    Service,
+    SocialEstablishment,
+    ImageEstablishment,
 )
 from users.models import User
 
@@ -26,60 +30,115 @@ class KitchenSerializer(serializers.ModelSerializer):
         ]
 
 
-class WorkEstablishmentSerializer(serializers.ModelSerializer):
-    name = serializers.ReadOnlyField(
-        source="day.name",
-    )
-
+class ServicesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WorkEstablishment
-        fields = [
-            "name",
-            "start",
-            "end",
-        ]
-
-
-class EventSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Event
-        fields = "__all__"
-
-
-class TableEstablishmentSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source="table.id")
-    name = serializers.ReadOnlyField(source="table.name")
-    description = serializers.ReadOnlyField(source="table.description")
-    slug = serializers.ReadOnlyField(source="table.slug")
-
-    class Meta:
-        model = ZoneEstablishment
+        model = Service
         fields = [
             "id",
             "name",
             "description",
             "slug",
-            "seats",
-            "status",
         ]
 
 
+class SocialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialEstablishment
+        fields = [
+            "id",
+            "name",
+        ]
+
+
+class ZoneEstablishmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ZoneEstablishment
+        fields = [
+            "id",
+            "zone",
+            "seats",
+        ]
+
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImageEstablishment
+        fields = [
+            "id",
+            "name",
+            "image",
+        ]
+
+
+class WorkEstablishmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkEstablishment
+        fields = [
+            "day",
+            "start",
+            "end",
+        ]
+
+
+# class EventSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Event
+#         fields = "__all__"
+
+
+# class TableEstablishmentSerializer(serializers.ModelSerializer):
+#     id = serializers.ReadOnlyField(source="table.id")
+#     name = serializers.ReadOnlyField(source="table.name")
+#     description = serializers.ReadOnlyField(source="table.description")
+#     slug = serializers.ReadOnlyField(source="table.slug")
+#
+#     class Meta:
+#         model = ZoneEstablishment
+#         fields = [
+#             "id",
+#             "name",
+#             "description",
+#             "slug",
+#             "seats",
+#             "status",
+#         ]
+
+
 class EstablishmentSerializer(serializers.ModelSerializer):
-    worked = serializers.SerializerMethodField("get_work")
     kitchen = KitchenSerializer(read_only=True, many=True)
-    tables = serializers.SerializerMethodField("get_table")
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
-    event = serializers.SerializerMethodField("get_event")
+    services = ServicesSerializer(read_only=True, many=True)
+    social = SocialSerializer(read_only=True, many=True)
+    image = ImageSerializer(read_only=True, many=True)
+    zone = ZoneEstablishmentSerializer(read_only=True, many=True)
+    work = WorkEstablishmentSerializer(read_only=True, many=True)
+    rating = serializers.SerializerMethodField("get_rating")
 
     class Meta:
-        fields = "__all__"
+        fields = [
+            "id",
+            "owner",
+            "name",
+            "city",
+            "address",
+            "kitchen",
+            "services",
+            "zone",
+            "average_check",
+            "poster",
+            "email",
+            "telephone",
+            "description",
+            "is_verified",
+            "work",
+            "is_favorited",
+            "social",
+            "image",
+            "rating",
+        ]
         model = Establishment
 
-    @extend_schema_field(TableEstablishmentSerializer(many=True))
-    def get_table(self, obj):
-        table = ZoneEstablishment.objects.filter(establishment=obj)
-        return TableEstablishmentSerializer(table, many=True).data
-
+    @extend_schema_field(OpenApiTypes.BOOL)
     def get_is_favorited(self, obj):
         request = self.context.get("request")
         user = request.user
@@ -87,15 +146,11 @@ class EstablishmentSerializer(serializers.ModelSerializer):
             return False
         return Favorite.objects.filter(establishment=obj, user=user).exists()
 
-    @extend_schema_field(EventSerializer(many=True))
-    def get_event(self, obj):
-        event = Event.objects.filter(establishment=obj)
-        return EventSerializer(event, many=True).data
-
-
-class UserListingField(serializers.RelatedField):
-    def to_representation(self, value):
-        return f"({value.first_name} {value.last_name} {value.role})"
+    @extend_schema_field(OpenApiTypes.FLOAT)
+    def get_rating(self, obj):
+        return Review.objects.filter(establishment=obj).aggregate(
+            Avg("score")
+        )["score__avg"]
 
 
 class SmallUserSerializer(serializers.ModelSerializer):
