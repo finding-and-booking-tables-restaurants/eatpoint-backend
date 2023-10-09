@@ -9,6 +9,7 @@ from .models import (
     Service,
     Event,
     Review,
+    Type,
     ZoneEstablishment,
     ImageEstablishment,
     WorkEstablishment,
@@ -36,6 +37,12 @@ class EventAdmin(admin.ModelAdmin):
 
 @admin.register(Kitchen)
 class KitchenAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "description", "slug")
+    empty_value_display = "-пусто-"
+
+
+@admin.register(Type)
+class TypeAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
 
