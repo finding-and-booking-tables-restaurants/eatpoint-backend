@@ -193,18 +193,6 @@ SPECTACULAR_SETTINGS = {
 
 # OTHER SETTINGS
 
-CLIENT = "client"
-RESTORATEUR = "restorateur"
-MODERATOR = "moderator"
-ADMIN = "admin"
-SUPERUSER = "superuser"
-
-ROLE_CHOICES = (
-    (CLIENT, "Клиент"),
-    (RESTORATEUR, "Ресторатор"),
-)
-
-
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", default="mail@fake.ru")
 
 if DEBUG:

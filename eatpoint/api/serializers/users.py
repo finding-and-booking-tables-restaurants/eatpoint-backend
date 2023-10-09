@@ -1,8 +1,9 @@
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
 from rest_framework import serializers
+
+import core.constants
 from users.models import User
-from django.conf import settings
 from phonenumber_field.serializerfields import PhoneNumberField
 
 
@@ -35,9 +36,12 @@ class UserSerializer(MyBaseSerializer):
     def validate(self, data):
         email = data.get("email")
         telephone = data.get("telephone")
-        if data.get("role") not in (settings.CLIENT, settings.RESTORATEUR):
+        if data.get("role") not in (
+            core.constants.CLIENT,
+            core.constants.RESTORATEUR,
+        ):
             raise serializers.ValidationError(
-                f"Роль должна быть {settings.CLIENT} или {settings.RESTORATEUR}"
+                f"Роль должна быть {core.constants.CLIENT} или {core.constants.RESTORATEUR}"
             )
         if (
             User.objects.filter(email=email).exists()
@@ -97,9 +101,12 @@ class SignUpSerializer(MyBaseSerializer):
     def validate(self, data):
         email = data.get("email")
         telephone = data.get("telephone")
-        if data.get("role") not in (settings.CLIENT, settings.RESTORATEUR):
+        if data.get("role") not in (
+            core.constants.CLIENT,
+            core.constants.RESTORATEUR,
+        ):
             raise serializers.ValidationError(
-                f"Роль может быть {settings.CLIENT} или {settings.RESTORATEUR}"
+                f"Роль может быть {core.constants.CLIENT} или {core.constants.RESTORATEUR}"
             )
         if not User.objects.filter(telephone=telephone, email=email).exists():
             if (
