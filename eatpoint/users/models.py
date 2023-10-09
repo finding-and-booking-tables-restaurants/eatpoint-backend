@@ -7,6 +7,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+import core.choices
+import core.constants
 from .usermanager import UserManager
 
 
@@ -31,7 +33,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     role = models.CharField(
         "User`s role",
         max_length=20,
-        choices=settings.ROLE_CHOICES,
+        choices=core.choices.ROLE_CHOICES,
     )
 
     confirmation_code = models.CharField(
@@ -71,11 +73,11 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     @property
     def is_user(self):
-        return self.role == settings.CLIENT
+        return self.role == core.constants.CLIENT
 
     @property
     def is_restorateur(self):
-        return self.role == settings.RESTORATEUR
+        return self.role == core.constants.RESTORATEUR
 
     @property
     def token(self):
@@ -88,7 +90,12 @@ class User(PermissionsMixin, AbstractBaseUser):
     @staticmethod
     def _generate_confirm_code():
         random.seed()
-        return str(random.randint(100000, 999999))
+        return str(
+            random.randint(
+                core.constants.MIN_LIMIT_CONFIRM_CODE,
+                core.constants.MAX_LIMIT_CONFIRM_CODE,
+            )
+        )
 
     def _generate_jwt_token(self):
         dt = datetime.now()
