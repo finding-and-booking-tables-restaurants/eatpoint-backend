@@ -89,6 +89,35 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/ConfirmCodeRefresh'
+          description: ''
+  /api/v1/auth/signup/:
+    post:
+      operationId: api_v1_auth_signup_create
+      summary: Регистрация аккаунта
+      tags:
+      - SignUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/SignUp'
           description: ''
   /api/v1/establishments/:
@@ -723,6 +752,24 @@ components:
       - id
       - name
       - slug
+    NameEnum:
+      enum:
+      - понедельник
+      - вторник
+      - среда
+      - четверг
+      - пятница
+      - суббота
+      - воскресенье
+      type: string
+      description: |-
+        * `понедельник` - понедельник
+        * `вторник` - вторник
+        * `среда` - среда
+        * `четверг` - четверг
+        * `пятница` - пятница
+        * `суббота` - суббота
+        * `воскресенье` - воскресенье
     PasswordResetConfirm:
       type: object
       properties:
@@ -1022,6 +1069,38 @@ components:
       - id
       - name
       - slug
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - password
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
     User:
       type: object
       properties:
