@@ -8,35 +8,6 @@ from core.constants import MAX_SEATS, MIN_SEATS
 from users.models import User
 
 
-class Work(models.Model):
-    name = models.CharField(
-        verbose_name="День недели",
-        max_length=100,
-        choices=DAY_CHOICES,
-    )
-    start = models.CharField(
-        verbose_name="Начало работы", choices=TIME_CHOICES, max_length=145
-    )
-    end = models.CharField(
-        verbose_name="Конец работы", choices=TIME_CHOICES, max_length=145
-    )
-
-    class Meta:
-        verbose_name = "Время работы"
-        verbose_name_plural = "Время работы"
-
-    def clean(self):
-        if self.start >= self.end:
-            raise ValidationError(
-                {
-                    "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
-                }
-            )
-
-    def __str__(self):
-        return self.name
-
-
 class Kitchen(models.Model):
     """Кухня"""
 
@@ -62,26 +33,17 @@ class Kitchen(models.Model):
         return self.name
 
 
-class Table(models.Model):
-    """Стол"""
+class Zone(models.Model):
+    """Зона"""
 
     name = models.CharField(
-        verbose_name="Название стола",
+        verbose_name="Название зоны",
         max_length=200,
-    )
-    description = models.TextField(
-        verbose_name="Описание стола",
-        max_length=2000,
-    )
-    slug = models.SlugField(
-        verbose_name="Ссылка на стол",
-        max_length=200,
-        unique=True,
     )
 
     class Meta:
-        verbose_name = "Стол"
-        verbose_name_plural = "Столы"
+        verbose_name = "Зона"
+        verbose_name_plural = "Зона"
 
     def __str__(self):
         return self.name
@@ -112,13 +74,6 @@ class Service(models.Model):
         return self.name
 
 
-class File(models.Model):
-    image = models.ImageField(
-        verbose_name="Изображение заведения",
-        upload_to="establishment/images/est_image",
-    )
-
-
 class Establishment(models.Model):
     """Заведение"""
 
@@ -133,6 +88,10 @@ class Establishment(models.Model):
         max_length=200,
         unique=True,
     )
+    city = models.CharField(
+        verbose_name="Город",
+        max_length=150,
+    )
     address = models.CharField(
         verbose_name="Адрес заведения",
         max_length=1000,
@@ -142,36 +101,10 @@ class Establishment(models.Model):
         verbose_name="Кухня заведения",
         related_name="establishments",
     )
-    tables = models.ManyToManyField(
-        Table,
-        through="TableEstablishment",
-        verbose_name="Столы заведения",
-    )
-    file = models.ManyToManyField(
-        File,
-        through="FileEstablishment",
-        verbose_name="Изображения заведения",
-    )
     services = models.ManyToManyField(
         Service,
         verbose_name="Услуга заведения",
         related_name="establishments",
-    )
-    worked = models.ManyToManyField(
-        Work,
-        through="WorkEstablishment",
-        verbose_name="Время работы",
-        null=True,
-    )
-    busy_start = models.CharField(
-        verbose_name="Часы загруженности начало",
-        choices=TIME_CHOICES,
-        max_length=10,
-    )
-    busy_end = models.CharField(
-        verbose_name="Часы загруженности конец",
-        choices=TIME_CHOICES,
-        max_length=10,
     )
     average_check = models.CharField(
         verbose_name="Средний чек",
@@ -182,20 +115,12 @@ class Establishment(models.Model):
         verbose_name="Постер заведения",
         upload_to="establishment/images/poster",
     )
-    imagetables = models.ImageField(
-        verbose_name="План",
-        upload_to="establishment/images/tables",
-    )
     email = models.EmailField(
         verbose_name="Email",
         max_length=254,
         unique=True,
     )
     telephone = PhoneNumberField()
-    social = models.CharField(
-        verbose_name="Соц.сеть",
-        max_length=1000,
-    )
     description = models.TextField(
         verbose_name="Описание заведения",
         max_length=5000,
@@ -212,21 +137,25 @@ class Establishment(models.Model):
     def __str__(self):
         return self.name
 
-    def clean(self):
-        if self.busy_start >= self.busy_end:
-            raise ValidationError(
-                {
-                    "busy_end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
-                }
-            )
-
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
 
-# class Social(models.Model):
-#     name
+class SocialEstablishment(models.Model):
+    establishment = models.ForeignKey(
+        Establishment,
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    name = models.URLField()
+
+    class Meta:
+        verbose_name = "Соц. сеть"
+        verbose_name_plural = "Соц. сети"
+
+    def __str__(self):
+        return self.name
 
 
 class WorkEstablishment(models.Model):
@@ -234,40 +163,56 @@ class WorkEstablishment(models.Model):
         Establishment,
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
     )
-    order_dt = models.ForeignKey(
-        Work,
-        verbose_name="Время работы",
-        on_delete=models.SET_NULL,
-        null=True,
+    day = models.CharField(
+        verbose_name="День недели",
+        max_length=100,
+        choices=DAY_CHOICES,
+        unique=True,
+    )
+    day_off = models.BooleanField(
+        verbose_name="Выходной",
+        default=False,
+    )
+    start = models.CharField(
+        verbose_name="Начало работы", choices=TIME_CHOICES, max_length=145
+    )
+    end = models.CharField(
+        verbose_name="Конец работы", choices=TIME_CHOICES, max_length=145
     )
 
     class Meta:
         verbose_name = "Время работы"
         verbose_name_plural = "Время работы"
 
+    def clean(self):
+        if self.start >= self.end:
+            raise ValidationError(
+                {
+                    "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
+                }
+            )
+
     def __str__(self):
-        return self.order_dt.name
+        return self.day
 
 
-class FileEstablishment(models.Model):
+class ImageEstablishment(models.Model):
     """Несколько изображений"""
 
-    name = models.CharField(
-        verbose_name="Описание изображения",
-        max_length=100,
-    )
-    image = models.ForeignKey(
-        File,
-        on_delete=models.SET_NULL,
-        null=True,
-    )
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
+    )
+    name = models.CharField(
+        verbose_name="Описание изображения",
+        max_length=100,
+    )
+    image = models.ImageField(
+        verbose_name="Изображение заведения",
+        upload_to="establishment/images/est_image",
     )
 
     class Meta:
@@ -278,18 +223,17 @@ class FileEstablishment(models.Model):
         return f"{self.name}: {self.image}"
 
 
-class TableEstablishment(models.Model):
-    """Столы заведения"""
+class ZoneEstablishment(models.Model):
+    """Зоны заведения"""
 
     establishment = models.ForeignKey(
         Establishment,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
     )
-    table = models.ForeignKey(
-        Table,
-        on_delete=models.SET_NULL,
-        null=True,
+    zone = models.CharField(
+        verbose_name="Зона",
+        max_length=150,
     )
     seats = models.PositiveSmallIntegerField(
         verbose_name="Количество мест",
@@ -304,17 +248,13 @@ class TableEstablishment(models.Model):
             ),
         ],
     )
-    status = models.BooleanField(
-        verbose_name="Статус стола занят/свободен",
-        default=False,
-    )
 
     class Meta:
-        verbose_name = "Стол заведения"
-        verbose_name_plural = "Столы заведения"
+        verbose_name = "Зона заведения"
+        verbose_name_plural = "Зоны заведения"
 
     def __str__(self):
-        return f"{self.table}-{self.seats} {self.status}"
+        return self.zone
 
 
 class Event(models.Model):

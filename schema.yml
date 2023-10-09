@@ -374,7 +374,7 @@ components:
         worked:
           type: array
           items:
-            $ref: '#/components/schemas/Work'
+            $ref: '#/components/schemas/Day'
           readOnly: true
         kitchen:
           type: array

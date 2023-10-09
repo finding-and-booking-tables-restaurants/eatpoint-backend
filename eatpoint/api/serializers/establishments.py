@@ -7,19 +7,12 @@ from establishments.models import (
     Establishment,
     WorkEstablishment,
     Kitchen,
-    Work,
-    TableEstablishment,
+    ZoneEstablishment,
     Favorite,
     Event,
     Review,
 )
 from users.models import User
-
-
-class WorkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Work
-        fields = "__all__"
 
 
 class KitchenSerializer(serializers.ModelSerializer):
@@ -35,15 +28,7 @@ class KitchenSerializer(serializers.ModelSerializer):
 
 class WorkEstablishmentSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(
-        source="order_dt.name",
-    )
-    start = serializers.TimeField(
-        source="order_dt.start",
-        format="%I:%M",
-    )
-    end = serializers.TimeField(
-        source="order_dt.end",
-        format="%I:%M",
+        source="day.name",
     )
 
     class Meta:
@@ -68,7 +53,7 @@ class TableEstablishmentSerializer(serializers.ModelSerializer):
     slug = serializers.ReadOnlyField(source="table.slug")
 
     class Meta:
-        model = TableEstablishment
+        model = ZoneEstablishment
         fields = [
             "id",
             "name",
@@ -90,14 +75,9 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         fields = "__all__"
         model = Establishment
 
-    @extend_schema_field(WorkSerializer(many=True))
-    def get_work(self, obj):
-        order_dt = WorkEstablishment.objects.filter(establishment=obj)
-        return WorkEstablishmentSerializer(order_dt, many=True).data
-
     @extend_schema_field(TableEstablishmentSerializer(many=True))
     def get_table(self, obj):
-        table = TableEstablishment.objects.filter(establishment=obj)
+        table = ZoneEstablishment.objects.filter(establishment=obj)
         return TableEstablishmentSerializer(table, many=True).data
 
     def get_is_favorited(self, obj):
