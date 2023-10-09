@@ -8,9 +8,12 @@ class UserAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "email",
+        "telephone",
         "first_name",
         "last_name",
         "role",
+        "is_staff",
+        "is_admin",
         "is_active",
         "created_at",
         "updated_at",

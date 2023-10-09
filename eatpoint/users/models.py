@@ -5,22 +5,13 @@ import jwt
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.core.validators import RegexValidator
+from phonenumber_field.modelfields import PhoneNumberField
 
 from .usermanager import UserManager
 
 
 class User(PermissionsMixin, AbstractBaseUser):
-    telephone = models.CharField(
-        validators=[
-            RegexValidator(
-                regex=r"^\+?1?\d{9,15}$",
-                message="Неверный формат номера",
-            )
-        ],
-        max_length=17,
-        unique=True,
-    )
+    telephone = PhoneNumberField(unique=True)
     email = models.EmailField(
         verbose_name="email address",
         max_length=254,
@@ -40,7 +31,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     role = models.CharField(
         "User`s role",
         max_length=20,
-        default=settings.USER,
         choices=settings.ROLE_CHOICES,
     )
 
@@ -52,6 +42,7 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     is_agreement = models.BooleanField("Agreement", default=False)
     is_active = models.BooleanField("Active", default=True)
+    is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -63,7 +54,11 @@ class User(PermissionsMixin, AbstractBaseUser):
     REQUIRED_FIELDS = []
 
     class Meta:
-        unique_together = ["telephone", "email"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("telephone", "email"), name="phone_email_unique"
+            )
+        ]
 
     def __str__(self):
         return self.email
@@ -75,24 +70,12 @@ class User(PermissionsMixin, AbstractBaseUser):
         return True
 
     @property
-    def is_staff(self):
-        return self.is_admin
-
-    @property
     def is_user(self):
-        return self.role == settings.USER
+        return self.role == settings.CLIENT
 
     @property
-    def is_moderator(self):
-        return self.role == settings.MODERATOR
-
-    @property
-    def is_administrator(self):
-        return self.role == settings.ADMIN
-
-    @property
-    def is_superuser(self):
-        return self.role == settings.SUPERUSER
+    def is_restorateur(self):
+        return self.role == settings.RESTORATEUR
 
     @property
     def token(self):
