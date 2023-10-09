@@ -33,6 +33,31 @@ class Kitchen(models.Model):
         return self.name
 
 
+class Type(models.Model):
+    """Кухня"""
+
+    name = models.CharField(
+        verbose_name="Тип заведения",
+        max_length=200,
+    )
+    description = models.TextField(
+        verbose_name="Описание",
+        max_length=2000,
+    )
+    slug = models.SlugField(
+        verbose_name="Ссылка",
+        max_length=200,
+        unique=True,
+    )
+
+    class Meta:
+        verbose_name = "Тип заведения"
+        verbose_name_plural = "Типы заведения"
+
+    def __str__(self):
+        return self.name
+
+
 class Zone(models.Model):
     """Зона"""
 
@@ -87,6 +112,11 @@ class Establishment(models.Model):
         verbose_name="Название заведения",
         max_length=200,
         unique=True,
+    )
+    type = models.ManyToManyField(
+        Type,
+        verbose_name="Тип заведения",
+        related_name="establishments",
     )
     city = models.CharField(
         verbose_name="Город",
@@ -147,6 +177,7 @@ class SocialEstablishment(models.Model):
         Establishment,
         on_delete=models.CASCADE,
         null=True,
+        related_name="social",
     )
     name = models.URLField()
 
@@ -160,9 +191,7 @@ class SocialEstablishment(models.Model):
 
 class WorkEstablishment(models.Model):
     establishment = models.ForeignKey(
-        Establishment,
-        on_delete=models.CASCADE,
-        null=True,
+        Establishment, on_delete=models.CASCADE, null=True, related_name="work"
     )
     day = models.CharField(
         verbose_name="День недели",
@@ -205,6 +234,7 @@ class ImageEstablishment(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
+        related_name="image",
     )
     name = models.CharField(
         verbose_name="Описание изображения",
@@ -230,6 +260,7 @@ class ZoneEstablishment(models.Model):
         Establishment,
         on_delete=models.CASCADE,
         null=True,
+        related_name="zone",
     )
     zone = models.CharField(
         verbose_name="Зона",
@@ -310,7 +341,6 @@ class Review(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="review",
     )
     text = models.TextField(
         verbose_name="Текст отзыва",
@@ -319,6 +349,12 @@ class Review(models.Model):
     created = models.DateTimeField(
         verbose_name="Дата публикации",
         auto_now_add=True,
+    )
+    score = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1, message="Допустимые значние 1-5"),
+            MaxValueValidator(5, message="Допустимые значние 1-5"),
+        ],
     )
 
     class Meta:
@@ -331,7 +367,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.author}: {self.text}"
+        return self.text
 
 
 class Favorite(models.Model):
