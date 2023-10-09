@@ -1,13 +1,15 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
-from establishments.models import Establishment,TableEstablishment, Event
+from establishments.models import Establishment,TableEstablishment
 
-User = get_user_model()
+from users.models import User
+
 # Create your models here.
+# TIME_CHOICE =     
 
-class Restaurant_reservations(models.Model):
-    """Список бронирований во всех ресторанах"""
+class EstablishmentReserv(models.Model):
+    """Модель формы бронирования"""
     
     user = models.ForeignKey(
         User,
@@ -18,6 +20,7 @@ class Restaurant_reservations(models.Model):
         verbose_name="Электронная почта",
     )
     telephone = models.IntegerField(
+        max_length=11,
         verbose_name="Телефон клиента",
         # validators=None,  # сделать валидатор для номера
     )
@@ -27,13 +30,16 @@ class Restaurant_reservations(models.Model):
         verbose_name="Ресторан",
         on_delete=models.CASCADE,
     )
-    table = models.ManyToManyField(
+    table = models.ForeignKey(
         TableEstablishment,
-        related_name='reservation',
+        related_name='reservations',
         verbose_name="Выбранный стол в ресторане",
+        unique=True,
+        on_delete=models.CASCADE,
     )
-    Number_of_guests= models.CharField(
+    Number_of_guests= models.IntegerField(
         verbose_name="Количество гостей",
+        max_length=3,
         validators=[
             MinValueValidator(
                 1, #заменить на константы
@@ -55,7 +61,9 @@ class Restaurant_reservations(models.Model):
         verbose_name="Время окончания бронирования",
     )
     comment=models.CharField(
-        verbose_name="Комментарий к бронированию",
+        verbose_name="Пожелания к заказу",
+        max_length=200,
+        blank = True,
     )
     reminder_one_day=models.BooleanField(
         verbose_name="Напоминание о бронировании за 1 день",
@@ -68,10 +76,6 @@ class Restaurant_reservations(models.Model):
     reminder_half_on_hour=models.BooleanField(
         verbose_name="Напоминание за 30 минут",
         default=False,
-    )
-    event=models.ManyToManyField(
-        Event,
-        verbose_name="Выбор события",
     )
     status = models.BooleanField(
         verbose_name="Статус бронирования Активен/Выполнен",   # Активен - True, Выполнен - False
