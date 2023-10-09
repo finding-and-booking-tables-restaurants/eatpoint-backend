@@ -58,22 +58,6 @@ class Type(models.Model):
         return self.name
 
 
-class Zone(models.Model):
-    """Зона"""
-
-    name = models.CharField(
-        verbose_name="Название зоны",
-        max_length=200,
-    )
-
-    class Meta:
-        verbose_name = "Зона"
-        verbose_name_plural = "Зона"
-
-    def __str__(self):
-        return self.name
-
-
 class Service(models.Model):
     """Доп. услуги"""
 
@@ -371,6 +355,8 @@ class Review(models.Model):
 
 
 class Favorite(models.Model):
+    """Избранное"""
+
     user = models.ForeignKey(
         User,
         related_name="favorite",
