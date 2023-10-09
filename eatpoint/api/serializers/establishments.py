@@ -89,6 +89,7 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
             "day",
             "start",
             "end",
+            "day_off",
         ]
 
 
