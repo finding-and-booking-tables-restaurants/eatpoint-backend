@@ -4,10 +4,68 @@ info:
   version: 1.0.0
   description: Документация для API сервиса
 paths:
+  /api/v1/auth/confirm-code/:
+    post:
+      operationId: api_v1_auth_confirm_code_create
+      summary: Подтвердить регистрацию
+      tags:
+      - SignUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmCode'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ConfirmCode'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConfirmCode'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmCode'
+          description: ''
+  /api/v1/auth/confirm-code-refresh/:
+    post:
+      operationId: api_v1_auth_confirm_code_refresh_create
+      summary: Получить кода подтверждения повторно
+      tags:
+      - SignUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmCodeRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ConfirmCodeRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConfirmCodeRefresh'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmCodeRefresh'
+          description: ''
   /api/v1/auth/signup/:
     post:
       operationId: api_v1_auth_signup_create
-      summary: Регистрация
+      summary: Регистрация аккаунта
       tags:
       - SignUp
       requestBody:
@@ -23,7 +81,8 @@ paths:
               $ref: '#/components/schemas/SignUp'
         required: true
       security:
-      - tokenAuth: []
+      - jwtAuth: []
+      - basicAuth: []
       - {}
       responses:
         '200':
@@ -32,34 +91,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/SignUp'
           description: ''
-  /api/v1/auth/token/:
-    post:
-      operationId: api_v1_auth_token_create
-      summary: Получить токен
-      tags:
-      - SignUp
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Token'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Token'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Token'
-        required: true
-      security:
-      - tokenAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Token'
-          description: ''
   /api/v1/establishments/:
     get:
       operationId: api_v1_establishments_list
@@ -67,7 +98,8 @@ paths:
       tags:
       - Establishment
       security:
-      - tokenAuth: []
+      - jwtAuth: []
+      - basicAuth: []
       - {}
       responses:
         '200':
@@ -92,7 +124,8 @@ paths:
       tags:
       - Establishment
       security:
-      - tokenAuth: []
+      - jwtAuth: []
+      - basicAuth: []
       - {}
       responses:
         '200':
@@ -100,6 +133,131 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Establishment'
+          description: ''
+  /api/v1/login/jwt/create/:
+    post:
+      operationId: api_v1_login_jwt_create_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      summary: Логин
+      tags:
+      - Login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/v1/login/jwt/refresh/:
+    post:
+      operationId: api_v1_login_jwt_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      summary: Обновление JWT токена
+      tags:
+      - Login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/reset-password/:
+    post:
+      operationId: api_v1_reset_password_create
+      summary: Сброс пароля
+      tags:
+      - Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SendEmailReset'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendEmailReset'
+          description: ''
+  /api/v1/reset-password-confirm/{uid}/{token}/:
+    post:
+      operationId: api_v1_reset_password_confirm_create
+      summary: Подтверждение сброса пароля
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uid
+        schema:
+          type: string
+        required: true
+      tags:
+      - Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetConfirm'
           description: ''
   /api/v1/users/:
     get:
@@ -113,9 +271,10 @@ paths:
         schema:
           type: string
       tags:
-      - Пользователи
+      - Users
       security:
-      - tokenAuth: []
+      - jwtAuth: []
+      - basicAuth: []
       responses:
         '200':
           content:
@@ -136,40 +295,10 @@ paths:
           type: string
         required: true
       tags:
-      - Пользователи
+      - Users
       security:
-      - tokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
-    patch:
-      operationId: api_v1_users_partial_update
-      summary: Изменить профиль пользователя с id=номер телефона
-      parameters:
-      - in: path
-        name: telephone
-        schema:
-          type: string
-        required: true
-      tags:
-      - Пользователи
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedUser'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedUser'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedUser'
-      security:
-      - tokenAuth: []
+      - jwtAuth: []
+      - basicAuth: []
       responses:
         '200':
           content:
@@ -180,12 +309,12 @@ paths:
   /api/v1/users/me/:
     get:
       operationId: api_v1_users_me_retrieve
-      description: Override a specific method
       summary: Профиль пользователя
       tags:
-      - Пользователи
+      - Users
       security:
-      - tokenAuth: []
+      - jwtAuth: []
+      - basicAuth: []
       responses:
         '200':
           content:
@@ -195,10 +324,9 @@ paths:
           description: ''
     patch:
       operationId: api_v1_users_me_partial_update
-      description: Override a specific method
       summary: Редактирование профиля
       tags:
-      - Пользователи
+      - Users
       requestBody:
         content:
           application/json:
@@ -211,7 +339,8 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedUser'
       security:
-      - tokenAuth: []
+      - jwtAuth: []
+      - basicAuth: []
       responses:
         '200':
           content:
@@ -321,6 +450,29 @@ components:
         * `16:30` - 16:30
         * `17:00` - 17:00
         * `17:30` - 17:30
+    ConfirmCode:
+      type: object
+      properties:
+        telephone:
+          type: string
+        confirmation_code:
+          type: string
+          maxLength: 150
+        is_agreement:
+          type: boolean
+      required:
+      - is_agreement
+      - telephone
+    ConfirmCodeRefresh:
+      type: object
+      properties:
+        telephone:
+          type: string
+        is_agreement:
+          type: boolean
+      required:
+      - is_agreement
+      - telephone
     EndEnum:
       enum:
       - 08:00
@@ -509,58 +661,89 @@ components:
         * `пятница` - пятница
         * `суббота` - суббота
         * `воскресенье` - воскресенье
+    PasswordResetConfirm:
+      type: object
+      properties:
+        uid:
+          type: string
+        token:
+          type: string
+        new_password:
+          type: string
+      required:
+      - new_password
+      - token
+      - uid
     PatchedUser:
       type: object
       properties:
         telephone:
           type: string
-          pattern: ^\+?1?\d{9,15}$
-          maxLength: 17
         email:
           type: string
           format: email
+          title: Email address
           maxLength: 254
         first_name:
           type: string
+          pattern: ^[a-zA-Z\u0430-\u044f\u0410-\u042f]+$
           maxLength: 150
         last_name:
           type: string
+          pattern: ^[a-zA-Z\u0430-\u044f\u0410-\u042f]+$
           maxLength: 150
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: User`s role
     RoleEnum:
       enum:
-      - user
-      - moderator
-      - admin
-      - superuser
+      - client
+      - restorateur
       type: string
       description: |-
-        * `user` - Пользователь
-        * `moderator` - Модератор
-        * `admin` - Администратор
-        * `superuser` - Суперюзер
+        * `client` - Клиент
+        * `restorateur` - Ресторатор
+    SendEmailReset:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
     SignUp:
       type: object
       properties:
         telephone:
           type: string
-          pattern: ^\+?1?\d{9,15}$
-          maxLength: 17
         email:
           type: string
           format: email
+          title: Email address
           maxLength: 254
         first_name:
           type: string
+          pattern: ^[a-zA-Z\u0430-\u044f\u0410-\u042f]+$
           maxLength: 150
         last_name:
           type: string
+          pattern: ^[a-zA-Z\u0430-\u044f\u0410-\u042f]+$
           maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: User`s role
+        password:
+          type: string
+          title: Пароль
+          maxLength: 128
       required:
       - email
       - first_name
       - last_name
+      - password
+      - role
       - telephone
     StartEnum:
       enum:
@@ -638,50 +821,65 @@ components:
       - name
       - seats
       - slug
-    Token:
+    TokenObtainPair:
       type: object
       properties:
-        telephone:
+        email:
           type: string
-          pattern: ^\+?1?\d{9,15}$
-          maxLength: 17
-        confirmation_code:
+          writeOnly: true
+        password:
           type: string
-          maxLength: 150
-        is_agreement:
-          type: boolean
-        token:
+          writeOnly: true
+        access:
           type: string
           readOnly: true
-          maxLength: 255
+        refresh:
+          type: string
+          readOnly: true
       required:
-      - confirmation_code
-      - is_agreement
-      - telephone
-      - token
+      - access
+      - email
+      - password
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
     User:
       type: object
       properties:
         telephone:
           type: string
-          pattern: ^\+?1?\d{9,15}$
-          maxLength: 17
         email:
           type: string
           format: email
+          title: Email address
           maxLength: 254
         first_name:
           type: string
+          pattern: ^[a-zA-Z\u0430-\u044f\u0410-\u042f]+$
           maxLength: 150
         last_name:
           type: string
+          pattern: ^[a-zA-Z\u0430-\u044f\u0410-\u042f]+$
           maxLength: 150
         role:
-          $ref: '#/components/schemas/RoleEnum'
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: User`s role
       required:
       - email
       - first_name
       - last_name
+      - role
       - telephone
     Work:
       type: object
@@ -707,8 +905,11 @@ components:
       - name
       - start
   securitySchemes:
-    tokenAuth:
+    basicAuth:
+      type: http
+      scheme: basic
+    jwtAuth:
       type: apiKey
       in: header
       name: Authorization
-      description: Token-based authentication with required prefix "Token"
+      description: Token-based authentication with required prefix "JWT"
