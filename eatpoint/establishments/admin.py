@@ -3,7 +3,18 @@ from django import forms
 from django.utils.safestring import mark_safe
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
-from .models import Establishment, Kitchen, Table, Service, File, Work
+from .models import (
+    Establishment,
+    Kitchen,
+    Service,
+    Event,
+    Review,
+    Type,
+    ZoneEstablishment,
+    ImageEstablishment,
+    WorkEstablishment,
+    SocialEstablishment,
+)
 
 
 class ContactForm(forms.ModelForm):
@@ -13,9 +24,14 @@ class ContactForm(forms.ModelForm):
         }
 
 
-@admin.register(Work)
-class WorkAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "start", "end")
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ("id",)
+
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ("id",)
     empty_value_display = "-пусто-"
 
 
@@ -25,15 +41,9 @@ class KitchenAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
-@admin.register(Table)
-class TableAdmin(admin.ModelAdmin):
+@admin.register(Type)
+class TypeAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description", "slug")
-    empty_value_display = "-пусто-"
-
-
-@admin.register(File)
-class File(admin.ModelAdmin):
-    list_display = ("image",)
     empty_value_display = "-пусто-"
 
 
@@ -43,16 +53,20 @@ class ServiceAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
-class TablesInLine(admin.TabularInline):
-    model = Establishment.tables.through
+class ZonesInLine(admin.TabularInline):
+    model = ZoneEstablishment
+
+
+class SocialInLine(admin.TabularInline):
+    model = SocialEstablishment
+
+
+class ImageInLine(admin.TabularInline):
+    model = ImageEstablishment
 
 
 class WorkInLine(admin.TabularInline):
-    model = Establishment.worked.through
-
-
-class FileInLine(admin.TabularInline):
-    model = Establishment.file.through
+    model = WorkEstablishment
 
 
 @admin.register(Establishment)
@@ -67,13 +81,11 @@ class EstablishmentAdmin(admin.ModelAdmin):
     )
     list_filter = ("name",)
     empty_value_display = "-пусто-"
-    inlines = (
-        TablesInLine,
-        FileInLine,
-        WorkInLine,
-    )
+    inlines = (ZonesInLine, WorkInLine, ImageInLine, SocialInLine)
 
     def preview(self, obj):
         return mark_safe(
             f'<img src="{obj.poster.url}" style="max-height: 50px;">'
         )
+
+    preview.short_description = "Превью"

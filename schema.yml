@@ -89,6 +89,35 @@ paths:
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/ConfirmCodeRefresh'
+          description: ''
+  /api/v1/auth/signup/:
+    post:
+      operationId: api_v1_auth_signup_create
+      summary: Регистрация аккаунта
+      tags:
+      - SignUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
                 $ref: '#/components/schemas/SignUp'
           description: ''
   /api/v1/establishments/:
@@ -96,7 +125,7 @@ paths:
       operationId: api_v1_establishments_list
       summary: Получить список заведений
       tags:
-      - Establishment
+      - Заведения
       security:
       - jwtAuth: []
       - basicAuth: []
@@ -110,6 +139,135 @@ paths:
                 items:
                   $ref: '#/components/schemas/Establishment'
           description: ''
+  /api/v1/establishments/{establishment_id}/reviews/:
+    get:
+      operationId: api_v1_establishments_reviews_list
+      summary: Получить список отзывов к заведению с id=
+      parameters:
+      - in: path
+        name: establishment_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - Отзывы
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+          description: ''
+    post:
+      operationId: api_v1_establishments_reviews_create
+      summary: Оставить отзыв
+      parameters:
+      - in: path
+        name: establishment_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - Отзывы
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Review'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+  /api/v1/establishments/{establishment_id}/reviews/{id}/:
+    get:
+      operationId: api_v1_establishments_reviews_retrieve
+      summary: Один отзыв
+      parameters:
+      - in: path
+        name: establishment_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Отзывы
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    patch:
+      operationId: api_v1_establishments_reviews_partial_update
+      summary: Редактировать отзыв
+      parameters:
+      - in: path
+        name: establishment_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Отзывы
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
   /api/v1/establishments/{id}/:
     get:
       operationId: api_v1_establishments_retrieve
@@ -122,7 +280,7 @@ paths:
         description: A unique integer value identifying this Заведение.
         required: true
       tags:
-      - Establishment
+      - Заведения
       security:
       - jwtAuth: []
       - basicAuth: []
@@ -362,94 +520,6 @@ components:
         * `1000 - 2000` - 1000 - 2000
         * `2000 - 3000` - 2000 - 3000
         * `от 3000` - от 3000
-    BusyEndEnum:
-      enum:
-      - 08:00
-      - 08:30
-      - 09:00
-      - 09:30
-      - '10:00'
-      - '10:30'
-      - '11:00'
-      - '11:30'
-      - '12:00'
-      - '12:30'
-      - '13:00'
-      - '13:30'
-      - '14:00'
-      - '14:30'
-      - '15:00'
-      - '15:30'
-      - '16:00'
-      - '16:30'
-      - '17:00'
-      - '17:30'
-      type: string
-      description: |-
-        * `08:00` - 08:00
-        * `08:30` - 08:30
-        * `09:00` - 09:00
-        * `09:30` - 09:30
-        * `10:00` - 10:00
-        * `10:30` - 10:30
-        * `11:00` - 11:00
-        * `11:30` - 11:30
-        * `12:00` - 12:00
-        * `12:30` - 12:30
-        * `13:00` - 13:00
-        * `13:30` - 13:30
-        * `14:00` - 14:00
-        * `14:30` - 14:30
-        * `15:00` - 15:00
-        * `15:30` - 15:30
-        * `16:00` - 16:00
-        * `16:30` - 16:30
-        * `17:00` - 17:00
-        * `17:30` - 17:30
-    BusyStartEnum:
-      enum:
-      - 08:00
-      - 08:30
-      - 09:00
-      - 09:30
-      - '10:00'
-      - '10:30'
-      - '11:00'
-      - '11:30'
-      - '12:00'
-      - '12:30'
-      - '13:00'
-      - '13:30'
-      - '14:00'
-      - '14:30'
-      - '15:00'
-      - '15:30'
-      - '16:00'
-      - '16:30'
-      - '17:00'
-      - '17:30'
-      type: string
-      description: |-
-        * `08:00` - 08:00
-        * `08:30` - 08:30
-        * `09:00` - 09:00
-        * `09:30` - 09:30
-        * `10:00` - 10:00
-        * `10:30` - 10:30
-        * `11:00` - 11:00
-        * `11:30` - 11:30
-        * `12:00` - 12:00
-        * `12:30` - 12:30
-        * `13:00` - 13:00
-        * `13:30` - 13:30
-        * `14:00` - 14:00
-        * `14:30` - 14:30
-        * `15:00` - 15:00
-        * `15:30` - 15:30
-        * `16:00` - 16:00
-        * `16:30` - 16:30
-        * `17:00` - 17:00
-        * `17:30` - 17:30
     ConfirmCode:
       type: object
       properties:
@@ -473,6 +543,24 @@ components:
       required:
       - is_agreement
       - telephone
+    DayEnum:
+      enum:
+      - понедельник
+      - вторник
+      - среда
+      - четверг
+      - пятница
+      - суббота
+      - воскресенье
+      type: string
+      description: |-
+        * `понедельник` - понедельник
+        * `вторник` - вторник
+        * `среда` - среда
+        * `четверг` - четверг
+        * `пятница` - пятница
+        * `суббота` - суббота
+        * `воскресенье` - воскресенье
     EndEnum:
       enum:
       - 08:00
@@ -523,37 +611,41 @@ components:
         id:
           type: integer
           readOnly: true
-        worked:
+        owner:
+          type: integer
+          title: Владелец
+        name:
+          type: string
+          title: Название заведения
+          maxLength: 200
+        type:
           type: array
           items:
-            $ref: '#/components/schemas/Work'
+            $ref: '#/components/schemas/Type'
           readOnly: true
+        city:
+          type: string
+          title: Город
+          maxLength: 150
+        address:
+          type: string
+          title: Адрес заведения
+          maxLength: 1000
         kitchen:
           type: array
           items:
             $ref: '#/components/schemas/Kitchen'
           readOnly: true
-        tables:
+        services:
           type: array
           items:
-            $ref: '#/components/schemas/TableEstablishment'
+            $ref: '#/components/schemas/Services'
           readOnly: true
-        name:
-          type: string
-          title: Название заведения
-          maxLength: 200
-        address:
-          type: string
-          title: Адрес заведения
-          maxLength: 1000
-        busy_start:
-          allOf:
-          - $ref: '#/components/schemas/BusyStartEnum'
-          title: Часы загруженности начало
-        busy_end:
-          allOf:
-          - $ref: '#/components/schemas/BusyEndEnum'
-          title: Часы загруженности конец
+        zone:
+          type: array
+          items:
+            $ref: '#/components/schemas/ZoneEstablishment'
+          readOnly: true
         average_check:
           allOf:
           - $ref: '#/components/schemas/AverageCheckEnum'
@@ -562,10 +654,6 @@ components:
           type: string
           format: uri
           title: Постер заведения
-        imagetables:
-          type: string
-          format: uri
-          title: План
         email:
           type: string
           format: email
@@ -573,10 +661,6 @@ components:
         telephone:
           type: string
           maxLength: 128
-        social:
-          type: string
-          title: Соц.сеть
-          maxLength: 1000
         description:
           type: string
           title: Описание заведения
@@ -584,41 +668,66 @@ components:
         is_verified:
           type: boolean
           title: Верификация заведения
-        owner:
-          type: integer
-          title: Владелец
-        file:
+        work:
           type: array
           items:
-            type: integer
-            title: Изображения заведения
+            $ref: '#/components/schemas/WorkEstablishment'
           readOnly: true
-          title: Изображения заведения
-        services:
+        is_favorited:
+          type: boolean
+          readOnly: true
+        social:
           type: array
           items:
-            type: integer
-            title: Услуга заведения
-          title: Услуга заведения
+            $ref: '#/components/schemas/Social'
+          readOnly: true
+        image:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+          readOnly: true
+        rating:
+          type: number
+          format: float
+          readOnly: true
       required:
       - address
       - average_check
-      - busy_end
-      - busy_start
+      - city
       - description
       - email
-      - file
       - id
-      - imagetables
+      - image
+      - is_favorited
       - kitchen
       - name
       - owner
       - poster
+      - rating
       - services
       - social
-      - tables
       - telephone
-      - worked
+      - type
+      - work
+      - zone
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Описание изображения
+          maxLength: 100
+        image:
+          type: string
+          format: uri
+          title: Изображение заведения
+      required:
+      - id
+      - image
+      - name
     Kitchen:
       type: object
       properties:
@@ -674,6 +783,33 @@ components:
       - new_password
       - token
       - uid
+    PatchedReview:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        establishment:
+          type: string
+          title: Название заведения
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/SmallUser'
+          readOnly: true
+        text:
+          type: string
+          title: Текст отзыва
+          maxLength: 500
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Дата публикации
+        score:
+          type: integer
+          maximum: 5
+          minimum: 1
     PatchedUser:
       type: object
       properties:
@@ -696,6 +832,40 @@ components:
           allOf:
           - $ref: '#/components/schemas/RoleEnum'
           title: User`s role
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        establishment:
+          type: string
+          title: Название заведения
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/SmallUser'
+          readOnly: true
+        text:
+          type: string
+          title: Текст отзыва
+          maxLength: 500
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Дата публикации
+        score:
+          type: integer
+          maximum: 5
+          minimum: 1
+      required:
+      - author
+      - created
+      - establishment
+      - id
+      - score
+      - text
     RoleEnum:
       enum:
       - client
@@ -712,6 +882,30 @@ components:
           format: email
       required:
       - email
+    Services:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Название услги
+          maxLength: 200
+        description:
+          type: string
+          title: Описание услги
+          maxLength: 2000
+        slug:
+          type: string
+          title: Ссылка на услгу
+          maxLength: 200
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - description
+      - id
+      - name
+      - slug
     SignUp:
       type: object
       properties:
@@ -745,6 +939,36 @@ components:
       - password
       - role
       - telephone
+    SmallUser:
+      type: object
+      properties:
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          title: User`s role
+      required:
+      - first_name
+      - last_name
+      - role
+    Social:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          format: uri
+          maxLength: 200
+      required:
+      - id
+      - name
     StartEnum:
       enum:
       - 08:00
@@ -789,7 +1013,39 @@ components:
         * `16:30` - 16:30
         * `17:00` - 17:00
         * `17:30` - 17:30
-    TableEstablishment:
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - password
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    Type:
       type: object
       properties:
         id:
@@ -797,29 +1053,21 @@ components:
           readOnly: true
         name:
           type: string
-          title: Название стола
-          readOnly: true
+          title: Тип заведения
+          maxLength: 200
         description:
           type: string
-          title: Описание стола
-          readOnly: true
+          title: Описание
+          maxLength: 2000
         slug:
           type: string
-          title: Ссылка на стол
-          readOnly: true
-        seats:
-          type: integer
-          maximum: 100
-          minimum: 1
-          title: Количество мест
-        status:
-          type: boolean
-          title: Статус стола занят/свободен
+          title: Ссылка
+          maxLength: 200
+          pattern: ^[-a-zA-Z0-9_]+$
       required:
       - description
       - id
       - name
-      - seats
       - slug
     TokenObtainPair:
       type: object
@@ -881,15 +1129,12 @@ components:
       - last_name
       - role
       - telephone
-    Work:
+    WorkEstablishment:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        name:
+        day:
           allOf:
-          - $ref: '#/components/schemas/NameEnum'
+          - $ref: '#/components/schemas/DayEnum'
           title: День недели
         start:
           allOf:
@@ -899,11 +1144,32 @@ components:
           allOf:
           - $ref: '#/components/schemas/EndEnum'
           title: Конец работы
+        day_off:
+          type: boolean
+          title: Выходной
       required:
+      - day
       - end
-      - id
-      - name
       - start
+    ZoneEstablishment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        zone:
+          type: string
+          title: Зона
+          maxLength: 150
+        seats:
+          type: integer
+          maximum: 100
+          minimum: 1
+          title: Количество мест
+      required:
+      - id
+      - seats
+      - zone
   securitySchemes:
     basicAuth:
       type: http
