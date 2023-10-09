@@ -15,6 +15,7 @@ from establishments.models import (
     Service,
     SocialEstablishment,
     ImageEstablishment,
+    Type,
 )
 from users.models import User
 
@@ -22,6 +23,17 @@ from users.models import User
 class KitchenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Kitchen
+        fields = [
+            "id",
+            "name",
+            "description",
+            "slug",
+        ]
+
+
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type
         fields = [
             "id",
             "name",
@@ -106,6 +118,7 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 
 class EstablishmentSerializer(serializers.ModelSerializer):
     kitchen = KitchenSerializer(read_only=True, many=True)
+    type = TypeSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
     services = ServicesSerializer(read_only=True, many=True)
     social = SocialSerializer(read_only=True, many=True)
@@ -119,6 +132,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
             "id",
             "owner",
             "name",
+            "type",
             "city",
             "address",
             "kitchen",
