@@ -11,13 +11,17 @@ from api.views.users import (
     MyTokenRefreshView,
 )
 
-from api.views.establishments import EstablishmentViewSet
-
+from api.views.establishments import EstablishmentViewSet, ReviewViewSet
 
 router = DefaultRouter()
 
 router.register(
     "establishments", EstablishmentViewSet, basename="establishments"
+)
+router.register(
+    r"establishments/(?P<establishment_id>\d+)/reviews",
+    ReviewViewSet,
+    basename="reviews",
 )
 router.register("users", UserViewSet, basename="users"),
 
