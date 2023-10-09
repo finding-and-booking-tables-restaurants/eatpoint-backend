@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -41,6 +42,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework_simplejwt",
+    "djoser",
     "drf_spectacular",
     "phonenumber_field",
     "jwt",
@@ -160,9 +163,25 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.TokenAuthentication",
         "api.backends.JWTAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
     ),
+}
+
+DJOSER = {
+    "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
+    "USERNAME_RESET_CONFIRM_URL": "#/username/reset/confirm/{uid}/{token}",
+    # 'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    "SEND_ACTIVATION_EMAIL": False,
+    "SERIALIZERS": {},
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("JWT",),
 }
 
 SPECTACULAR_SETTINGS = {
@@ -174,16 +193,15 @@ SPECTACULAR_SETTINGS = {
 
 # OTHER SETTINGS
 
-USER = "user"
+CLIENT = "client"
+RESTORATEUR = "restorateur"
 MODERATOR = "moderator"
 ADMIN = "admin"
 SUPERUSER = "superuser"
 
 ROLE_CHOICES = (
-    (USER, "Пользователь"),
-    (MODERATOR, "Модератор"),
-    (ADMIN, "Администратор"),
-    (SUPERUSER, "Суперюзер"),
+    (CLIENT, "Клиент"),
+    (RESTORATEUR, "Ресторатор"),
 )
 
 
@@ -191,7 +209,6 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", default="mail@fake.ru")
 
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-    # указываем директорию, в которую будут складываться файлы писем
     EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 else:
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", default="mail@fake.ru")
