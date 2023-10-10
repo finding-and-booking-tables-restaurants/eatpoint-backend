@@ -29,7 +29,3 @@ class UserAdmin(admin.ModelAdmin):
         "last_name",
     )
     empty_value_display = "-пусто-"
-
-    class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"

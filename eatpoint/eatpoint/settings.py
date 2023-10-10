@@ -44,13 +44,14 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "djoser",
-    "drf_spectacular",
+    "django_filters",
     "phonenumber_field",
     "jwt",
     "users.apps.UsersConfig",
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [

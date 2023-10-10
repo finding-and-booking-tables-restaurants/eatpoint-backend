@@ -56,6 +56,8 @@ class User(PermissionsMixin, AbstractBaseUser):
     REQUIRED_FIELDS = []
 
     class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
         constraints = [
             models.UniqueConstraint(
                 fields=("telephone", "email"), name="phone_email_unique"
