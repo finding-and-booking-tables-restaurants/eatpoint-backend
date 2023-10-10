@@ -139,6 +139,34 @@ paths:
                 items:
                   $ref: '#/components/schemas/Establishment'
           description: ''
+    post:
+      operationId: api_v1_establishments_create
+      summary: Добавить заведение
+      tags:
+      - Бизнес
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstablishmentEdit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EstablishmentEdit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EstablishmentEdit'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstablishmentEdit'
+          description: ''
   /api/v1/establishments/{establishment_id}/reviews/:
     get:
       operationId: api_v1_establishments_reviews_list
@@ -292,6 +320,149 @@ paths:
               schema:
                 $ref: '#/components/schemas/Establishment'
           description: ''
+    put:
+      operationId: api_v1_establishments_update
+      summary: Изменить заведение [PUT]
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заведение.
+        required: true
+      tags:
+      - Бизнес
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EstablishmentEdit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EstablishmentEdit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EstablishmentEdit'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstablishmentEdit'
+          description: ''
+    patch:
+      operationId: api_v1_establishments_partial_update
+      summary: Изменить данные заведения
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заведение.
+        required: true
+      tags:
+      - Бизнес
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEstablishmentEdit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEstablishmentEdit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEstablishmentEdit'
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstablishmentEdit'
+          description: ''
+    delete:
+      operationId: api_v1_establishments_destroy
+      summary: Удалить заведение
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заведение.
+        required: true
+      tags:
+      - Бизнес
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/v1/establishments/{id}/favorite/:
+    post:
+      operationId: api_v1_establishments_favorite_create
+      summary: Добавить в избранное
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заведение.
+        required: true
+      tags:
+      - Избранное
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpecialEstablishment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SpecialEstablishment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SpecialEstablishment'
+        required: true
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecialEstablishment'
+          description: ''
+    delete:
+      operationId: api_v1_establishments_favorite_destroy
+      summary: Удалить из избранного
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Заведение.
+        required: true
+      tags:
+      - Избранное
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
   /api/v1/login/jwt/create/:
     post:
       operationId: api_v1_login_jwt_create_create
@@ -618,7 +789,7 @@ components:
           type: string
           title: Название заведения
           maxLength: 200
-        type:
+        types:
           type: array
           items:
             $ref: '#/components/schemas/Type'
@@ -631,7 +802,7 @@ components:
           type: string
           title: Адрес заведения
           maxLength: 1000
-        kitchen:
+        kitchens:
           type: array
           items:
             $ref: '#/components/schemas/Kitchen'
@@ -641,7 +812,7 @@ components:
           items:
             $ref: '#/components/schemas/Services'
           readOnly: true
-        zone:
+        zones:
           type: array
           items:
             $ref: '#/components/schemas/ZoneEstablishment'
@@ -653,7 +824,6 @@ components:
         poster:
           type: string
           format: uri
-          title: Постер заведения
         email:
           type: string
           format: email
@@ -668,7 +838,7 @@ components:
         is_verified:
           type: boolean
           title: Верификация заведения
-        work:
+        worked:
           type: array
           items:
             $ref: '#/components/schemas/WorkEstablishment'
@@ -676,7 +846,7 @@ components:
         is_favorited:
           type: boolean
           readOnly: true
-        social:
+        socials:
           type: array
           items:
             $ref: '#/components/schemas/Social'
@@ -699,33 +869,117 @@ components:
       - id
       - image
       - is_favorited
-      - kitchen
+      - kitchens
       - name
       - owner
       - poster
       - rating
       - services
-      - social
+      - socials
       - telephone
-      - type
-      - work
-      - zone
-    Image:
+      - types
+      - worked
+      - zones
+    EstablishmentEdit:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
+        owner:
+          type: integer
+          readOnly: true
         name:
           type: string
-          title: Описание изображения
-          maxLength: 100
+          title: Название заведения
+          maxLength: 200
+        types:
+          type: array
+          items:
+            type: integer
+            title: Тип заведения
+          title: Тип заведения
+        city:
+          type: string
+          title: Город
+          maxLength: 150
+        address:
+          type: string
+          title: Адрес заведения
+          maxLength: 1000
+        kitchens:
+          type: array
+          items:
+            type: integer
+            title: Кухня заведения
+          title: Кухня заведения
+        services:
+          type: array
+          items:
+            type: integer
+            title: Услуга заведения
+          title: Услуга заведения
+        zones:
+          type: array
+          items:
+            $ref: '#/components/schemas/ZoneEstablishment'
+        average_check:
+          allOf:
+          - $ref: '#/components/schemas/AverageCheckEnum'
+          title: Средний чек
+        poster:
+          type: string
+          format: uri
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        telephone:
+          type: string
+          maxLength: 128
+        description:
+          type: string
+          title: Описание заведения
+          maxLength: 5000
+        worked:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkEstablishment'
+        socials:
+          type: array
+          items:
+            $ref: '#/components/schemas/Social'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+      required:
+      - address
+      - average_check
+      - city
+      - description
+      - email
+      - id
+      - images
+      - kitchens
+      - name
+      - owner
+      - poster
+      - services
+      - socials
+      - telephone
+      - types
+      - worked
+      - zones
+    Image:
+      type: object
+      properties:
+        name:
+          type: string
         image:
           type: string
           format: uri
-          title: Изображение заведения
       required:
-      - id
       - image
       - name
     Kitchen:
@@ -783,6 +1037,79 @@ components:
       - new_password
       - token
       - uid
+    PatchedEstablishmentEdit:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        owner:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Название заведения
+          maxLength: 200
+        types:
+          type: array
+          items:
+            type: integer
+            title: Тип заведения
+          title: Тип заведения
+        city:
+          type: string
+          title: Город
+          maxLength: 150
+        address:
+          type: string
+          title: Адрес заведения
+          maxLength: 1000
+        kitchens:
+          type: array
+          items:
+            type: integer
+            title: Кухня заведения
+          title: Кухня заведения
+        services:
+          type: array
+          items:
+            type: integer
+            title: Услуга заведения
+          title: Услуга заведения
+        zones:
+          type: array
+          items:
+            $ref: '#/components/schemas/ZoneEstablishment'
+        average_check:
+          allOf:
+          - $ref: '#/components/schemas/AverageCheckEnum'
+          title: Средний чек
+        poster:
+          type: string
+          format: uri
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        telephone:
+          type: string
+          maxLength: 128
+        description:
+          type: string
+          title: Описание заведения
+          maxLength: 5000
+        worked:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkEstablishment'
+        socials:
+          type: array
+          items:
+            $ref: '#/components/schemas/Social'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
     PatchedReview:
       type: object
       properties:
@@ -959,16 +1286,35 @@ components:
     Social:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
           format: uri
           maxLength: 200
       required:
+      - name
+    SpecialEstablishment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Название заведения
+          maxLength: 200
+        poster:
+          type: string
+          format: uri
+          title: Постер заведения
+        description:
+          type: string
+          title: Описание заведения
+          maxLength: 5000
+      required:
+      - description
       - id
       - name
+      - poster
     StartEnum:
       enum:
       - 08:00
@@ -1154,9 +1500,6 @@ components:
     ZoneEstablishment:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         zone:
           type: string
           title: Зона
@@ -1167,7 +1510,6 @@ components:
           minimum: 1
           title: Количество мест
       required:
-      - id
       - seats
       - zone
   securitySchemes:

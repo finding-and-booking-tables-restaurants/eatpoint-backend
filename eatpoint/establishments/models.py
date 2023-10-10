@@ -33,7 +33,7 @@ class Kitchen(models.Model):
         return self.name
 
 
-class Type(models.Model):
+class TypeEst(models.Model):
     """Кухня"""
 
     name = models.CharField(
@@ -53,22 +53,6 @@ class Type(models.Model):
     class Meta:
         verbose_name = "Тип заведения"
         verbose_name_plural = "Типы заведения"
-
-    def __str__(self):
-        return self.name
-
-
-class Zone(models.Model):
-    """Зона"""
-
-    name = models.CharField(
-        verbose_name="Название зоны",
-        max_length=200,
-    )
-
-    class Meta:
-        verbose_name = "Зона"
-        verbose_name_plural = "Зона"
 
     def __str__(self):
         return self.name
@@ -113,10 +97,10 @@ class Establishment(models.Model):
         max_length=200,
         unique=True,
     )
-    type = models.ManyToManyField(
-        Type,
+    types = models.ManyToManyField(
+        TypeEst,
         verbose_name="Тип заведения",
-        related_name="establishments",
+        related_name="establishmenttyp",
     )
     city = models.CharField(
         verbose_name="Город",
@@ -126,7 +110,7 @@ class Establishment(models.Model):
         verbose_name="Адрес заведения",
         max_length=1000,
     )
-    kitchen = models.ManyToManyField(
+    kitchens = models.ManyToManyField(
         Kitchen,
         verbose_name="Кухня заведения",
         related_name="establishments",
@@ -177,7 +161,7 @@ class SocialEstablishment(models.Model):
         Establishment,
         on_delete=models.CASCADE,
         null=True,
-        related_name="social",
+        related_name="socials",
     )
     name = models.URLField()
 
@@ -191,13 +175,15 @@ class SocialEstablishment(models.Model):
 
 class WorkEstablishment(models.Model):
     establishment = models.ForeignKey(
-        Establishment, on_delete=models.CASCADE, null=True, related_name="work"
+        Establishment,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="worked",
     )
     day = models.CharField(
         verbose_name="День недели",
         max_length=100,
         choices=DAY_CHOICES,
-        unique=True,
     )
     day_off = models.BooleanField(
         verbose_name="Выходной",
@@ -213,6 +199,13 @@ class WorkEstablishment(models.Model):
     class Meta:
         verbose_name = "Время работы"
         verbose_name_plural = "Время работы"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["day", "establishment"],
+                name="unique_work",
+                violation_error_message="Можно добавить только 1 день недели",
+            ),
+        ]
 
     def clean(self):
         if self.start >= self.end:
@@ -233,8 +226,7 @@ class ImageEstablishment(models.Model):
         Establishment,
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
-        related_name="image",
+        related_name="images",
     )
     name = models.CharField(
         verbose_name="Описание изображения",
@@ -250,7 +242,7 @@ class ImageEstablishment(models.Model):
         verbose_name_plural = "Изображения заведения"
 
     def __str__(self):
-        return f"{self.name}: {self.image}"
+        return self.name
 
 
 class ZoneEstablishment(models.Model):
@@ -260,7 +252,7 @@ class ZoneEstablishment(models.Model):
         Establishment,
         on_delete=models.CASCADE,
         null=True,
-        related_name="zone",
+        related_name="zones",
     )
     zone = models.CharField(
         verbose_name="Зона",
@@ -371,6 +363,8 @@ class Review(models.Model):
 
 
 class Favorite(models.Model):
+    """Избранное"""
+
     user = models.ForeignKey(
         User,
         related_name="favorite",
