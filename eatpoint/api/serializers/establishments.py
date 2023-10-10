@@ -6,6 +6,7 @@ from drf_spectacular.utils import (
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
+from core.validators import validate_uniq
 from establishments.models import (
     Establishment,
     WorkEstablishment,
@@ -283,13 +284,8 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         worked = data.get("worked")
-        items = []
-        for item in worked:
-            items.append(item["day"])
-        if items != list(set(items)):
-            raise serializers.ValidationError(
-                "Можно добавить только 1 день недели"
-            )
+        field = "day"
+        validate_uniq(worked, field)
         return data
 
 
@@ -326,3 +322,27 @@ class ReviewSerializer(serializers.ModelSerializer):
                     "Нельзя оставить повторный отзыв на одно заведение"
                 )
         return data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    recipe = serializers.PrimaryKeyRelatedField(
+        queryset=Establishment.objects.all(),
+    )
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+    )
+
+    class Meta:
+        model = Establishment
+        fields = ["establishment", "user"]
+
+
+class SpecialEstablishmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Establishment
+        fields = [
+            "id",
+            "name",
+            "poster",
+            "description",
+        ]
