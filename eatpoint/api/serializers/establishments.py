@@ -3,6 +3,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema_field,
 )
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from establishments.models import (
@@ -15,7 +16,7 @@ from establishments.models import (
     Service,
     SocialEstablishment,
     ImageEstablishment,
-    Type,
+    TypeEst,
 )
 from users.models import User
 
@@ -33,7 +34,7 @@ class KitchenSerializer(serializers.ModelSerializer):
 
 class TypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Type
+        model = TypeEst
         fields = [
             "id",
             "name",
@@ -57,7 +58,6 @@ class SocialSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialEstablishment
         fields = [
-            "id",
             "name",
         ]
 
@@ -66,17 +66,18 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ZoneEstablishment
         fields = [
-            "id",
             "zone",
             "seats",
         ]
 
 
 class ImageSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+    name = serializers.CharField()
+
     class Meta:
         model = ImageEstablishment
         fields = [
-            "id",
             "name",
             "image",
         ]
@@ -118,36 +119,37 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 
 
 class EstablishmentSerializer(serializers.ModelSerializer):
-    kitchen = KitchenSerializer(read_only=True, many=True)
-    type = TypeSerializer(read_only=True, many=True)
+    kitchens = KitchenSerializer(read_only=True, many=True)
+    types = TypeSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
     services = ServicesSerializer(read_only=True, many=True)
-    social = SocialSerializer(read_only=True, many=True)
+    socials = SocialSerializer(read_only=True, many=True)
     image = ImageSerializer(read_only=True, many=True)
-    zone = ZoneEstablishmentSerializer(read_only=True, many=True)
-    work = WorkEstablishmentSerializer(read_only=True, many=True)
+    zones = ZoneEstablishmentSerializer(read_only=True, many=True)
+    worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
+    poster = Base64ImageField()
 
     class Meta:
         fields = [
             "id",
             "owner",
             "name",
-            "type",
+            "types",
             "city",
             "address",
-            "kitchen",
+            "kitchens",
             "services",
-            "zone",
+            "zones",
             "average_check",
             "poster",
             "email",
             "telephone",
             "description",
             "is_verified",
-            "work",
+            "worked",
             "is_favorited",
-            "social",
+            "socials",
             "image",
             "rating",
         ]
@@ -166,6 +168,129 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         return Review.objects.filter(establishment=obj).aggregate(
             Avg("score")
         )["score__avg"]
+
+
+# class ImagesEditSerializer(serializers.ModelSerializer):
+#     id = serializers.IntegerField()
+#     amount = serializers.IntegerField()
+#
+#     class Meta:
+#         model = ImageEstablishment
+#         fields = ['id', 'name', ]
+
+
+class EstablishmentEditSerializer(serializers.ModelSerializer):
+    poster = Base64ImageField(
+        max_length=None,
+        use_url=True,
+    )
+    owner = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+    )
+    images = ImageSerializer(many=True)
+    worked = WorkEstablishmentSerializer(many=True)
+    zones = ZoneEstablishmentSerializer(many=True)
+    socials = SocialSerializer(many=True)
+
+    class Meta:
+        model = Establishment
+        fields = [
+            "id",
+            "owner",
+            "name",
+            "types",
+            "city",
+            "address",
+            "kitchens",
+            "services",
+            "zones",
+            "average_check",
+            "poster",
+            "email",
+            "telephone",
+            "description",
+            "worked",
+            "socials",
+            "images",
+        ]
+
+    def __create_image(self, images, establishment):
+        for image in images:
+            ImageEstablishment.objects.bulk_create(
+                [
+                    ImageEstablishment(
+                        establishment=establishment,
+                        image=image.get("image"),
+                        name=image.get("name"),
+                    )
+                ]
+            )
+
+    def __create_work(self, worked, establishment):
+        for work in worked:
+            WorkEstablishment.objects.bulk_create(
+                [
+                    WorkEstablishment(
+                        establishment=establishment,
+                        day=work.get("day"),
+                        day_off=work.get("day_off"),
+                        start=work.get("start"),
+                        end=work.get("end"),
+                    )
+                ]
+            )
+
+    def __create_zone(self, zones, establishment):
+        for zone in zones:
+            ZoneEstablishment.objects.bulk_create(
+                [
+                    ZoneEstablishment(
+                        establishment=establishment,
+                        zone=zone.get("zone"),
+                        seats=zone.get("seats"),
+                    )
+                ]
+            )
+
+    def __create_social(self, socials, establishment):
+        for social in socials:
+            SocialEstablishment.objects.bulk_create(
+                [
+                    SocialEstablishment(
+                        establishment=establishment,
+                        name=social.get("name"),
+                    )
+                ]
+            )
+
+    def create(self, validated_data):
+        images = validated_data.pop("images")
+        worked = validated_data.pop("worked")
+        zones = validated_data.pop("zones")
+        socials = validated_data.pop("socials")
+        kitchens = validated_data.pop("kitchens")
+        types = validated_data.pop("types")
+        services = validated_data.pop("services")
+        establishment = Establishment.objects.create(**validated_data)
+        establishment.kitchens.set(kitchens)
+        establishment.types.set(types)
+        establishment.services.set(services)
+        self.__create_image(images, establishment)
+        self.__create_work(worked, establishment)
+        self.__create_zone(zones, establishment)
+        self.__create_social(socials, establishment)
+        return establishment
+
+    def validate(self, data):
+        worked = data.get("worked")
+        items = []
+        for item in worked:
+            items.append(item["day"])
+        if items != list(set(items)):
+            raise serializers.ValidationError(
+                "Можно добавить только 1 день недели"
+            )
+        return data
 
 
 class SmallUserSerializer(serializers.ModelSerializer):

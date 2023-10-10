@@ -1,10 +1,12 @@
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.permissions import SAFE_METHODS
 
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
+    EstablishmentEditSerializer,
 )
 from establishments.models import Establishment
 
@@ -21,7 +23,15 @@ from establishments.models import Establishment
 class EstablishmentViewSet(viewsets.ModelViewSet):
     queryset = Establishment.objects.all()
     serializer_class = EstablishmentSerializer
-    http_method_names = ["get"]
+    http_method_names = ["get", "post"]
+
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return EstablishmentSerializer
+        return EstablishmentEditSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 @extend_schema(tags=["Отзывы"], methods=["GET", "POST", "PATCH"])
