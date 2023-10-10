@@ -1,17 +1,24 @@
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+)
+from rest_framework import viewsets, status
 from rest_framework.permissions import SAFE_METHODS
+from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
     EstablishmentEditSerializer,
+    SpecialEstablishmentSerializer,
 )
-from establishments.models import Establishment
+from establishments.models import Establishment, Favorite
 
 
 @extend_schema(tags=["Заведения"], methods=["GET"])
+@extend_schema(tags=["Бизнес"], methods=["POST", "PATCH", "PUT", "DELETE"])
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список заведений",
@@ -19,11 +26,20 @@ from establishments.models import Establishment
     retrieve=extend_schema(
         summary="Детальная информация о заведении",
     ),
+    create=extend_schema(
+        summary="Добавить заведение",
+    ),
+    partial_update=extend_schema(
+        summary="Изменить данные заведения",
+    ),
+    destroy=extend_schema(
+        summary="Удалить заведение",
+    ),
+    update=extend_schema(summary="Изменить заведение [PUT]"),
 )
 class EstablishmentViewSet(viewsets.ModelViewSet):
     queryset = Establishment.objects.all()
     serializer_class = EstablishmentSerializer
-    http_method_names = ["get", "post"]
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -32,6 +48,58 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def __added(self, model, user, pk, name):
+        establishment = get_object_or_404(Establishment, id=pk)
+        if model.objects.filter(
+            user=user, establishment=establishment
+        ).exists():
+            return Response(
+                {"errors": f"Вы уже добавили {establishment.name} в {name}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        model.objects.create(user=user, establishment=establishment)
+        serializer = SpecialEstablishmentSerializer(establishment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def __deleted(self, model, user, pk, name):
+        establishment = get_object_or_404(Establishment, id=pk)
+        removable = model.objects.filter(
+            user=user, establishment=establishment
+        )
+        if not removable.exists():
+            return Response(
+                {"errors": f"Вы не добавляли {establishment.name} в {name}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        removable.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(
+        tags=["Избранное"],
+        methods=["POST"],
+        request=SpecialEstablishmentSerializer,
+        responses=SpecialEstablishmentSerializer,
+        summary="Добавить в избранное",
+    )
+    @extend_schema(
+        tags=["Избранное"],
+        methods=["DELETE"],
+        summary="Удалить из избранного",
+    )
+    @action(
+        detail=True,
+        methods=["post", "delete"],
+        url_path="favorite",
+    )
+    def favorite(self, request, pk=None):
+        name = "избранное"
+        user = request.user
+        if request.method == "POST":
+            return self.__added(Favorite, user, pk, name)
+        if request.method == "DELETE":
+            return self.__deleted(Favorite, user, pk, name)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @extend_schema(tags=["Отзывы"], methods=["GET", "POST", "PATCH"])
