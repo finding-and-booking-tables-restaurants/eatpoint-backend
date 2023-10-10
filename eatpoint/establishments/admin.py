@@ -14,6 +14,7 @@ from .models import (
     ImageEstablishment,
     WorkEstablishment,
     SocialEstablishment,
+    Favorite,
 )
 
 
@@ -51,6 +52,19 @@ class TypeAdmin(admin.ModelAdmin):
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "establishment",
+    )
+    search_fields = (
+        "user__email",
+        "establishment__name",
+    )
 
 
 class ZonesInLine(admin.TabularInline):
