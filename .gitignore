@@ -90,7 +90,7 @@ ipython_config.py
 # pipenv
 #   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
 #   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   having no cross-platform support, pipenv may install dependencies that don't worked, or not
 #   install all needed dependencies.
 #Pipfile.lock
 
@@ -148,10 +148,10 @@ idea
 .dmypy.json
 dmypy.json
 
-# Pyre type checker
+# Pyre types checker
 .pyre/
 
-# pytype static type analyzer
+# pytype static types analyzer
 .pytype/
 
 # Cython debug symbols

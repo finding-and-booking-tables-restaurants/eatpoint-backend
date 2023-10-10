@@ -9,7 +9,7 @@ from .models import (
     Service,
     Event,
     Review,
-    Type,
+    TypeEst,
     ZoneEstablishment,
     ImageEstablishment,
     WorkEstablishment,
@@ -41,7 +41,7 @@ class KitchenAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
-@admin.register(Type)
+@admin.register(TypeEst)
 class TypeAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
