@@ -87,6 +87,8 @@ class SignUpSerializer(MyBaseSerializer):
             "last_name",
             "role",
             "password",
+            "is_agreement",
+            "confirm_code_send_method",
         )
 
     def create(self, validated_data):
@@ -101,6 +103,18 @@ class SignUpSerializer(MyBaseSerializer):
     def validate(self, data):
         email = data.get("email")
         telephone = data.get("telephone")
+        if data.get("confirm_code_send_method") not in (
+            core.constants.EMAIL,
+            core.constants.SMS,
+            core.constants.TELEGRAM,
+            core.constants.NOTHING,
+        ):
+            raise serializers.ValidationError(
+                f"Метод отправки кода может быть {core.constants.EMAIL} "
+                f"или {core.constants.SMS} или {core.constants.TELEGRAM} "
+                f"или {core.constants.NOTHING}"
+            )
+
         if data.get("role") not in (
             core.constants.CLIENT,
             core.constants.RESTORATEUR,
@@ -124,11 +138,9 @@ class SignUpSerializer(MyBaseSerializer):
 
 
 class ConfirmCodeSerializer(MyBaseSerializer):
-    is_agreement = serializers.BooleanField(required=True)
-
     class Meta:
         model = User
-        fields = ("telephone", "confirmation_code", "is_agreement")
+        fields = ("telephone", "confirmation_code")
 
     def validate(self, data):
         telephone = data.get("telephone")
@@ -147,7 +159,7 @@ class ConfirmCodeRefreshSerializer(MyBaseSerializer):
 
     class Meta:
         model = User
-        fields = ("telephone", "is_agreement")
+        fields = ("telephone",)
 
     def validate(self, data):
         telephone = data.get("telephone")

@@ -42,6 +42,12 @@ class User(PermissionsMixin, AbstractBaseUser):
         blank=True,
     )
 
+    confirm_code_send_method = models.CharField(
+        "Способ отправки кода подтверждения",
+        max_length=10,
+        choices=core.choices.SEND_CONFIRM_CODE_METHOD,
+    )
+
     is_agreement = models.BooleanField("Agreement", default=False)
     is_active = models.BooleanField("Active", default=True)
     is_staff = models.BooleanField(default=False)

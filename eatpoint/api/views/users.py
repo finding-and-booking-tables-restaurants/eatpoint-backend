@@ -14,6 +14,8 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+import core.choices
+import core.constants
 from users.models import User
 from api.permissions import IsUser, IsRestaurateur
 from api.serializers.users import (
@@ -95,26 +97,44 @@ class SignUp(APIView):
                 first_name=request.data.get("first_name"),
                 last_name=request.data.get("last_name"),
                 is_active=False,
-                is_agreement=False,
+                is_agreement=request.data.get("is_agreement"),
+                confirm_code_send_method=request.data.get(
+                    "confirm_code_send_method"
+                ),
             )
             user.set_password(request.data.get("password"))
-            message = user.confirm_code
-            user.confirmation_code = message
+            msg_code = user.confirm_code
+            user.confirmation_code = msg_code
             user.save()
-            send_mail(
-                "Код подтверждения EatPoint",
-                f"Код для подтверждения на сайте: {message}",
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
+
+            message = ""
+            match user.confirm_code_send_method:
+                case core.constants.EMAIL:
+                    send_mail(
+                        "Код подтверждения EatPoint",
+                        f"Код для подтверждения на сайте: {msg_code}",
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=False,
+                    )
+                    message = "На Ваш email отправлен код подтверждения"
+                case core.constants.SMS:
+                    message = """
+                    На Ваш телефон отправлена СМС с кодом подтверждения
+                    """
+
+                case core.constants.TELEGRAM:
+                    message = "На Ваш Telegram отправлен код подтверждения"
+
+                case core.constants.NOTHING:
+                    user.is_active = True
+                    user.confirmation_code = ""
+                    user.save()
+                    message = "Аккаунт зарегистрирован, авторизуйтесь..."
 
             if created:
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(
-                "На Ваш email отправлен код подтверждения",
-                status=status.HTTP_200_OK,
-            )
+            return Response(message, status=status.HTTP_200_OK)
         except IntegrityError:
             return Response(
                 "Аккаунт уже зарегистрирован, авторизуйтесь...",
@@ -136,44 +156,59 @@ class ConfirmCodeView(APIView):
         serializer.is_valid(raise_exception=True)
         telephone = request.data.get("telephone")
         confirmation_code = request.data.get("confirmation_code")
-        is_agreement = request.data.get("is_agreement")
-        if str(is_agreement).lower() not in ("true", "1", 1, True):
-            return Response(
-                "Необходимо согласиться с Условиями пользования.",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         if not User.objects.filter(telephone=telephone).exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         user = User.objects.get(telephone=telephone)
+
+        if str(user.is_agreement).lower() not in ("true", "1", 1, True):
+            return Response(
+                "Необходимо согласиться с Условиями пользования.",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if user.is_active:
             return Response(
                 "Аккаунт уже зарегистрирован, войдите в систему",
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if user.confirmation_code == confirmation_code:
-            user.is_active = True
-            user.is_agreement = True
-            user.confirmation_code = ""
-            user.save()
 
-            send_mail(
-                "Аккаунт зарегистрирован",
-                "Для перехода в профиль нажмите на ссылку: ...",
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-            return Response(
-                # {"token": user.token},
-                "Аккаунт зарегистрирован, можете войти в систему",
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(
-            "Вы ввели не правильный код",
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        match user.confirm_code_send_method:
+            case core.constants.NOTHING:
+                user.is_active = True
+                user.is_agreement = True
+                user.confirmation_code = ""
+                user.save()
+                return Response(
+                    "Аккаунт зарегистрирован, можете войти в систему",
+                    status=status.HTTP_201_CREATED,
+                )
+            case core.constants.EMAIL:
+                if user.confirmation_code == confirmation_code:
+                    user.is_active = True
+                    user.is_agreement = True
+                    user.confirmation_code = ""
+                    user.save()
+
+                    send_mail(
+                        "Аккаунт зарегистрирован",
+                        "Для перехода в профиль нажмите на ссылку: ...",
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=False,
+                    )
+                    return Response(
+                        "Аккаунт зарегистрирован, можете войти в систему",
+                        status=status.HTTP_201_CREATED,
+                    )
+                return Response(
+                    "Вы ввели не правильный код",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            case core.constants.SMS:
+                pass
+            case core.constants.TELEGRAM:
+                pass
 
 
 @extend_schema(tags=["SignUp"], methods=["POST"])
@@ -203,16 +238,19 @@ class ConfirmCodeRefreshView(APIView):
         message = user.confirmation_code
         user.save()
 
-        send_mail(
-            "Код подтверждения EatPoint",
-            f"Код для подтверждения на сайте: {message}",
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
-        return Response(
-            "Код подтверждения отправлен на email", status=status.HTTP_200_OK
-        )
+        match user.confirm_code_send_method:
+            case core.constants.EMAIL:
+                send_mail(
+                    "Код подтверждения EatPoint",
+                    f"Код для подтверждения на сайте: {message}",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+                return Response(
+                    "Код подтверждения отправлен на email",
+                    status=status.HTTP_200_OK,
+                )
 
 
 @extend_schema(tags=["Password"], methods=["POST"])
