@@ -14,13 +14,41 @@ from api.filters.establishments import (
     TypeEstFilterBackend,
     ServicesEstFilterBackend,
 )
+from api.permissions import ReadOnly
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
     EstablishmentEditSerializer,
     SpecialEstablishmentSerializer,
+    KitchenSerializer,
+    TypeEstSerializer,
+    ServicesSerializer,
 )
-from establishments.models import Establishment, Favorite
+from establishments.models import (
+    Establishment,
+    Favorite,
+    Kitchen,
+    TypeEst,
+    Service,
+)
+
+
+class KitchenViewSet(viewsets.ModelViewSet):
+    queryset = Kitchen.objects.all()
+    serializer_class = KitchenSerializer
+    permission_classes = ReadOnly
+
+
+class TypeEstViewSet(viewsets.ModelViewSet):
+    queryset = TypeEst.objects.all()
+    serializer_class = TypeEstSerializer
+    permission_classes = ReadOnly
+
+
+class ServicesViewSet(viewsets.ModelViewSet):
+    queryset = Service.objects.all()
+    serializer_class = ServicesSerializer
+    permission_classes = ReadOnly
 
 
 @extend_schema(tags=["Заведения"], methods=["GET"])
