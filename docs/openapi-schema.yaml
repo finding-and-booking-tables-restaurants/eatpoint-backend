@@ -95,6 +95,22 @@ paths:
     get:
       operationId: api_v1_establishments_list
       summary: Получить список заведений
+      parameters:
+      - in: query
+        name: kitchens
+        schema:
+          type: string
+        description: Кухня заведения
+      - in: query
+        name: services
+        schema:
+          type: string
+        description: Доп. услуги
+      - in: query
+        name: types
+        schema:
+          type: string
+        description: Тип заведения
       tags:
       - Заведения
       security:
@@ -1170,15 +1186,15 @@ components:
           readOnly: true
         name:
           type: string
-          title: Название услги
+          title: Название услуги
           maxLength: 200
         description:
           type: string
-          title: Описание услги
+          title: Описание услуги
           maxLength: 2000
         slug:
           type: string
-          title: Ссылка на услгу
+          title: Ссылка на услугу
           maxLength: 200
           pattern: ^[-a-zA-Z0-9_]+$
       required:
