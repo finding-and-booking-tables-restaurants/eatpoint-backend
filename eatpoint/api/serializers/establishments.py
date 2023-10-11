@@ -33,7 +33,7 @@ class KitchenSerializer(serializers.ModelSerializer):
         ]
 
 
-class TypeSerializer(serializers.ModelSerializer):
+class TypeEstSerializer(serializers.ModelSerializer):
     class Meta:
         model = TypeEst
         fields = [
@@ -121,7 +121,7 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 
 class EstablishmentSerializer(serializers.ModelSerializer):
     kitchens = KitchenSerializer(read_only=True, many=True)
-    types = TypeSerializer(read_only=True, many=True)
+    types = TypeEstSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
     services = ServicesSerializer(read_only=True, many=True)
     socials = SocialSerializer(read_only=True, many=True)

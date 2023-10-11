@@ -166,3 +166,5 @@ cython_debug/
 /eatpoint/media/
 /eatpoint/establishments/migrations/
 /eatpoint/users/migrations/
+/eatpoint/static/
+/eatpoint/.env
