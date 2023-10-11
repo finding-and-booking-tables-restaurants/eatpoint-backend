@@ -5,22 +5,15 @@ import jwt
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.core.validators import RegexValidator
+from phonenumber_field.modelfields import PhoneNumberField
 
+import core.choices
+import core.constants
 from .usermanager import UserManager
 
 
 class User(PermissionsMixin, AbstractBaseUser):
-    telephone = models.CharField(
-        validators=[
-            RegexValidator(
-                regex=r"^\+?1?\d{9,15}$",
-                message="Неверный формат номера",
-            )
-        ],
-        max_length=17,
-        unique=True,
-    )
+    telephone = PhoneNumberField(unique=True)
     email = models.EmailField(
         verbose_name="email address",
         max_length=254,
@@ -40,8 +33,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     role = models.CharField(
         "User`s role",
         max_length=20,
-        default=settings.USER,
-        choices=settings.ROLE_CHOICES,
+        choices=core.choices.ROLE_CHOICES,
     )
 
     confirmation_code = models.CharField(
@@ -50,8 +42,15 @@ class User(PermissionsMixin, AbstractBaseUser):
         blank=True,
     )
 
+    confirm_code_send_method = models.CharField(
+        "Способ отправки кода подтверждения",
+        max_length=10,
+        choices=core.choices.SEND_CONFIRM_CODE_METHOD,
+    )
+
     is_agreement = models.BooleanField("Agreement", default=False)
     is_active = models.BooleanField("Active", default=True)
+    is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -63,7 +62,13 @@ class User(PermissionsMixin, AbstractBaseUser):
     REQUIRED_FIELDS = []
 
     class Meta:
-        unique_together = ["telephone", "email"]
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("telephone", "email"), name="phone_email_unique"
+            )
+        ]
 
     def __str__(self):
         return self.email
@@ -75,24 +80,12 @@ class User(PermissionsMixin, AbstractBaseUser):
         return True
 
     @property
-    def is_staff(self):
-        return self.is_admin
-
-    @property
     def is_user(self):
-        return self.role == settings.USER
+        return self.role == core.constants.CLIENT
 
     @property
-    def is_moderator(self):
-        return self.role == settings.MODERATOR
-
-    @property
-    def is_administrator(self):
-        return self.role == settings.ADMIN
-
-    @property
-    def is_superuser(self):
-        return self.role == settings.SUPERUSER
+    def is_restorateur(self):
+        return self.role == core.constants.RESTORATEUR
 
     @property
     def token(self):
@@ -105,7 +98,12 @@ class User(PermissionsMixin, AbstractBaseUser):
     @staticmethod
     def _generate_confirm_code():
         random.seed()
-        return str(random.randint(100000, 999999))
+        return str(
+            random.randint(
+                core.constants.MIN_LIMIT_CONFIRM_CODE,
+                core.constants.MAX_LIMIT_CONFIRM_CODE,
+            )
+        )
 
     def _generate_jwt_token(self):
         dt = datetime.now()

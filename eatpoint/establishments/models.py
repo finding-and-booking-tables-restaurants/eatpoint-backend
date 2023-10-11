@@ -1,52 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from phonenumber_field.modelfields import PhoneNumberField
+
+from core.choices import DAY_CHOICES, TIME_CHOICES, CHECK_CHOICES
+from core.constants import MAX_SEATS, MIN_SEATS
 from users.models import User
-
-
-TIME_CHOICES = (("11:00", "dasd"), ("11:30", "asdsd"))
-
-
-class Day(models.TextChoices):
-    """День недели"""
-
-    MON = "Monday", "понедельник"
-    TUE = "Tuesday", "вторник"
-    WED = "Wednesday", "среда"
-    THU = "Thursday", "четверг"
-    FRI = "Friday", "пятница"
-    SAT = "Saturday", "суббота"
-    SUN = "Sunday", "воскресенье"
-
-
-class Work(models.Model):
-    name = models.CharField(
-        verbose_name="День недели",
-        max_length=100,
-        choices=Day.choices,
-    )
-    start = models.TimeField(
-        verbose_name="Начало работы",
-    )
-    end = models.TimeField(
-        verbose_name="Конец работы",
-    )
-    lunch_start = models.TimeField(
-        verbose_name="Начало обеда",
-        blank=True,
-        null=True,
-    )
-    lunch_end = models.TimeField(
-        verbose_name="Конец обеда",
-        blank=True,
-        null=True,
-    )
-
-    class Meta:
-        verbose_name = "Время работы"
-        verbose_name_plural = "Время работы"
-
-    def __str__(self):
-        return self.name
 
 
 class Kitchen(models.Model):
@@ -74,26 +33,26 @@ class Kitchen(models.Model):
         return self.name
 
 
-class Table(models.Model):
-    """Стол"""
+class TypeEst(models.Model):
+    """Кухня"""
 
     name = models.CharField(
-        verbose_name="Название стола",
+        verbose_name="Тип заведения",
         max_length=200,
     )
     description = models.TextField(
-        verbose_name="Описание стола",
+        verbose_name="Описание",
         max_length=2000,
     )
     slug = models.SlugField(
-        verbose_name="Ссылка на стол",
+        verbose_name="Ссылка",
         max_length=200,
         unique=True,
     )
 
     class Meta:
-        verbose_name = "Стол"
-        verbose_name_plural = "Столы"
+        verbose_name = "Тип заведения"
+        verbose_name_plural = "Типы заведения"
 
     def __str__(self):
         return self.name
@@ -103,11 +62,11 @@ class Service(models.Model):
     """Доп. услуги"""
 
     name = models.CharField(
-        verbose_name="Название услги",
+        verbose_name="Название услуги",
         max_length=200,
     )
     description = models.TextField(
-        verbose_name="Описание услги",
+        verbose_name="Описание услуги",
         max_length=2000,
     )
     slug = models.SlugField(
@@ -124,64 +83,51 @@ class Service(models.Model):
         return self.name
 
 
-class File(models.Model):
-    image = models.ImageField(
-        verbose_name="Изображение заведения",
-        upload_to="establishment/images/est_image",
-    )
-
-
 class Establishment(models.Model):
     """Заведение"""
 
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="establishment",
+        verbose_name="Владелец",
+    )
     name = models.CharField(
         verbose_name="Название заведения",
         max_length=200,
         unique=True,
     )
+    types = models.ManyToManyField(
+        TypeEst,
+        verbose_name="Тип заведения",
+        related_name="establishments",
+    )
+    city = models.CharField(
+        verbose_name="Город",
+        max_length=150,
+    )
     address = models.CharField(
         verbose_name="Адрес заведения",
         max_length=1000,
     )
-    kitchen = models.ManyToManyField(
+    kitchens = models.ManyToManyField(
         Kitchen,
         verbose_name="Кухня заведения",
         related_name="establishments",
-    )
-    tables = models.ManyToManyField(
-        Table,
-        through="TableEstablishment",
-        verbose_name="Столы заведения",
-    )
-    file = models.ManyToManyField(
-        File,
-        through="FileEstablishment",
-        verbose_name="Изображения заведения",
     )
     services = models.ManyToManyField(
         Service,
         verbose_name="Услуга заведения",
         related_name="establishments",
     )
-    worked = models.ManyToManyField(
-        Work,
-        through="WorkEstablishment",
-        verbose_name="Время работы",
-        null=True,
+    average_check = models.CharField(
+        verbose_name="Средний чек",
+        max_length=120,
+        choices=CHECK_CHOICES,
     )
-    busy = models.DateTimeField(
-        verbose_name="Часы загруженности",
-    )
-    # check = models.PositiveIntegerField(
-    #     verbose_name="Средний чек",
-    # )
     poster = models.ImageField(
         verbose_name="Постер заведения",
         upload_to="establishment/images/poster",
-    )
-    imagetables = models.ImageField(
-        verbose_name="План",
-        upload_to="establishment/images/tables",
     )
     email = models.EmailField(
         verbose_name="Email",
@@ -190,7 +136,6 @@ class Establishment(models.Model):
     )
     telephone = models.IntegerField(
         verbose_name="Телефон",
-        # validators=None,  # сделать валидатор для номера? закомментил, т.к. не проходит миграция
     )
     social = models.CharField(
         verbose_name="Соц.сеть",
@@ -217,49 +162,85 @@ class Establishment(models.Model):
         super().save(*args, **kwargs)
 
 
-# class Social(models.Model):
-#     name
-
-
-class WorkEstablishment(models.Model):
-    order_dt = models.ForeignKey(
-        Work,
-        verbose_name="Время работы",
-        on_delete=models.SET_NULL,
-        null=True,
-    )
+class SocialEstablishment(models.Model):
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
+        related_name="socials",
+    )
+    name = models.URLField()
+
+    class Meta:
+        verbose_name = "Соц. сеть"
+        verbose_name_plural = "Соц. сети"
+
+    def __str__(self):
+        return self.name
+
+
+class WorkEstablishment(models.Model):
+    establishment = models.ForeignKey(
+        Establishment,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="worked",
+    )
+    day = models.CharField(
+        verbose_name="День недели",
+        max_length=100,
+        choices=DAY_CHOICES,
+    )
+    day_off = models.BooleanField(
+        verbose_name="Выходной",
+        default=False,
+    )
+    start = models.CharField(
+        verbose_name="Начало работы", choices=TIME_CHOICES, max_length=145
+    )
+    end = models.CharField(
+        verbose_name="Конец работы", choices=TIME_CHOICES, max_length=145
     )
 
     class Meta:
         verbose_name = "Время работы"
         verbose_name_plural = "Время работы"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["day", "establishment"],
+                name="unique_work",
+                violation_error_message="Можно добавить только 1 день недели",
+            ),
+        ]
+
+    def clean(self):
+        if self.start >= self.end:
+            raise ValidationError(
+                {
+                    "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
+                }
+            )
 
     def __str__(self):
-        return f"{self.establishment.name}: {self.order_dt}"
+        return self.day
 
 
-class FileEstablishment(models.Model):
+class ImageEstablishment(models.Model):
     """Несколько изображений"""
 
-    name = models.CharField(
-        verbose_name="Описание изображения",
-        max_length=100,
-    )
-    image = models.ForeignKey(
-        File,
-        on_delete=models.SET_NULL,
-        null=True,
-    )
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
         null=True,
-        blank=True,
+        related_name="images",
+    )
+    name = models.CharField(
+        verbose_name="Описание изображения",
+        max_length=100,
+    )
+    image = models.ImageField(
+        verbose_name="Изображение заведения",
+        upload_to="establishment/images/est_image",
     )
 
     class Meta:
@@ -267,46 +248,42 @@ class FileEstablishment(models.Model):
         verbose_name_plural = "Изображения заведения"
 
     def __str__(self):
-        return f"{self.name}: {self.image}"
+        return self.name
 
 
-class TableEstablishment(models.Model):
-    """Столы заведения"""
+class ZoneEstablishment(models.Model):
+    """Зоны заведения"""
 
     establishment = models.ForeignKey(
         Establishment,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
+        related_name="zones",
     )
-    table = models.ForeignKey(
-        Table,
-        on_delete=models.SET_NULL,
-        null=True,
+    zone = models.CharField(
+        verbose_name="Зона",
+        max_length=150,
     )
     seats = models.PositiveSmallIntegerField(
         verbose_name="Количество мест",
         validators=[
             MaxValueValidator(
-                100,  # заменить на константы
+                MAX_SEATS,
                 message="Количество мест слишком большое",
             ),
             MinValueValidator(
-                1,  # заменить на константы
+                MIN_SEATS,
                 message="Количество мест не может быть меньше 1",
             ),
         ],
     )
-    status = models.BooleanField(
-        verbose_name="Статус стола занят/свободен",
-        default=False,
-    )
 
     class Meta:
-        verbose_name = "Стол заведения"
-        verbose_name_plural = "Столы заведения"
+        verbose_name = "Зона заведения"
+        verbose_name_plural = "Зоны заведения"
 
     def __str__(self):
-        return f"{self.table}-{self.seats} {self.status}"
+        return self.zone
 
 
 class Event(models.Model):
@@ -362,7 +339,6 @@ class Review(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="review",
     )
     text = models.TextField(
         verbose_name="Текст отзыва",
@@ -371,6 +347,12 @@ class Review(models.Model):
     created = models.DateTimeField(
         verbose_name="Дата публикации",
         auto_now_add=True,
+    )
+    score = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1, message="Допустимые значние 1-5"),
+            MaxValueValidator(5, message="Допустимые значние 1-5"),
+        ],
     )
 
     class Meta:
@@ -383,4 +365,33 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.author}: {self.text}"
+        return self.text
+
+
+class Favorite(models.Model):
+    """Избранное"""
+
+    user = models.ForeignKey(
+        User,
+        related_name="favorite",
+        on_delete=models.CASCADE,
+    )
+    establishment = models.ForeignKey(
+        Establishment,
+        related_name="favorite",
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = "Избранное"
+        verbose_name_plural = "Избранное"
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "establishment"], name="uniquefavorit"
+            ),
+            models.CheckConstraint(
+                check=~models.Q(user=models.F("establishment")),
+                name="favoriteuniq",
+            ),
+        ]
