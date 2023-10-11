@@ -12,7 +12,7 @@ services:
   backend:
     container_name: backend
     restart: always
-    image: valentaine98/eatpoint:0.5
+    image: valentaine98/eatpoint:0.1
     expose:
       - 8000
     volumes:

@@ -205,7 +205,7 @@ SPECTACULAR_SETTINGS = {
 # OTHER SETTINGS
 
 
-if DEBUG:
+if not DEBUG:
     DEFAULT_FROM_EMAIL = os.getenv(
         "DEFAULT_FROM_EMAIL", default="mail@fake.ru"
     )
@@ -213,9 +213,10 @@ if DEBUG:
     EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "smtp.yandex.ru"
-    EMAIL_PORT = 465
-    EMAIL_USE_SSL = True
+    EMAIL_HOST = os.getenv("EMAIL_HOST")
+    EMAIL_PORT = os.getenv("EMAIL_PORT")
+    EMAIL_USE_TLS = True
+    EMAIL_USE_SSL = False
 
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
     EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
