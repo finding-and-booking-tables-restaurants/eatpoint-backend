@@ -8,6 +8,11 @@ from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
+from api.filters.establishments import (
+    EstablishmentFilterBackend,
+    TypeEstFilterBackend,
+    ServicesEstFilterBackend,
+)
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
@@ -40,6 +45,11 @@ from establishments.models import Establishment, Favorite
 class EstablishmentViewSet(viewsets.ModelViewSet):
     queryset = Establishment.objects.all()
     serializer_class = EstablishmentSerializer
+    filter_backends = (
+        EstablishmentFilterBackend,
+        TypeEstFilterBackend,
+        ServicesEstFilterBackend,
+    )
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
