@@ -20,3 +20,7 @@ SUPERUSER = "superuser"
 
 MIN_LIMIT_CONFIRM_CODE = 100_000
 MAX_LIMIT_CONFIRM_CODE = 999_999
+SMS = "sms"
+EMAIL = "email"
+TELEGRAM = "telegram"
+NOTHING = "nothing"

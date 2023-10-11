@@ -19,10 +19,14 @@ class UserAdmin(admin.ModelAdmin):
         "updated_at",
         "confirmation_code",
         "is_agreement",
+        "confirm_code_send_method",
     )
     list_filter = (
+        "role",
         "email",
         "last_name",
+        "is_active",
+        "is_agreement",
     )
     search_fields = (
         "email",
