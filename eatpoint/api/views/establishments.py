@@ -2,12 +2,18 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
+    OpenApiParameter,
 )
 from rest_framework import viewsets, status
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
+from api.filters.establishments import (
+    EstablishmentFilterBackend,
+    TypeEstFilterBackend,
+    ServicesEstFilterBackend,
+)
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
@@ -21,6 +27,11 @@ from establishments.models import Establishment, Favorite
 @extend_schema(tags=["Бизнес"], methods=["POST", "PATCH", "PUT", "DELETE"])
 @extend_schema_view(
     list=extend_schema(
+        parameters=[
+            OpenApiParameter(name="kitchens", description="Кухня заведения"),
+            OpenApiParameter(name="types", description="Тип заведения"),
+            OpenApiParameter(name="services", description="Доп. услуги"),
+        ],
         summary="Получить список заведений",
     ),
     retrieve=extend_schema(
@@ -40,6 +51,11 @@ from establishments.models import Establishment, Favorite
 class EstablishmentViewSet(viewsets.ModelViewSet):
     queryset = Establishment.objects.all()
     serializer_class = EstablishmentSerializer
+    filter_backends = (
+        EstablishmentFilterBackend,
+        TypeEstFilterBackend,
+        ServicesEstFilterBackend,
+    )
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:

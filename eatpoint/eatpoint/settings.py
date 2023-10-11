@@ -51,12 +51,14 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "drf_spectacular_sidecar",
+    "django_filters",
     "phonenumber_field",
     "jwt",
     "users.apps.UsersConfig",
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [

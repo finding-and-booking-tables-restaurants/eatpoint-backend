@@ -62,15 +62,15 @@ class Service(models.Model):
     """Доп. услуги"""
 
     name = models.CharField(
-        verbose_name="Название услги",
+        verbose_name="Название услуги",
         max_length=200,
     )
     description = models.TextField(
-        verbose_name="Описание услги",
+        verbose_name="Описание услуги",
         max_length=2000,
     )
     slug = models.SlugField(
-        verbose_name="Ссылка на услгу",
+        verbose_name="Ссылка на услугу",
         max_length=200,
         unique=True,
     )
@@ -100,7 +100,7 @@ class Establishment(models.Model):
     types = models.ManyToManyField(
         TypeEst,
         verbose_name="Тип заведения",
-        related_name="establishmenttyp",
+        related_name="establishments",
     )
     city = models.CharField(
         verbose_name="Город",
