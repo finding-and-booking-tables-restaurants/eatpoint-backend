@@ -27,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv("SECRET_KEY", default="valen_server.env")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["80.87.109.70", "backend", "backend:8000", "127.0.0.1"]
 
@@ -95,19 +95,26 @@ WSGI_APPLICATION = "eatpoint.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-
-DATABASES = {
-    "default": {
-        "ENGINE": os.getenv(
-            "DB_ENGINE", default="django.db.backends.postgresql"
-        ),
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": os.getenv(
+                "DB_ENGINE", default="django.db.backends.postgresql"
+            ),
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("POSTGRES_USER"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),
+            "PORT": os.getenv("DB_PORT"),
+        }
+    }
 
 
 # Password validation
@@ -145,7 +152,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "/static/"
-
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 MEDIA_URL = "/media/"
@@ -173,7 +179,6 @@ REST_FRAMEWORK = {
 DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "#/password/reset/confirm/{uid}/{token}",
     "USERNAME_RESET_CONFIRM_URL": "#/username/reset/confirm/{uid}/{token}",
-    # 'ACTIVATION_URL': '#/activate/{uid}/{token}',
     "SEND_ACTIVATION_EMAIL": False,
     "SERIALIZERS": {},
 }
@@ -197,18 +202,24 @@ SPECTACULAR_SETTINGS = {
 
 # OTHER SETTINGS
 
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", default="mail@fake.ru")
 
-# if DEBUG:
-EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
-# else:
-# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", default="mail@fake.ru")
-# EMAIL_HOST_PASSWORD = os.getenv(
-#     "EMAIL_HOST_PASSWORD", default="your_password"
-# )
-# EMAIL_HOST = os.getenv("EMAIL_HOST", default="smtp.yandex.ru")
-# EMAIL_PORT = os.getenv("EMAIL_PORT", default="465")
-# EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", default="True")
+if DEBUG:
+    DEFAULT_FROM_EMAIL = os.getenv(
+        "DEFAULT_FROM_EMAIL", default="mail@fake.ru"
+    )
+    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+    EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.yandex.ru"
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+    SERVER_EMAIL = EMAIL_HOST_USER
+    EMAIL_ADMIN = EMAIL_HOST_USER
 
 TIME_INPUT_FORMATS = ("%I:%M",)
