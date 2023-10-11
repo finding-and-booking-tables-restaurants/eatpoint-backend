@@ -10,13 +10,22 @@ from api.views.users import (
     MyTokenObtainPairView,
     MyTokenRefreshView,
 )
-from api.views.establishments import EstablishmentViewSet, ReviewViewSet
+from api.views.establishments import (
+    EstablishmentViewSet,
+    ReviewViewSet,
+    KitchenViewSet,
+    ServicesViewSet,
+    TypeEstViewSet,
+)
 
 router = DefaultRouter()
 
 router.register(
     "establishments", EstablishmentViewSet, basename="establishments"
 )
+router.register("kitchens", KitchenViewSet, basename="Kitchens")
+router.register("services", ServicesViewSet, basename="service")
+router.register("types", TypeEstViewSet, basename="types")
 router.register(
     r"establishments/(?P<establishment_id>\d+)/reviews",
     ReviewViewSet,
@@ -44,6 +53,5 @@ urlpatterns = [
     path(
         "v1/login/jwt/refresh/", MyTokenRefreshView.as_view(), name="refresh"
     ),
-    # path("v1/login/", include("djoser.urls.jwt")),
     path("v1/", include(router.urls)),
 ]

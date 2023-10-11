@@ -33,22 +33,52 @@ from establishments.models import (
 )
 
 
+@extend_schema(tags=["Кухни"], methods=["GET"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список кухонь",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о кухне",
+    ),
+)
 class KitchenViewSet(viewsets.ModelViewSet):
     queryset = Kitchen.objects.all()
     serializer_class = KitchenSerializer
-    permission_classes = ReadOnly
+    permission_classes = (ReadOnly,)
+    http_method_names = ["get"]
 
 
+@extend_schema(tags=["Типы заведения"], methods=["GET"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список типов заведений",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о типе заведения",
+    ),
+)
 class TypeEstViewSet(viewsets.ModelViewSet):
     queryset = TypeEst.objects.all()
     serializer_class = TypeEstSerializer
-    permission_classes = ReadOnly
+    permission_classes = (ReadOnly,)
+    http_method_names = ["get"]
 
 
+@extend_schema(tags=["Доп. услуги"], methods=["GET"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список услуг",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о услуге",
+    ),
+)
 class ServicesViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServicesSerializer
-    permission_classes = ReadOnly
+    permission_classes = (ReadOnly,)
+    http_method_names = ["get"]
 
 
 @extend_schema(tags=["Заведения"], methods=["GET"])
