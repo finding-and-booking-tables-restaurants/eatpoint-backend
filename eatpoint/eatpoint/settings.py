@@ -24,14 +24,18 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", default="valen_server.env")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["80.87.109.70", "backend", "backend:8000", "127.0.0.1"]
 
-
+CSRF_TRUSTED_ORIGINS = ["https://80.87.109.70", "http://80.87.109.70"]
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_DOMAIN = "80.87.109.70"
+CORS_URLS_REGEX = r"^/api/.*$"
+CORS_ORIGIN_ALLOW_ALL = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "djoser",
+    "corsheaders",
     "drf_spectacular",
     "phonenumber_field",
     "jwt",
@@ -56,12 +61,14 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 ROOT_URLCONF = "eatpoint.urls"
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
@@ -87,27 +94,20 @@ WSGI_APPLICATION = "eatpoint.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-        }
-    }
 
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": os.getenv(
-                "DB_ENGINE", default="django.db.backends.postgresql"
-            ),
-            "NAME": os.getenv("DB_NAME", default="eatpoint"),
-            "USER": os.getenv("POSTGRES_USER", default="dbuser"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="12341234"),
-            "HOST": os.getenv("DB_HOST", default="127.0.0.1"),
-            "PORT": os.getenv("DB_PORT", default="5432"),
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": os.getenv(
+            "DB_ENGINE", default="django.db.backends.postgresql"
+        ),
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -195,16 +195,16 @@ SPECTACULAR_SETTINGS = {
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", default="mail@fake.ru")
 
-if DEBUG:
-    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-    EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
-else:
-    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", default="mail@fake.ru")
-    EMAIL_HOST_PASSWORD = os.getenv(
-        "EMAIL_HOST_PASSWORD", default="your_password"
-    )
-    EMAIL_HOST = os.getenv("EMAIL_HOST", default="smtp.yandex.ru")
-    EMAIL_PORT = os.getenv("EMAIL_PORT", default="465")
-    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", default="True")
+# if DEBUG:
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+# else:
+# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", default="mail@fake.ru")
+# EMAIL_HOST_PASSWORD = os.getenv(
+#     "EMAIL_HOST_PASSWORD", default="your_password"
+# )
+# EMAIL_HOST = os.getenv("EMAIL_HOST", default="smtp.yandex.ru")
+# EMAIL_PORT = os.getenv("EMAIL_PORT", default="465")
+# EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", default="True")
 
 TIME_INPUT_FORMATS = ("%I:%M",)

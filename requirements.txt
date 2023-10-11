@@ -14,7 +14,8 @@ psycopg2-binary==2.9.7
 psycopg2==2.9.7
 django-cors-headers==4.2.0
 drf-spectacular==0.26.5
-django-phonenumber-field[phonenumbers]
+django-phonenumber-field==7.1.0
+phonenumbers==8.13.22
 Babel==2.13.0
 Pillow==10.0.1
 PyJWT==2.8.0

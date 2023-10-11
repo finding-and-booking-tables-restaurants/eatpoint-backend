@@ -1,47 +1,45 @@
-+version: '3.3'
-
+version: '3.0'
 services:
-
   db:
     image: postgres:13.0-alpine
     restart: always
+    container_name: db
     volumes:
-      - db_value:/var/lib/postgresql/data/
+      - /var/lib/postgresql/data/
     env_file:
       - ./.env
 
   backend:
-    image: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_BACKEND }}:latest
+    container_name: backend
     restart: always
+    image: valentaine98/eatpoint:0.5
+    expose:
+      - 8000
     volumes:
-      - static_value:/eatpoint/static/
-      - media_value:/eatpoint/media/
+      - static_value:/app/static/
+      - media_value:/app/media/
     depends_on:
       - db
     env_file:
       - ./.env
 
-  # frontend:
-  #   image: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_FRONTEND }}:latest
-  #   volumes:
-  #     - ../frontend/:/app/result_build/
-  #   depends_on:
-  #     - backend
-      
   nginx:
-    image: nginx:1.19.3
+    image: nginx:1.21.3-alpine
     restart: always
+    container_name: nginx
     ports:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../frontend/build:/usr/share/nginx/html/
       - ./docs/:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
       - backend
-  
+
 volumes:
+  postgres_data:
   static_value:
   media_value:
-  db_value:
+  result_build:
