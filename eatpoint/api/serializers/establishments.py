@@ -6,7 +6,7 @@ from drf_spectacular.utils import (
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from core.validators import validate_uniq
+from core.validators import validate_uniq, file_size
 from establishments.models import (
     Establishment,
     WorkEstablishment,
@@ -171,15 +171,6 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         )["score__avg"]
 
 
-# class ImagesEditSerializer(serializers.ModelSerializer):
-#     id = serializers.IntegerField()
-#     amount = serializers.IntegerField()
-#
-#     class Meta:
-#         model = ImageEstablishment
-#         fields = ['id', 'name', ]
-
-
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     poster = Base64ImageField(
         max_length=None,
@@ -214,6 +205,10 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "socials",
             "images",
         ]
+
+    def validate_image(self, image):
+        file_size(image)
+        return image
 
     def __create_image(self, images, establishment):
         for image in images:
