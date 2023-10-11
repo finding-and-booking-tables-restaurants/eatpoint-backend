@@ -13,6 +13,7 @@ gunicorn==21.2.0
 psycopg2-binary==2.9.7
 django-cors-headers==4.2.0
 drf-spectacular==0.26.5
+drf-spectacular-sidecar==2023.10.1
 django-phonenumber-field[phonenumbers]
 Babel==2.13.0
 Pillow==10.0.1
