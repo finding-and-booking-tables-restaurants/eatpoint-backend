@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
-    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -205,7 +204,7 @@ SPECTACULAR_SETTINGS = {
 # OTHER SETTINGS
 
 
-if not DEBUG:
+if DEBUG:
     DEFAULT_FROM_EMAIL = os.getenv(
         "DEFAULT_FROM_EMAIL", default="mail@fake.ru"
     )
