@@ -10,7 +10,6 @@ from api.views.users import (
     MyTokenObtainPairView,
     MyTokenRefreshView,
 )
-
 from api.views.establishments import EstablishmentViewSet, ReviewViewSet
 
 router = DefaultRouter()
