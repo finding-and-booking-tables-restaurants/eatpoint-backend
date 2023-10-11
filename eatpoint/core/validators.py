@@ -1,15 +1,20 @@
+from django.core.validators import RegexValidator
 from rest_framework.validators import ValidationError
-from django.core.exceptions import ValidationError as ValidateModelImage
 from django.conf import settings
 from rest_framework import serializers
 
+from core.constants import IMAGE_SIZE
+
+
+string_validator = RegexValidator(
+    r"^[a-zA-Zа-яА-Я]+$", "Имя и Фамилия должны содержать только буквы"
+)
+
 
 def file_size(value):
-    limit = settings.IMAGE_SIZE
+    limit = IMAGE_SIZE
     if value.size > limit:
-        raise ValidateModelImage(
-            "Размер изображения не должен превышать 5 mb."
-        )
+        raise ValidationError("Размер изображения не должен превышать 5 mb.")
 
 
 def validate_count(data):

@@ -1,15 +1,10 @@
 from django.contrib.auth.password_validation import validate_password
-from django.core.validators import RegexValidator
 from rest_framework import serializers
 
 import core.constants
+from core.validators import string_validator
 from users.models import User
 from phonenumber_field.serializerfields import PhoneNumberField
-
-
-string_validator = RegexValidator(
-    r"^[a-zA-Zа-яА-Я]+$", "Имя и Фамилия должны содержать только буквы"
-)
 
 
 class MyBaseSerializer(serializers.ModelSerializer):
@@ -155,8 +150,6 @@ class ConfirmCodeSerializer(MyBaseSerializer):
 
 
 class ConfirmCodeRefreshSerializer(MyBaseSerializer):
-    is_agreement = serializers.BooleanField(required=True)
-
     class Meta:
         model = User
         fields = ("telephone",)
