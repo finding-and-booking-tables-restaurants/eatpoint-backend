@@ -2,6 +2,7 @@ MAX_SEATS = 100
 MIN_SEATS = 1
 IMAGE_SIZE = 5 * 1024 * 1024
 INTERVAL_MINUTES = 30
+PAGE_SIZE = 10
 DAYS = [
     "понедельник",
     "вторник",

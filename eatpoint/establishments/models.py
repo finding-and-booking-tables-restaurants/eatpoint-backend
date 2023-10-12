@@ -130,11 +130,14 @@ class Establishment(models.Model):
         upload_to="establishment/images/poster",
     )
     email = models.EmailField(
-        verbose_name="Email",
+        verbose_name="Почта",
         max_length=254,
         unique=True,
     )
-    telephone = PhoneNumberField()
+    telephone = PhoneNumberField(
+        unique=True,
+        verbose_name="Номер телефона",
+    )
     description = models.TextField(
         verbose_name="Описание заведения",
         max_length=5000,
