@@ -108,7 +108,7 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 #     slug = serializers.ReadOnlyField(source="table.slug")
 #
 #     class Meta:
-#         model = ZoneEstablishment
+#         model = zone
 #         fields = [
 #             "id",
 #             "name",

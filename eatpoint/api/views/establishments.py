@@ -14,7 +14,7 @@ from api.filters.establishments import (
     TypeEstFilterBackend,
     ServicesEstFilterBackend,
 )
-from api.permissions import ReadOnly, IsUser
+from api.permissions import ReadOnly
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
@@ -23,6 +23,7 @@ from api.serializers.establishments import (
     KitchenSerializer,
     TypeEstSerializer,
     ServicesSerializer,
+    ZoneEstablishmentSerializer,
 )
 from establishments.models import (
     Establishment,
@@ -32,9 +33,6 @@ from establishments.models import (
     Service,
 )
 
-
-from reservation.models import EstablishmentReserv
-from api.serializers.reservations import ReservationsSerializer
 
 @extend_schema(tags=["Кухни"], methods=["GET"])
 @extend_schema_view(
@@ -179,6 +177,33 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
+@extend_schema(
+    tags=["Зоны"], methods=["GET", "POST", "PATCH", "PUT", "DELETE"]
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список зон к заведению с id=",
+    ),
+    create=extend_schema(summary="Добавить зону"),
+    retrieve=extend_schema(
+        summary="Одна зона",
+    ),
+    partial_update=extend_schema(
+        summary="Редактировать зону",
+    ),
+)
+class ZoneViewSet(viewsets.ModelViewSet):
+    """Вьюсет  для обработки бронирования"""
+
+    serializer_class = ZoneEstablishmentSerializer
+    http_method_names = ["get", "post", "patch"]
+
+    def get_queryset(self):
+        establishment_id = self.kwargs.get("establishment_id")
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        return establishment.zones.all()
+
+
 @extend_schema(tags=["Отзывы"], methods=["GET", "POST", "PATCH"])
 @extend_schema_view(
     list=extend_schema(
@@ -205,16 +230,3 @@ class ReviewViewSet(viewsets.ModelViewSet):
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
         serializer.save(author=self.request.user, establishment=establishment)
-
-
-@extend_schema(tags=["Бронирорвания"], methods=["GET", "POST", "PATCH", "DELETE"])
-class ReservationsViewSet(viewsets.ModelViewSet):
-    """Вьюсет  для обработки бронирования"""
-    queryset = EstablishmentReserv.objects.all()
-    serializer_class = ReservationsSerializer
-    http_method_names = ["get", "post", "patch", "delete"]
-    permission_classes = (IsUser)
-    
-    def get_serializer_class(self):
-        if self.request.method in SAFE_METHODS:
-            return EstablishmentSerializer

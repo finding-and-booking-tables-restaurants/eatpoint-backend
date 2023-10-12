@@ -134,9 +134,7 @@ class Establishment(models.Model):
         max_length=254,
         unique=True,
     )
-    telephone = models.IntegerField(
-        verbose_name="Телефон",
-    )
+    telephone = PhoneNumberField()
     social = models.CharField(
         verbose_name="Соц.сеть",
         max_length=1000,

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "djoser",
     "corsheaders",
     "drf_spectacular",
+    "drf_spectacular_sidecar",
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",

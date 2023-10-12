@@ -155,8 +155,6 @@ class ConfirmCodeSerializer(MyBaseSerializer):
 
 
 class ConfirmCodeRefreshSerializer(MyBaseSerializer):
-    is_agreement = serializers.BooleanField(required=True)
-
     class Meta:
         model = User
         fields = ("telephone",)

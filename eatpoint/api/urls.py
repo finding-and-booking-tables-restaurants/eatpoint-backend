@@ -1,7 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views.establishments import EstablishmentViewSet
+from api.views.establishments import ZoneViewSet
+from api.views.reservation import ReservationsViewSet
 from api.views.users import (
     SignUp,
     ConfirmCodeView,
@@ -14,9 +15,6 @@ from api.views.users import (
 from api.views.establishments import (
     EstablishmentViewSet,
     ReviewViewSet,
-    KitchenViewSet,
-    ServicesViewSet,
-    TypeEstViewSet,
 )
 
 router = DefaultRouter()
@@ -25,7 +23,21 @@ router.register(
     "establishments", EstablishmentViewSet, basename="establishments"
 )
 router.register("users", UserViewSet),
-
+router.register(
+    r"establishments/(?P<establishment_id>\d+)/zones",
+    ZoneViewSet,
+    basename="zones",
+)
+router.register(
+    r"establishments/(?P<establishment_id>\d+)/reservations",
+    ReservationsViewSet,
+    basename="reservations",
+)
+router.register(
+    r"establishments/(?P<establishment_id>\d+)/reviews",
+    ReviewViewSet,
+    basename="reviews",
+)
 urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),
     path("v1/auth/confirm-code/", ConfirmCodeView.as_view()),

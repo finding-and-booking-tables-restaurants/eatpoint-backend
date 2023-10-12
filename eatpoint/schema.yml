@@ -450,6 +450,47 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/kitchens/:
+    get:
+      operationId: api_v1_kitchens_list
+      summary: Получить список кухонь
+      tags:
+      - Кухни
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Kitchen'
+          description: ''
+  /api/v1/kitchens/{id}/:
+    get:
+      operationId: api_v1_kitchens_retrieve
+      summary: Детальная информация о кухне
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Кухня.
+        required: true
+      tags:
+      - Кухни
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Kitchen'
+          description: ''
   /api/v1/login/jwt/create/:
     post:
       operationId: api_v1_login_jwt_create_create
@@ -575,6 +616,88 @@ paths:
               schema:
                 $ref: '#/components/schemas/PasswordResetConfirm'
           description: ''
+  /api/v1/services/:
+    get:
+      operationId: api_v1_services_list
+      summary: Получить список услуг
+      tags:
+      - Доп. услуги
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Services'
+          description: ''
+  /api/v1/services/{id}/:
+    get:
+      operationId: api_v1_services_retrieve
+      summary: Детальная информация о услуге
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Доп. услуга.
+        required: true
+      tags:
+      - Доп. услуги
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Services'
+          description: ''
+  /api/v1/types/:
+    get:
+      operationId: api_v1_types_list
+      summary: Получить список типов заведений
+      tags:
+      - Типы заведения
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TypeEst'
+          description: ''
+  /api/v1/types/{id}/:
+    get:
+      operationId: api_v1_types_retrieve
+      summary: Детальная информация о типе заведения
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Тип заведения.
+        required: true
+      tags:
+      - Типы заведения
+      security:
+      - jwtAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TypeEst'
+          description: ''
   /api/v1/users/:
     get:
       operationId: api_v1_users_list
@@ -686,21 +809,27 @@ components:
         confirmation_code:
           type: string
           maxLength: 150
-        is_agreement:
-          type: boolean
       required:
-      - is_agreement
       - telephone
     ConfirmCodeRefresh:
       type: object
       properties:
         telephone:
           type: string
-        is_agreement:
-          type: boolean
       required:
-      - is_agreement
       - telephone
+    ConfirmCodeSendMethodEnum:
+      enum:
+      - sms
+      - email
+      - telegram
+      - nothing
+      type: string
+      description: |-
+        * `sms` - СМС
+        * `email` - эл. почта
+        * `telegram` - Телеграм
+        * `nothing` - не отправлять
     DayEnum:
       enum:
       - понедельник
@@ -779,7 +908,7 @@ components:
         types:
           type: array
           items:
-            $ref: '#/components/schemas/Type'
+            $ref: '#/components/schemas/TypeEst'
           readOnly: true
         city:
           type: string
@@ -1228,7 +1357,15 @@ components:
           type: string
           title: Пароль
           maxLength: 128
+        is_agreement:
+          type: boolean
+          title: Agreement
+        confirm_code_send_method:
+          allOf:
+          - $ref: '#/components/schemas/ConfirmCodeSendMethodEnum'
+          title: Способ отправки кода подтверждения
       required:
+      - confirm_code_send_method
       - email
       - first_name
       - last_name
@@ -1360,7 +1497,7 @@ components:
       required:
       - access
       - refresh
-    Type:
+    TypeEst:
       type: object
       properties:
         id:

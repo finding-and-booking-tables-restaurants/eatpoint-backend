@@ -1,45 +1,46 @@
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
-from reservation.models import EstablishmentReserv
-from establishments.models import ZoneEstablishment
-from api.serializers.users import UserSerializer
-from api.serializers.establishments import EstablishmentSerializer
 
-class ZoneEstablishmentSerializer(serializers.ModelSerializer):
-        
-    class Meta:
-        model = ZoneEstablishment
-        fields = [
-            'id',
-            'establishment',
-            'zone',
-            'seats',
-        ]
+from core.validators import validate_reserv_anonim
+from reservation.models import Reservation
 
 
-
-class ReservationsSerializer(serializers.ModelSerializer):
-
-    table = serializers.StringRelatedField(many=False, read_only=True)
-    user = serializers.StringRelatedField(read_only=True)
-    establishment = serializers.StringRelatedField(read_only = True)  
-
+class ReservationsEditSerializer(serializers.ModelSerializer):
+    establishment = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+    user = serializers.SlugRelatedField(
+        slug_field="id",
+        read_only=True,
+    )
+    telephone = PhoneNumberField(required=False)
+    last_name = serializers.CharField(required=False)
+    first_name = serializers.CharField(required=False)
+    email = serializers.EmailField(required=False)
 
     class Meta:
+        model = Reservation
         fields = (
-            'id', 
-            'user', 
-            'email', 
-            'telephone', 
-            'establishment', 
-            'zone', 
-            'Number_of_guests',
-            'date_reservation',
-            'start_time_reservation',
-            'end_time_reservation',
-            'comment',
-            'reminder_one_day',
-            'reminder_three_hours',
-            'reminder_half_on_hour',
-            )
-        model = EstablishmentReserv
+            "id",
+            "establishment",
+            "first_name",
+            "last_name",
+            "email",
+            "telephone",
+            "number_guests",
+            "date_reservation",
+            "start_time_reservation",
+            "end_time_reservation",
+            "comment",
+            "reminder_one_day",
+            "reminder_three_hours",
+            "reminder_half_on_hour",
+            "user",
+            "zone",
+        )
 
+    def validate(self, validated_data):
+        user = self.context["request"].user
+        validate_reserv_anonim(user, validated_data)
+        return validated_data
