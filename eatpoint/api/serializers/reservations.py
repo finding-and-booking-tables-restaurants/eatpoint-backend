@@ -5,6 +5,34 @@ from core.validators import validate_reserv_anonim
 from reservation.models import Reservation
 
 
+class AuthReservationsEditSerializer(serializers.ModelSerializer):
+    establishment = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+    user = serializers.SlugRelatedField(
+        slug_field="id",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Reservation
+        fields = (
+            "id",
+            "establishment",
+            "number_guests",
+            "date_reservation",
+            "start_time_reservation",
+            "end_time_reservation",
+            "comment",
+            "reminder_one_day",
+            "reminder_three_hours",
+            "reminder_half_on_hour",
+            "user",
+            "zone",
+        )
+
+
 class ReservationsEditSerializer(serializers.ModelSerializer):
     establishment = serializers.SlugRelatedField(
         slug_field="name",
@@ -14,10 +42,22 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
         slug_field="id",
         read_only=True,
     )
-    telephone = PhoneNumberField(required=False)
-    last_name = serializers.CharField(required=False)
-    first_name = serializers.CharField(required=False)
-    email = serializers.EmailField(required=False)
+    telephone = PhoneNumberField(
+        help_text="Номер телефона",
+        required=False,
+    )
+    last_name = serializers.CharField(
+        required=False,
+        help_text="Фамилия",
+    )
+    first_name = serializers.CharField(
+        required=False,
+        help_text="Имя",
+    )
+    email = serializers.EmailField(
+        help_text="Почта",
+        required=False,
+    )
 
     class Meta:
         model = Reservation

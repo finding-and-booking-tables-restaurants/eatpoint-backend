@@ -67,6 +67,7 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ZoneEstablishment
         fields = [
+            "id",
             "zone",
             "seats",
         ]
@@ -188,10 +189,22 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
-    images = ImageSerializer(many=True)
-    worked = WorkEstablishmentSerializer(many=True)
-    zones = ZoneEstablishmentSerializer(many=True)
-    socials = SocialSerializer(many=True)
+    images = ImageSerializer(
+        many=True,
+        help_text="Несколько изображений",
+    )
+    worked = WorkEstablishmentSerializer(
+        many=True,
+        help_text="Время работы",
+    )
+    zones = ZoneEstablishmentSerializer(
+        many=True,
+        help_text="Зоны заведения",
+    )
+    socials = SocialSerializer(
+        many=True,
+        help_text="Соц. сети",
+    )
 
     class Meta:
         model = Establishment

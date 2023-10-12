@@ -1,11 +1,15 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import SAFE_METHODS
 
-from establishments.models import Establishment
-from api.serializers.reservations import ReservationsEditSerializer
-
-# Create your views here.
+from core.pagination import LargeResultsSetPagination
+from establishments.models import Establishment, ZoneEstablishment
+from api.serializers.reservations import (
+    ReservationsEditSerializer,
+    AuthReservationsEditSerializer,
+)
 
 
 @extend_schema(
@@ -20,6 +24,7 @@ from api.serializers.reservations import ReservationsEditSerializer
     ),
     create=extend_schema(
         summary="Добавить бронирование",
+        description="Для авторизованного пользователя имя, фамилия, телефон, почта заполняются автоматически",
     ),
     partial_update=extend_schema(
         summary="Изменить данные бронирования",
@@ -29,10 +34,18 @@ from api.serializers.reservations import ReservationsEditSerializer
     ),
 )
 class ReservationsViewSet(viewsets.ModelViewSet):
-    """Вьюсет  для обработки бронирования"""
+    """Вьюсет для обработки бронирования 1"""
 
-    serializer_class = ReservationsEditSerializer
-    http_method_names = ["get", "post", "patch"]
+    http_method_names = ["get", "post", "patch", "options"]
+    pagination_class = LargeResultsSetPagination
+
+    def get_serializer_class(self):
+        if (
+            self.request.user.is_anonymous
+            or self.request.method in SAFE_METHODS
+        ):
+            return ReservationsEditSerializer
+        return AuthReservationsEditSerializer
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
@@ -40,8 +53,15 @@ class ReservationsViewSet(viewsets.ModelViewSet):
         return establishment.reservation.all()
 
     def perform_create(self, serializer):
+        zone = serializer.validated_data.get("zone")
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
+        if not ZoneEstablishment.objects.filter(
+            establishment=establishment, zone=zone
+        ):
+            raise ValidationError(
+                "Выбранная зона не принадлежит к указанному заведению."
+            )
         user = self.request.user
         if self.request.user.is_anonymous:
             serializer.save(user=None, establishment=establishment)

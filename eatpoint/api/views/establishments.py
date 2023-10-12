@@ -25,12 +25,14 @@ from api.serializers.establishments import (
     ServicesSerializer,
     ZoneEstablishmentSerializer,
 )
+from core.pagination import LargeResultsSetPagination
 from establishments.models import (
     Establishment,
     Favorite,
     Kitchen,
     TypeEst,
     Service,
+    ZoneEstablishment,
 )
 
 
@@ -115,6 +117,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         TypeEstFilterBackend,
         ServicesEstFilterBackend,
     )
+    pagination_class = LargeResultsSetPagination
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -199,9 +202,11 @@ class ZoneViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch"]
 
     def get_queryset(self):
-        establishment_id = self.kwargs.get("establishment_id")
-        establishment = get_object_or_404(Establishment, id=establishment_id)
-        return establishment.zones.all()
+        establishment_id = self.kwargs["establishment_id"]
+        # establishment = get_object_or_404(Establishment, id=establishment_id)
+        return ZoneEstablishment.objects.filter(
+            establishment_id=establishment_id
+        )
 
 
 @extend_schema(tags=["Отзывы"], methods=["GET", "POST", "PATCH"])
