@@ -120,7 +120,7 @@ class SignUp(APIView):
                     message = "На Ваш email отправлен код подтверждения"
                 case core.constants.SMS:
                     message = """
-                    На Ваш телефон отправлена СМС с кодом подтверждения
+                        На Ваш телефон отправлена СМС с кодом подтверждения
                     """
 
                 case core.constants.TELEGRAM:

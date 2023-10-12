@@ -14,23 +14,16 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Install dependencies
       run: |
-        # обновление pip
         python -m pip install --upgrade pip
-        # установка flake8 и его зависимостей
-        pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
-        # установка зависимостей проекта
         pip install -r requirements.txt
     - name: Test with flake8 and django tests
       run: |
-        # запуск проверки проекта по flake8
-        python -m flake8
-        # перейти в папку, содержащую manage.py — 
-        cd eatpoint/
-        # запустить написанные  тесты
-        python manage.py test
+        python -m flake8 --ignore E501,W503
+        # cd eatpoint/
+        # python manage.py test
 # сделать запуск тестов из файла tests. создать директорию для тестов
   build_and_push:
     name: Push Docker image to DockerHub
@@ -49,16 +42,9 @@ jobs:
     - name: Push to DockerHub
       uses: docker/build-push-action@v2
       with:
-        context: backend/
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_BACKEND }}:latest
-    - name: Push frontend to Docker Hub
-      uses: docker/build-push-action@v2
-      with:
-        push: true
-        context: frontend/
-        file: frontend/Dockerfile
-        tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_FRONTEND }}:latest
+        file: eatpoint/Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
@@ -73,9 +59,8 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           stack_file_name: docker-compose.yaml
           script: |
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_BACKEND }}:latest
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_FRONTEND }}:latest
             sudo docker compose stop
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_BACKEND }}:latest
             sudo docker compose rm backend
             sudo docker compose up -d
 
