@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
-from establishments.models import Establishment,TableEstablishment
+from establishments.models import Establishment,ZoneEstablishment
 
 from users.models import User
 
@@ -9,7 +9,7 @@ from users.models import User
 # TIME_CHOICE =     
 
 class EstablishmentReserv(models.Model):
-    """Модель формы бронирования"""
+    """Форма бронирования"""
     
     user = models.ForeignKey(
         User,
@@ -20,8 +20,7 @@ class EstablishmentReserv(models.Model):
         verbose_name="Электронная почта",
     )
     telephone = models.IntegerField(
-        max_length=11,
-        verbose_name="Телефон клиента",
+                verbose_name="Телефон клиента",
         # validators=None,  # сделать валидатор для номера
     )
     establishment = models.ForeignKey(
@@ -30,23 +29,21 @@ class EstablishmentReserv(models.Model):
         verbose_name="Ресторан",
         on_delete=models.CASCADE,
     )
-    table = models.ForeignKey(
-        TableEstablishment,
+    ZoneEstablishment = models.ForeignKey(
+        ZoneEstablishment,
         related_name='reservations',
-        verbose_name="Выбранный стол в ресторане",
-        unique=True,
-        on_delete=models.CASCADE,
+        verbose_name="Выбранная зона в ресторане",
+                on_delete=models.CASCADE,
     )
     Number_of_guests= models.IntegerField(
         verbose_name="Количество гостей",
-        max_length=3,
         validators=[
             MinValueValidator(
                 1, #заменить на константы
                 message="Количество мест слишком маленькое",
                 ),
             MaxValueValidator(
-                100, # заменить на константы
+                20, # заменить на константы
                 message="Количество мест слишком большое",
                 ),
             ],

@@ -14,7 +14,7 @@ from api.filters.establishments import (
     TypeEstFilterBackend,
     ServicesEstFilterBackend,
 )
-from api.permissions import ReadOnly
+from api.permissions import ReadOnly, IsUser
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
@@ -32,6 +32,9 @@ from establishments.models import (
     Service,
 )
 
+
+from reservation.models import EstablishmentReserv
+from api.serializers.reservations import ReservationsSerializer
 
 @extend_schema(tags=["Кухни"], methods=["GET"])
 @extend_schema_view(
@@ -202,3 +205,16 @@ class ReviewViewSet(viewsets.ModelViewSet):
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
         serializer.save(author=self.request.user, establishment=establishment)
+
+
+@extend_schema(tags=["Бронирорвания"], methods=["GET", "POST", "PATCH", "DELETE"])
+class ReservationsViewSet(viewsets.ModelViewSet):
+    """Вьюсет  для обработки бронирования"""
+    queryset = EstablishmentReserv.objects.all()
+    serializer_class = ReservationsSerializer
+    http_method_names = ["get", "post", "patch", "delete"]
+    permission_classes = (IsUser)
+    
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return EstablishmentSerializer

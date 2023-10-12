@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views.establishments import EstablishmentViewSet
-from api.views.user import (
+from api.views.users import (
     SignUp,
     ConfirmCodeView,
     UserViewSet,
@@ -24,7 +24,7 @@ router = DefaultRouter()
 router.register(
     "establishments", EstablishmentViewSet, basename="establishments"
 )
-router.register("users", UserView),
+router.register("users", UserViewSet),
 
 urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),

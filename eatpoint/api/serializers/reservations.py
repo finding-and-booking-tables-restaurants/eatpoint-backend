@@ -1,18 +1,18 @@
 from rest_framework import serializers
 from reservation.models import EstablishmentReserv
-from establishments.models import TableEstablishment
-from api.serializers.user import UserSerializer
+from establishments.models import ZoneEstablishment
+from api.serializers.users import UserSerializer
 from api.serializers.establishments import EstablishmentSerializer
 
-class TableEstablishmentSerializer(serializers.ModelSerializer):
+class ZoneEstablishmentSerializer(serializers.ModelSerializer):
         
     class Meta:
-        model = TableEstablishment
+        model = ZoneEstablishment
         fields = [
             'id',
-            'name',
-            'description',
-            'slug',
+            'establishment',
+            'zone',
+            'seats',
         ]
 
 
@@ -31,7 +31,7 @@ class ReservationsSerializer(serializers.ModelSerializer):
             'email', 
             'telephone', 
             'establishment', 
-            'table', 
+            'zone', 
             'Number_of_guests',
             'date_reservation',
             'start_time_reservation',

@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
+    "reservation.apps.ReservationConfig",
+    "users.apps.UsersConfig",
 ]
 
 MIDDLEWARE = [
