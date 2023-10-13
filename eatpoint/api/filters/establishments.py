@@ -1,37 +1,34 @@
-from rest_framework import filters
+from django_filters.rest_framework import filters, FilterSet
+
+from core.choices import CHECK_CHOICES
+from establishments.models import Establishment, Service, TypeEst, Kitchen
 
 
-class EstablishmentFilterBackend(filters.BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
-        establishment_kitchens = request.query_params.getlist("kitchens")
-        review_queryset = queryset
-        if establishment_kitchens:
-            regular_tags = "|".join(establishment_kitchens)
-            review_queryset = review_queryset.filter(
-                kitchens__slug__regex=regular_tags
-            )
-        return review_queryset.distinct()
+class EstablishmentFilter(FilterSet):
+    kitchens = filters.ModelMultipleChoiceFilter(
+        field_name="kitchens__slug",
+        queryset=Kitchen.objects.all(),
+        to_field_name="slug",
+    )
+    types = filters.ModelMultipleChoiceFilter(
+        field_name="types__slug",
+        queryset=TypeEst.objects.all(),
+        to_field_name="slug",
+    )
+    services = filters.ModelMultipleChoiceFilter(
+        field_name="services__slug",
+        queryset=Service.objects.all(),
+        to_field_name="slug",
+    )
+    average_check = filters.ChoiceFilter(
+        choices=CHECK_CHOICES,
+    )
 
-
-class TypeEstFilterBackend(filters.BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
-        establishment_types = request.query_params.getlist("types")
-        review_queryset = queryset
-        if establishment_types:
-            regular_tags = "|".join(establishment_types)
-            review_queryset = review_queryset.filter(
-                types__slug__regex=regular_tags
-            )
-        return review_queryset.distinct()
-
-
-class ServicesEstFilterBackend(filters.BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
-        establishment_services = request.query_params.getlist("services")
-        review_queryset = queryset
-        if establishment_services:
-            regular_tags = "|".join(establishment_services)
-            review_queryset = review_queryset.filter(
-                services__slug__regex=regular_tags
-            )
-        return review_queryset.distinct()
+    class Meta:
+        model = Establishment
+        fields = [
+            "services",
+            "kitchens",
+            "types",
+            "average_check",
+        ]

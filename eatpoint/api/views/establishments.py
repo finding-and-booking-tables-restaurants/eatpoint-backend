@@ -2,7 +2,6 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
-    OpenApiParameter,
 )
 from rest_framework import viewsets, status, filters
 from rest_framework.permissions import SAFE_METHODS
@@ -10,9 +9,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from api.filters.establishments import (
-    EstablishmentFilterBackend,
-    TypeEstFilterBackend,
-    ServicesEstFilterBackend,
+    EstablishmentFilter,
 )
 from api.permissions import ReadOnly
 from api.serializers.establishments import (
@@ -23,13 +20,16 @@ from api.serializers.establishments import (
     KitchenSerializer,
     TypeEstSerializer,
     ServicesSerializer,
+    ZoneEstablishmentSerializer,
 )
+from core.pagination import LargeResultsSetPagination
 from establishments.models import (
     Establishment,
     Favorite,
     Kitchen,
     TypeEst,
     Service,
+    ZoneEstablishment,
 )
 
 
@@ -85,11 +85,6 @@ class ServicesViewSet(viewsets.ModelViewSet):
 @extend_schema(tags=["Бизнес"], methods=["POST", "PATCH", "PUT", "DELETE"])
 @extend_schema_view(
     list=extend_schema(
-        parameters=[
-            OpenApiParameter(name="kitchens", description="Кухня заведения"),
-            OpenApiParameter(name="types", description="Тип заведения"),
-            OpenApiParameter(name="services", description="Доп. услуги"),
-        ],
         summary="Получить список заведений",
     ),
     retrieve=extend_schema(
@@ -108,19 +103,14 @@ class ServicesViewSet(viewsets.ModelViewSet):
 )
 class EstablishmentViewSet(viewsets.ModelViewSet):
     queryset = Establishment.objects.all()
-    serializer_class = EstablishmentSerializer
-    filter_backends = (
-        EstablishmentFilterBackend,
-        TypeEstFilterBackend,
-        ServicesEstFilterBackend,
-        filters.SearchFilter,
-    )
-    search_fields = {
+    filterset_class = EstablishmentFilter
+    pagination_class = LargeResultsSetPagination
+    search_fields = (
         "name",
         "address",
         "kitchens__name",
         "types__name",
-    }
+    )
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -181,6 +171,35 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         if request.method == "DELETE":
             return self.__deleted(Favorite, user, pk, name)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@extend_schema(
+    tags=["Зоны"], methods=["GET", "POST", "PATCH", "PUT", "DELETE"]
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список зон к заведению с id=",
+    ),
+    create=extend_schema(summary="Добавить зону"),
+    retrieve=extend_schema(
+        summary="Одна зона",
+    ),
+    partial_update=extend_schema(
+        summary="Редактировать зону",
+    ),
+)
+class ZoneViewSet(viewsets.ModelViewSet):
+    """Вьюсет  для обработки бронирования"""
+
+    serializer_class = ZoneEstablishmentSerializer
+    http_method_names = ["get", "post", "patch"]
+
+    def get_queryset(self):
+        establishment_id = self.kwargs["establishment_id"]
+        # establishment = get_object_or_404(Establishment, id=establishment_id)
+        return ZoneEstablishment.objects.filter(
+            establishment_id=establishment_id
+        )
 
 
 @extend_schema(tags=["Отзывы"], methods=["GET", "POST", "PATCH"])

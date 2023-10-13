@@ -25,6 +25,11 @@ class ContactForm(forms.ModelForm):
         }
 
 
+@admin.register(ZoneEstablishment)
+class ZoneAdmin(admin.ModelAdmin):
+    list_display = ("id",)
+
+
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ("id",)

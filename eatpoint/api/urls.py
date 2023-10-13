@@ -1,6 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from api.views.establishments import ZoneViewSet
+from api.views.reservation import ReservationsViewSet
 from api.views.users import (
     SignUp,
     ConfirmCodeView,
@@ -22,6 +24,16 @@ router = DefaultRouter()
 
 router.register(
     "establishments", EstablishmentViewSet, basename="establishments"
+)
+router.register(
+    r"establishments/(?P<establishment_id>\d+)/zones",
+    ZoneViewSet,
+    basename="zones",
+)
+router.register(
+    r"establishments/(?P<establishment_id>\d+)/reservations",
+    ReservationsViewSet,
+    basename="reservations",
 )
 router.register("kitchens", KitchenViewSet, basename="Kitchens")
 router.register("services", ServicesViewSet, basename="service")

@@ -168,3 +168,5 @@ cython_debug/
 /eatpoint/users/migrations/
 /eatpoint/static/
 /eatpoint/.env
+/eatpoint/sent_emails/
+/eatpoint/reservation/migrations/
