@@ -109,7 +109,6 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         "name",
         "kitchens__name",
         "types__name",
-        "services__name",
     )
 
     def get_serializer_class(self):
