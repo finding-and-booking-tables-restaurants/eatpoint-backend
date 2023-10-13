@@ -15,6 +15,9 @@ from api.views.users import (
 from api.views.establishments import (
     EstablishmentViewSet,
     ReviewViewSet,
+    KitchenViewSet,
+    ServicesViewSet,
+    TypeEstViewSet,
 )
 
 router = DefaultRouter()
@@ -22,7 +25,6 @@ router = DefaultRouter()
 router.register(
     "establishments", EstablishmentViewSet, basename="establishments"
 )
-router.register("users", UserViewSet),
 router.register(
     r"establishments/(?P<establishment_id>\d+)/zones",
     ZoneViewSet,
@@ -33,11 +35,16 @@ router.register(
     ReservationsViewSet,
     basename="reservations",
 )
+router.register("kitchens", KitchenViewSet, basename="Kitchens")
+router.register("services", ServicesViewSet, basename="service")
+router.register("types", TypeEstViewSet, basename="types")
 router.register(
     r"establishments/(?P<establishment_id>\d+)/reviews",
     ReviewViewSet,
     basename="reviews",
 )
+router.register("users", UserViewSet, basename="users"),
+
 urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),
     path("v1/auth/confirm-code/", ConfirmCodeView.as_view()),

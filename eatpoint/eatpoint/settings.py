@@ -27,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv("SECRET_KEY", default="valen_server.env")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", default=False)
+DEBUG = os.getenv("DEBUG", default=True)
 
 ALLOWED_HOSTS = ["80.87.109.70", "backend", "backend:8000", "127.0.0.1"]
 
@@ -51,6 +51,9 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "drf_spectacular_sidecar",
+    "django_filters",
+    "phonenumber_field",
+    "jwt",
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
@@ -167,6 +170,10 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "api.backends.JWTAuthentication",
