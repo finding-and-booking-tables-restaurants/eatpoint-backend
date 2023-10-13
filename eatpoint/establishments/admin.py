@@ -45,18 +45,21 @@ class EventAdmin(admin.ModelAdmin):
 class KitchenAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
+    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(TypeEst)
 class TypeAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
+    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
+    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Favorite)
