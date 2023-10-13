@@ -4,7 +4,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
     OpenApiParameter,
 )
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -113,7 +113,14 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         EstablishmentFilterBackend,
         TypeEstFilterBackend,
         ServicesEstFilterBackend,
+        filters.SearchFilter,
     )
+    search_fields = {
+        "name",
+        "address",
+        "kitchens__name",
+        "types__name",
+    }
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
