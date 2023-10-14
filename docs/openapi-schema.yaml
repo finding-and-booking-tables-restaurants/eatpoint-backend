@@ -850,7 +850,7 @@ components:
       required:
       - address
       - average_check
-      - city
+      - cities
       - description
       - email
       - id
@@ -943,7 +943,7 @@ components:
       required:
       - address
       - average_check
-      - city
+      - cities
       - description
       - email
       - id
