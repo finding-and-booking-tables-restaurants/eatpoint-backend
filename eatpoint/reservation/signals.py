@@ -1,5 +1,5 @@
 from rest_framework.validators import ValidationError
-
+import locale
 from establishments.models import WorkEstablishment
 from reservation.models import Reservation
 from django.db.models.signals import post_save, pre_delete, pre_save
@@ -29,6 +29,7 @@ def delete_reservation(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Reservation)
 def validate_booking_time(sender, instance, **kwargs):
+    locale.setlocale(locale.LC_ALL, "ru")
     day_of_week = instance.date_reservation.strftime("%A").lower()
     working_hours = WorkEstablishment.objects.filter(
         establishment=instance.establishment,
@@ -37,14 +38,16 @@ def validate_booking_time(sender, instance, **kwargs):
     )
     res_start = instance.start_time_reservation
     res_end = instance.end_time_reservation
-
-    if not working_hours:
-        raise ValidationError("Заведение не работает в указанный день недели")
-
     working_hours_est = WorkEstablishment.objects.get(day=day_of_week)
     start = working_hours_est.start
     end = working_hours_est.end
 
+    if start > end:
+        raise ValidationError(
+            "Время начала бронирования не может быть больше конца"
+        )
+    if not working_hours:
+        raise ValidationError("Заведение не работает в указанный день недели")
     if not (start <= res_start <= end and start <= res_end <= end):
         raise ValidationError(
             "Бронирование возможно только в часы работы заведения"

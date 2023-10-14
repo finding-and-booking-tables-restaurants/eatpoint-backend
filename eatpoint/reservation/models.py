@@ -109,7 +109,7 @@ class Reservation(models.Model):
 
 
 class ReservationHistory(models.Model):
-    """Форма бронирования"""
+    """История бронирований"""
 
     user = models.ForeignKey(
         User,

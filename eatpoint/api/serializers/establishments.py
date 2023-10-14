@@ -6,6 +6,7 @@ from drf_spectacular.utils import (
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
+from core.choices import DAY_CHOICES
 from core.validators import validate_uniq, file_size
 from establishments.models import (
     Establishment,
@@ -75,12 +76,15 @@ class SocialSerializer(serializers.ModelSerializer):
 
 
 class ZoneEstablishmentSerializer(serializers.ModelSerializer):
+    available_seats = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = ZoneEstablishment
         fields = [
             "id",
             "zone",
             "seats",
+            "available_seats",
         ]
 
 
@@ -97,7 +101,9 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class WorkEstablishmentSerializer(serializers.ModelSerializer):
-    day = serializers.CharField(source="get_day_display")
+    day = serializers.ChoiceField(
+        choices=DAY_CHOICES,
+    )
 
     class Meta:
         model = WorkEstablishment
@@ -205,6 +211,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     images = ImageSerializer(
         many=True,
         help_text="Несколько изображений",
+        required=False,
     )
     worked = WorkEstablishmentSerializer(
         many=True,
@@ -217,6 +224,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     socials = SocialSerializer(
         many=True,
         help_text="Соц. сети",
+        required=False,
     )
 
     class Meta:

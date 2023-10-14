@@ -250,6 +250,9 @@ class WorkEstablishment(models.Model):
                     }
                 )
 
+    def __str__(self):
+        return self.day
+
 
 class ImageEstablishment(models.Model):
     """Несколько изображений"""
@@ -303,7 +306,10 @@ class ZoneEstablishment(models.Model):
             ),
         ],
     )
-    available_seats = models.PositiveIntegerField()
+    available_seats = models.PositiveIntegerField(
+        verbose_name="Количество свободных мест",
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Зона заведения"
@@ -395,6 +401,7 @@ class Review(models.Model):
                 fields=["establishment", "author"], name="uniquereview"
             ),
         ]
+        ordering = ["-created"]
 
     def __str__(self):
         return self.text
