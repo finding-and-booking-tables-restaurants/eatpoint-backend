@@ -1,7 +1,16 @@
 from django.contrib import admin
-from .models import Reservation
+from .models import Reservation, ReservationHistory
+
 
 # Register your models here.
+
+
+@admin.register(ReservationHistory)
+class ReservationHistory(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+    )
 
 
 @admin.register(Reservation)

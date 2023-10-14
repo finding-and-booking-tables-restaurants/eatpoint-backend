@@ -150,7 +150,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
-    cities = serializers.CharField(source="cities.name")
+    cities = serializers.CharField(source="cities.name", required=False)
 
     class Meta:
         fields = [

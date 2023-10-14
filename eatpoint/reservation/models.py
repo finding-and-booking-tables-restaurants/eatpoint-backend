@@ -58,7 +58,6 @@ class Reservation(models.Model):
     )
     date_reservation = models.DateField(
         verbose_name="Дата бронирования",
-        auto_now_add=True,
     )
     start_time_reservation = models.CharField(
         verbose_name="Время начала бронирования",
@@ -104,6 +103,74 @@ class Reservation(models.Model):
                     "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
                 }
             )
+
+    def __str__(self):
+        return self.establishment.name
+
+
+class ReservationHistory(models.Model):
+    """Форма бронирования"""
+
+    user = models.ForeignKey(
+        User,
+        related_name="reservationhistory",
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    first_name = models.CharField(
+        verbose_name="Имя",
+        max_length=150,
+    )
+    last_name = models.CharField(
+        verbose_name="Фамилия",
+        max_length=150,
+    )
+    email = models.EmailField(
+        verbose_name="Электронная почта",
+    )
+    telephone = PhoneNumberField(null=True, default=None)
+    establishment = models.ForeignKey(
+        Establishment,
+        related_name="reservationhistory",
+        verbose_name="Ресторан",
+        on_delete=models.CASCADE,
+    )
+    zone = models.ForeignKey(
+        ZoneEstablishment,
+        related_name="reservationhistory",
+        verbose_name="Выбранная зона в ресторане",
+        on_delete=models.CASCADE,
+    )
+    number_guests = models.IntegerField(
+        verbose_name="Количество гостей",
+    )
+    date_reservation = models.DateTimeField(
+        verbose_name="Дата бронирования",
+    )
+    start_time_reservation = models.CharField(
+        verbose_name="Время начала бронирования",
+        choices=TIME_CHOICES,
+        max_length=145,
+    )
+    end_time_reservation = models.CharField(
+        verbose_name="Время окончания бронирования",
+        choices=TIME_CHOICES,
+        max_length=145,
+    )
+    comment = models.CharField(
+        verbose_name="Пожелания к заказу",
+        max_length=200,
+        blank=True,
+    )
+    status = models.BooleanField(
+        verbose_name="Статус бронирования Активен/Выполнен",
+        default=False,
+    )
+
+    class Meta:
+        verbose_name = "Бронирование(история)"
+        verbose_name_plural = "Бронирования(истори)"
+        ordering = ["-date_reservation"]
 
     def __str__(self):
         return self.establishment.name

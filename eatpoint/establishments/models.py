@@ -306,10 +306,16 @@ class ZoneEstablishment(models.Model):
             ),
         ],
     )
+    available_seats = models.PositiveIntegerField()
 
     class Meta:
         verbose_name = "Зона заведения"
         verbose_name_plural = "Зоны заведения"
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.available_seats = self.seats
+        super(ZoneEstablishment, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.zone
