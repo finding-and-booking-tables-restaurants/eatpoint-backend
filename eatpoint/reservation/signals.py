@@ -1,23 +1,27 @@
+from rest_framework.validators import ValidationError
+
 from reservation.models import Reservation
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 
 @receiver(post_save, sender=Reservation)
-def update_available_seats(sender, instance, created, **kwargs):
+def post_reservations(sender, instance, created, **kwargs):
     zone = instance.zone
+    if zone.available_seats < instance.number_guests:
+        raise ValidationError({"seats": "Кол-во персон больше кол-ва мест"})
     zone.available_seats -= instance.number_guests
     zone.save()
 
 
 @receiver(pre_delete, sender=Reservation)
-def delete_available_seats(sender, instance, **kwargs):
+def delete_reservation(sender, instance, **kwargs):
     zone = instance.zone
     zone.available_seats += instance.number_guests
-    zone.save()
+    if zone.available_seats > zone.seats:
+        zone.available_seats = zone.seats
 
 
-# Нужен Celery на будущее
 # @receiver(post_save, sender=Reservation)
 # def move_booking_to_history(sender, instance, **kwargs):
 #     now = timezone.now()

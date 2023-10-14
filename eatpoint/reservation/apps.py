@@ -1,3 +1,4 @@
+# fmt: off
 from django.apps import AppConfig
 
 
@@ -6,4 +7,5 @@ class ReservationConfig(AppConfig):
     name = "reservation"
 
     def ready(self):
-        pass
+        import reservation.signals
+# fmt: on

@@ -20,7 +20,7 @@ repos:
         entry: autoflake
         language: system
         types: [python]
-        args: [--in-place, --remove-all-unused-imports, --remove-duplicate-keys]
+        args: [--in-place, --remove-all-unused-imports, --remove-duplicate-keys, --exclude=apps.py]
 
       - id: flake8
         name: flake8
@@ -32,6 +32,7 @@ repos:
           "--max-line-length=79",
           "--max-complexity=18",
           "--select=B,C,E,F,W,T4,B9",
+          "--exclude=apps.py",
         ]
 
 #      - id: isort
