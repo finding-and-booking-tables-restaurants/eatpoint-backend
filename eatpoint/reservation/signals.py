@@ -1,15 +1,20 @@
 from rest_framework.validators import ValidationError
 
+from establishments.models import WorkEstablishment
 from reservation.models import Reservation
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 
 
 @receiver(post_save, sender=Reservation)
 def post_reservations(sender, instance, created, **kwargs):
     zone = instance.zone
+
+    if zone.available_seats == 0:
+        raise ValidationError({"seats": "Мест больше нет"})
     if zone.available_seats < instance.number_guests:
         raise ValidationError({"seats": "Кол-во персон больше кол-ва мест"})
+
     zone.available_seats -= instance.number_guests
     zone.save()
 
@@ -20,6 +25,30 @@ def delete_reservation(sender, instance, **kwargs):
     zone.available_seats += instance.number_guests
     if zone.available_seats > zone.seats:
         zone.available_seats = zone.seats
+
+
+@receiver(pre_save, sender=Reservation)
+def validate_booking_time(sender, instance, **kwargs):
+    day_of_week = instance.date_reservation.strftime("%A").lower()
+    working_hours = WorkEstablishment.objects.filter(
+        establishment=instance.establishment,
+        day=day_of_week,
+        day_off=False,
+    )
+    res_start = instance.start_time_reservation
+    res_end = instance.end_time_reservation
+
+    if not working_hours:
+        raise ValidationError("Заведение не работает в указанный день недели")
+
+    working_hours_est = WorkEstablishment.objects.get(day=day_of_week)
+    start = working_hours_est.start
+    end = working_hours_est.end
+
+    if not (start <= res_start <= end and start <= res_end <= end):
+        raise ValidationError(
+            "Бронирование возможно только в часы работы заведения"
+        )
 
 
 # @receiver(post_save, sender=Reservation)
