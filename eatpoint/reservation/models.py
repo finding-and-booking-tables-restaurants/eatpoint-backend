@@ -144,7 +144,7 @@ class ReservationHistory(models.Model):
     number_guests = models.IntegerField(
         verbose_name="Количество гостей",
     )
-    date_reservation = models.DateTimeField(
+    date_reservation = models.DateField(
         verbose_name="Дата бронирования",
     )
     start_time_reservation = models.CharField(
