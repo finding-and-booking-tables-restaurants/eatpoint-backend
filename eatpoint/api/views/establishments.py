@@ -98,7 +98,7 @@ class TypeEstViewSet(viewsets.ModelViewSet):
 class ServicesViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServicesSerializer
-    permission_classes = IsOwnerRestaurant | ReadOnly | IsAdminUser
+    permission_classes = ReadOnly
     http_method_names = ["get"]
 
 
