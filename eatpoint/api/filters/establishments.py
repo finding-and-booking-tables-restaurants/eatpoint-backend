@@ -30,8 +30,8 @@ class EstablishmentFilter(FilterSet):
     average_check = filters.ChoiceFilter(
         choices=CHECK_CHOICES,
     )
-    city = filters.ModelChoiceFilter(
-        field_name="city",
+    cities = filters.ModelChoiceFilter(
+        field_name="cities__name",
         queryset=City.objects.all(),
         to_field_name="slug",
     )
@@ -44,6 +44,7 @@ class EstablishmentFilter(FilterSet):
             "kitchens",
             "types",
             "average_check",
+            "cities",
             "is_favorited",
         ]
 

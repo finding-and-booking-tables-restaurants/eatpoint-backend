@@ -150,7 +150,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
-    city = serializers.CharField(source="city.name")
+    cities = serializers.CharField(source="cities.name")
 
     class Meta:
         fields = [
@@ -158,7 +158,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
             "owner",
             "name",
             "types",
-            "city",
+            "cities",
             "address",
             "kitchens",
             "services",
@@ -224,7 +224,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "owner",
             "name",
             "types",
-            "city",
+            "cities",
             "address",
             "kitchens",
             "services",

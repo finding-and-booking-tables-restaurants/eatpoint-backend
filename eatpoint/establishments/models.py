@@ -122,7 +122,7 @@ class Establishment(models.Model):
         verbose_name="Тип заведения",
         related_name="establishments",
     )
-    city = models.ForeignKey(
+    cities = models.ForeignKey(
         City,
         verbose_name="Город",
         related_name="establishments",
