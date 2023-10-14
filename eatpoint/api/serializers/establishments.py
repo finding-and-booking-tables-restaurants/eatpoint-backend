@@ -97,6 +97,8 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class WorkEstablishmentSerializer(serializers.ModelSerializer):
+    day = serializers.CharField(source="get_day_display")
+
     class Meta:
         model = WorkEstablishment
         fields = [
