@@ -41,3 +41,11 @@ class IsAuthor(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_authenticated:
             return obj.author == request.user
+
+
+class CreateRestaurant(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            if request.method == "POST" and request.user.is_restorateur:
+                return True
+        return request.method in permissions.SAFE_METHODS

@@ -12,7 +12,12 @@ from api.filters.establishments import (
     EstablishmentFilter,
     CityFilter,
 )
-from api.permissions import ReadOnly, IsOwnerRestaurant, IsAuthor
+from api.permissions import (
+    ReadOnly,
+    IsOwnerRestaurant,
+    IsAuthor,
+    CreateRestaurant,
+)
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
@@ -126,7 +131,9 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     queryset = Establishment.objects.all()
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
-    permission_classes = [IsOwnerRestaurant | ReadOnly | IsAdminUser]
+    permission_classes = [
+        CreateRestaurant | IsOwnerRestaurant | ReadOnly | IsAdminUser
+    ]
     search_fields = (
         "name",
         "address",
