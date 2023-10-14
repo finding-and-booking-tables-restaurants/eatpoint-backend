@@ -242,12 +242,13 @@ class WorkEstablishment(models.Model):
         ]
 
     def clean(self):
-        if self.start >= self.end:
-            raise ValidationError(
-                {
-                    "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
-                }
-            )
+        if self.start and self.end is not None:
+            if self.start >= self.end:
+                raise ValidationError(
+                    {
+                        "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
+                    }
+                )
 
     def __str__(self):
         return self.day
