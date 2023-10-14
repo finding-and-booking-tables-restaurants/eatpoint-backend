@@ -34,7 +34,7 @@ class Kitchen(models.Model):
 
 
 class TypeEst(models.Model):
-    """Кухня"""
+    """Тип заведения"""
 
     name = models.CharField(
         verbose_name="Тип заведения",
@@ -84,7 +84,7 @@ class Service(models.Model):
 
 
 class City(models.Model):
-    """Доп. услуги"""
+    """Город"""
 
     name = models.CharField(
         verbose_name="Название города",
@@ -249,9 +249,6 @@ class WorkEstablishment(models.Model):
                         "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
                     }
                 )
-
-    def __str__(self):
-        return self.day
 
 
 class ImageEstablishment(models.Model):
