@@ -15,6 +15,7 @@ from .models import (
     WorkEstablishment,
     SocialEstablishment,
     Favorite,
+    City,
 )
 
 
@@ -46,6 +47,13 @@ class KitchenAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
     prepopulated_fields = {"slug": ("name",)}
+
+
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "slug")
+    empty_value_display = "-пусто-"
+    search_fields = ("name",)
 
 
 @admin.register(TypeEst)
@@ -104,6 +112,7 @@ class EstablishmentAdmin(admin.ModelAdmin):
     list_filter = ("name",)
     empty_value_display = "-пусто-"
     inlines = (ZonesInLine, WorkInLine, ImageInLine, SocialInLine)
+    autocomplete_fields = ["city"]
 
     def preview(self, obj):
         return mark_safe(

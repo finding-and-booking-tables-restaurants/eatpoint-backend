@@ -83,6 +83,26 @@ class Service(models.Model):
         return self.name
 
 
+class City(models.Model):
+    """Доп. услуги"""
+
+    name = models.CharField(
+        verbose_name="Название города",
+        max_length=200,
+    )
+    slug = models.SlugField(
+        verbose_name="Ссылка на город",
+        max_length=200,
+    )
+
+    class Meta:
+        verbose_name = "Город"
+        verbose_name_plural = "Города"
+
+    def __str__(self):
+        return self.name
+
+
 class Establishment(models.Model):
     """Заведение"""
 
@@ -102,9 +122,12 @@ class Establishment(models.Model):
         verbose_name="Тип заведения",
         related_name="establishments",
     )
-    city = models.CharField(
+    city = models.ForeignKey(
+        City,
         verbose_name="Город",
-        max_length=150,
+        related_name="establishments",
+        on_delete=models.SET_NULL,
+        null=True,
     )
     address = models.CharField(
         verbose_name="Адрес заведения",
@@ -193,10 +216,18 @@ class WorkEstablishment(models.Model):
         default=False,
     )
     start = models.CharField(
-        verbose_name="Начало работы", choices=TIME_CHOICES, max_length=145
+        verbose_name="Начало работы",
+        choices=TIME_CHOICES,
+        max_length=145,
+        null=True,
+        blank=True,
     )
     end = models.CharField(
-        verbose_name="Конец работы", choices=TIME_CHOICES, max_length=145
+        verbose_name="Конец работы",
+        choices=TIME_CHOICES,
+        max_length=145,
+        null=True,
+        blank=True,
     )
 
     class Meta:

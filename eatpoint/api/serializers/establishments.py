@@ -18,6 +18,7 @@ from establishments.models import (
     SocialEstablishment,
     ImageEstablishment,
     TypeEst,
+    City,
 )
 from users.models import User
 
@@ -29,6 +30,16 @@ class KitchenSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
+            "slug",
+        ]
+
+
+class CitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = City
+        fields = [
+            "id",
+            "name",
             "slug",
         ]
 
@@ -95,6 +106,14 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
             "day_off",
         ]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.day_off:
+            data["day_off_st"] = "Выходной"
+            data.pop("start", None)
+            data.pop("end", None)
+        return data
+
 
 # class EventSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -131,6 +150,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
+    city = serializers.CharField(source="city.name")
 
     class Meta:
         fields = [
