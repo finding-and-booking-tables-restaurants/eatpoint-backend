@@ -1,7 +1,7 @@
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
-from core.validators import validate_reserv_anonim
+from core.validators import validate_reserv_anonim, validate_time
 from reservation.models import Reservation
 
 
@@ -83,4 +83,5 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         user = self.context["request"].user
         validate_reserv_anonim(user, validated_data)
+        validate_time(validated_data)
         return validated_data
