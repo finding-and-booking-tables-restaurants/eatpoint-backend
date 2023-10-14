@@ -4,7 +4,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import viewsets, status
-from rest_framework.permissions import SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -12,7 +12,12 @@ from api.filters.establishments import (
     EstablishmentFilter,
     CityFilter,
 )
-from api.permissions import ReadOnly
+from api.permissions import (
+    ReadOnly,
+    IsOwnerRestaurant,
+    IsAuthor,
+    CreateRestaurant,
+)
 from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
@@ -48,7 +53,7 @@ from establishments.models import (
 class KitchenViewSet(viewsets.ModelViewSet):
     queryset = Kitchen.objects.all()
     serializer_class = KitchenSerializer
-    permission_classes = (ReadOnly,)
+    permission_classes = ReadOnly | IsAdminUser
     http_method_names = ["get"]
 
 
@@ -82,7 +87,7 @@ class CityViewSet(viewsets.ModelViewSet):
 class TypeEstViewSet(viewsets.ModelViewSet):
     queryset = TypeEst.objects.all()
     serializer_class = TypeEstSerializer
-    permission_classes = (ReadOnly,)
+    permission_classes = ReadOnly | IsAdminUser
     http_method_names = ["get"]
 
 
@@ -98,7 +103,7 @@ class TypeEstViewSet(viewsets.ModelViewSet):
 class ServicesViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServicesSerializer
-    permission_classes = (ReadOnly,)
+    permission_classes = ReadOnly
     http_method_names = ["get"]
 
 
@@ -126,6 +131,9 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     queryset = Establishment.objects.all()
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
+    permission_classes = [
+        CreateRestaurant | IsOwnerRestaurant | ReadOnly | IsAdminUser
+    ]
     search_fields = (
         "name",
         "address",
@@ -218,9 +226,8 @@ class ZoneViewSet(viewsets.ModelViewSet):
     """Вьюсет  для обработки бронирования"""
 
     serializer_class = ZoneEstablishmentSerializer
-    http_method_names = [
-        "get",
-    ]
+    permission_classes = [IsOwnerRestaurant | IsAdminUser]
+    http_method_names = ["get", "post", "patch"]
 
     def get_queryset(self):
         establishment_id = self.kwargs["establishment_id"]
@@ -245,6 +252,7 @@ class ZoneViewSet(viewsets.ModelViewSet):
 )
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthor | ReadOnly | IsAdminUser]
     http_method_names = ["get", "post", "patch"]
 
     def get_queryset(self):

@@ -17,7 +17,7 @@ from rest_framework_simplejwt.views import (
 import core.choices
 import core.constants
 from users.models import User
-from api.permissions import IsUser, IsRestaurateur
+from api.permissions import IsUser, IsRestorateur
 from api.serializers.users import (
     MeSerializer,
     SignUpSerializer,
@@ -54,7 +54,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         methods=["GET", "PATCH"],
         detail=False,
         permission_classes=(
-            IsUser | IsRestaurateur | IsAdminUser,
+            IsUser | IsRestorateur | IsAdminUser,
             IsAuthenticated,
         ),
     )
