@@ -3,13 +3,14 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from api.filters.establishments import (
     EstablishmentFilter,
+    CityFilter,
 )
 from api.permissions import ReadOnly
 from api.serializers.establishments import (
@@ -21,6 +22,7 @@ from api.serializers.establishments import (
     TypeEstSerializer,
     ServicesSerializer,
     ZoneEstablishmentSerializer,
+    CitySerializer,
 )
 from core.pagination import LargeResultsSetPagination
 from establishments.models import (
@@ -30,6 +32,7 @@ from establishments.models import (
     TypeEst,
     Service,
     ZoneEstablishment,
+    City,
 )
 
 
@@ -47,6 +50,24 @@ class KitchenViewSet(viewsets.ModelViewSet):
     serializer_class = KitchenSerializer
     permission_classes = (ReadOnly,)
     http_method_names = ["get"]
+
+
+@extend_schema(tags=["Список городов"], methods=["GET"])
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список городов",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о городе",
+    ),
+)
+class CityViewSet(viewsets.ModelViewSet):
+    queryset = City.objects.all()
+    serializer_class = CitySerializer
+    permission_classes = (ReadOnly,)
+    http_method_names = ["get"]
+    filter_backends = [CityFilter]
+    search_fields = ("name",)
 
 
 @extend_schema(tags=["Типы заведения"], methods=["GET"])
@@ -111,6 +132,11 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         "kitchens__name",
         "types__name",
     )
+
+    def get_queryset(self):
+        if self.request.method in SAFE_METHODS:
+            return Establishment.objects.filter(is_verified=True)
+        return Establishment.objects.all()
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
@@ -192,7 +218,9 @@ class ZoneViewSet(viewsets.ModelViewSet):
     """Вьюсет  для обработки бронирования"""
 
     serializer_class = ZoneEstablishmentSerializer
-    http_method_names = ["get", "post", "patch"]
+    http_method_names = [
+        "get",
+    ]
 
     def get_queryset(self):
         establishment_id = self.kwargs["establishment_id"]
