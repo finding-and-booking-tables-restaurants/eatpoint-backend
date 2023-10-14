@@ -112,7 +112,7 @@ class EstablishmentAdmin(admin.ModelAdmin):
     list_filter = ("name",)
     empty_value_display = "-пусто-"
     inlines = (ZonesInLine, WorkInLine, ImageInLine, SocialInLine)
-    autocomplete_fields = ["city"]
+    autocomplete_fields = ["cities"]
 
     def preview(self, obj):
         return mark_safe(
