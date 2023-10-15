@@ -1,10 +1,20 @@
 from django.contrib import admin
+from django import forms
+from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
 from .models import User
 
 
+class ContactForm(forms.ModelForm):
+    class Meta:
+        widgets = {
+            "telephone": PhoneNumberPrefixWidget(initial="RU"),
+        }
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
+    form = ContactForm
     list_display = (
         "id",
         "email",
