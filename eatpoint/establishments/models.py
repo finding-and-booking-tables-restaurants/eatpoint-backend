@@ -34,7 +34,7 @@ class Kitchen(models.Model):
 
 
 class TypeEst(models.Model):
-    """Кухня"""
+    """Тип заведения"""
 
     name = models.CharField(
         verbose_name="Тип заведения",
@@ -84,7 +84,7 @@ class Service(models.Model):
 
 
 class City(models.Model):
-    """Доп. услуги"""
+    """Город"""
 
     name = models.CharField(
         verbose_name="Название города",
@@ -306,10 +306,19 @@ class ZoneEstablishment(models.Model):
             ),
         ],
     )
+    available_seats = models.PositiveIntegerField(
+        verbose_name="Количество свободных мест",
+        blank=True,
+    )
 
     class Meta:
         verbose_name = "Зона заведения"
         verbose_name_plural = "Зоны заведения"
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            self.available_seats = self.seats
+        super(ZoneEstablishment, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.zone
@@ -392,6 +401,7 @@ class Review(models.Model):
                 fields=["establishment", "author"], name="uniquereview"
             ),
         ]
+        ordering = ["-created"]
 
     def __str__(self):
         return self.text

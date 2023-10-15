@@ -58,3 +58,12 @@ def validate_reserv_anonim(user, validated_data):
         raise ValidationError(
             {"first_name": "Заполните email телефона или зарегистрируйтесь"}
         )
+
+
+def validate_time(validated_data):
+    if validated_data.get("start_time_reservation") >= validated_data.get(
+        "end_time_reservation"
+    ):
+        raise ValidationError(
+            {"time": "Время начала бронирования не может быть больше конца"}
+        )
