@@ -12,12 +12,14 @@ string_validator = RegexValidator(
 
 
 def file_size(value):
+    """Валидатор: размер файла"""
     limit = IMAGE_SIZE
     if value.size > limit:
         raise ValidationError("Размер изображения не должен превышать 5 mb.")
 
 
 def validate_count(data):
+    """Валидатор: макс. и мин. количество"""
     for value in data:
         amount = int(value.get("amount"))
         if amount < settings.MIN_AMOUNT:
@@ -32,6 +34,7 @@ def validate_count(data):
 
 
 def validate_uniq(fields, validate_field):
+    """Валидатор: уникальное поле"""
     items = []
     for item in fields:
         items.append(item[validate_field])
@@ -42,6 +45,7 @@ def validate_uniq(fields, validate_field):
 
 
 def validate_reserv_anonim(user, validated_data):
+    """Валидатор: анонимный юзер и обязательные поля"""
     if not user.is_authenticated and "first_name" not in validated_data:
         raise ValidationError(
             {"first_name": "Заполните имя или зарегистрируйтесь"}
@@ -61,6 +65,7 @@ def validate_reserv_anonim(user, validated_data):
 
 
 def validate_time(validated_data):
+    """Валидатор: время бронирования"""
     if validated_data.get("start_time_reservation") >= validated_data.get(
         "end_time_reservation"
     ):

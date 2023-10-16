@@ -6,6 +6,8 @@ from reservation.models import Reservation
 
 
 class AuthReservationsEditSerializer(serializers.ModelSerializer):
+    """Сериализация данных: форма бронирования для авторизованного пользователя"""
+
     establishment = serializers.SlugRelatedField(
         slug_field="name",
         read_only=True,
@@ -34,6 +36,8 @@ class AuthReservationsEditSerializer(serializers.ModelSerializer):
 
 
 class ReservationsEditSerializer(serializers.ModelSerializer):
+    """Сериализация данных: форма бронирования для не авторизованного пользователя"""
+
     establishment = serializers.SlugRelatedField(
         slug_field="name",
         read_only=True,

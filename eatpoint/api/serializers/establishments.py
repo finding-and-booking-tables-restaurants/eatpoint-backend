@@ -25,6 +25,8 @@ from users.models import User
 
 
 class KitchenSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Кухня"""
+
     class Meta:
         model = Kitchen
         fields = [
@@ -36,6 +38,8 @@ class KitchenSerializer(serializers.ModelSerializer):
 
 
 class CitySerializer(serializers.ModelSerializer):
+    """Сериализация данных: Города"""
+
     class Meta:
         model = City
         fields = [
@@ -46,6 +50,8 @@ class CitySerializer(serializers.ModelSerializer):
 
 
 class TypeEstSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Тип заведения"""
+
     class Meta:
         model = TypeEst
         fields = [
@@ -57,6 +63,8 @@ class TypeEstSerializer(serializers.ModelSerializer):
 
 
 class ServicesSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Доп. Услуги"""
+
     class Meta:
         model = Service
         fields = [
@@ -68,6 +76,8 @@ class ServicesSerializer(serializers.ModelSerializer):
 
 
 class SocialSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Соц. сети"""
+
     class Meta:
         model = SocialEstablishment
         fields = [
@@ -76,6 +86,8 @@ class SocialSerializer(serializers.ModelSerializer):
 
 
 class ZoneEstablishmentSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Зоны заведения"""
+
     available_seats = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -89,6 +101,8 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
 
 
 class ImageSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Изображения заведения"""
+
     image = Base64ImageField()
     name = serializers.CharField()
 
@@ -101,6 +115,8 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class WorkEstablishmentSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Время работы"""
+
     day = serializers.ChoiceField(
         choices=DAY_CHOICES,
     )
@@ -115,6 +131,7 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
         ]
 
     def to_representation(self, instance):
+        """Отображение выходного дня"""
         data = super().to_representation(instance)
         if instance.day_off:
             data["day_off_st"] = "Выходной"
@@ -124,30 +141,15 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 
 
 # class EventSerializer(serializers.ModelSerializer):
+#     """Сериализация данных: События"""
 #     class Meta:
 #         model = Event
 #         fields = "__all__"
 
 
-# class TableEstablishmentSerializer(serializers.ModelSerializer):
-#     id = serializers.ReadOnlyField(source="table.id")
-#     name = serializers.ReadOnlyField(source="table.name")
-#     description = serializers.ReadOnlyField(source="table.description")
-#     slug = serializers.ReadOnlyField(source="table.slug")
-#
-#     class Meta:
-#         model = zone
-#         fields = [
-#             "id",
-#             "name",
-#             "description",
-#             "slug",
-#             "seats",
-#             "status",
-#         ]
-
-
 class EstablishmentSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Заведение"""
+
     kitchens = KitchenSerializer(read_only=True, many=True)
     types = TypeEstSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
@@ -187,6 +189,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_is_favorited(self, obj):
+        """Отображение заведения в избранном"""
         request = self.context.get("request")
         user = request.user
         if request is None or user.is_anonymous:
@@ -195,12 +198,15 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.FLOAT)
     def get_rating(self, obj):
+        """Отображение среднего рейтинга заведения"""
         return Review.objects.filter(establishment=obj).aggregate(
             Avg("score")
         )["score__avg"]
 
 
 class EstablishmentEditSerializer(serializers.ModelSerializer):
+    """Сериализация данных(запись): Заведение"""
+
     poster = Base64ImageField(
         max_length=None,
         use_url=True,
@@ -250,10 +256,12 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         ]
 
     def validate_image(self, image):
+        """Проверка размера картинки (не броее 5 мб)"""
         file_size(image)
         return image
 
     def __create_image(self, images, establishment):
+        """Создание картинки"""
         for image in images:
             ImageEstablishment.objects.bulk_create(
                 [
@@ -266,6 +274,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             )
 
     def __create_work(self, worked, establishment):
+        """Создание времени работы"""
         for work in worked:
             WorkEstablishment.objects.bulk_create(
                 [
@@ -280,6 +289,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             )
 
     def __create_zone(self, zones, establishment):
+        """Создание зоны"""
         for zone in zones:
             ZoneEstablishment.objects.bulk_create(
                 [
@@ -292,6 +302,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             )
 
     def __create_social(self, socials, establishment):
+        """Создание соц.сетей"""
         for social in socials:
             SocialEstablishment.objects.bulk_create(
                 [
@@ -321,6 +332,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         return establishment
 
     def validate(self, data):
+        """Проверка на уникальность поля day"""
         worked = data.get("worked")
         field = "day"
         validate_uniq(worked, field)
@@ -328,6 +340,8 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
 
 class SmallUserSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Данные пользователя для отзывов"""
+
     class Meta:
         model = User
         fields = [
@@ -338,6 +352,8 @@ class SmallUserSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Отзывы"""
+
     establishment = serializers.SlugRelatedField(
         slug_field="name",
         read_only=True,
@@ -349,6 +365,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
 
     def validate(self, data):
+        """Проверка на уникальность отзыва"""
         if self.context["request"].method == "POST":
             if Review.objects.filter(
                 author=self.context["request"].user,
@@ -363,6 +380,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Избранное"""
+
     recipe = serializers.PrimaryKeyRelatedField(
         queryset=Establishment.objects.all(),
     )
@@ -376,6 +395,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class SpecialEstablishmentSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Заведение(короткий)"""
+
     class Meta:
         model = Establishment
         fields = [

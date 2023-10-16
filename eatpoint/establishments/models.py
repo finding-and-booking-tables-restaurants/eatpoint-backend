@@ -183,6 +183,8 @@ class Establishment(models.Model):
 
 
 class SocialEstablishment(models.Model):
+    """Соц. сети"""
+
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
@@ -200,6 +202,8 @@ class SocialEstablishment(models.Model):
 
 
 class WorkEstablishment(models.Model):
+    """Время работы"""
+
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
