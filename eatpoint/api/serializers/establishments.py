@@ -5,6 +5,7 @@ from drf_spectacular.utils import (
 )
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
+from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
 from core.validators import validate_uniq, file_size
@@ -78,6 +79,8 @@ class ServicesSerializer(serializers.ModelSerializer):
 class SocialSerializer(serializers.ModelSerializer):
     """Сериализация данных: Соц. сети"""
 
+    name = serializers.URLField()
+
     class Meta:
         model = SocialEstablishment
         fields = [
@@ -87,8 +90,6 @@ class SocialSerializer(serializers.ModelSerializer):
 
 class ZoneEstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Зоны заведения"""
-
-    available_seats = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = ZoneEstablishment
@@ -155,7 +156,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
     services = ServicesSerializer(read_only=True, many=True)
     socials = SocialSerializer(read_only=True, many=True)
-    image = ImageSerializer(read_only=True, many=True)
+    images = ImageSerializer(read_only=True, many=True)
     zones = ZoneEstablishmentSerializer(read_only=True, many=True)
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
@@ -182,7 +183,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
             "worked",
             "is_favorited",
             "socials",
-            "image",
+            "images",
             "rating",
         ]
         model = Establishment
@@ -231,6 +232,9 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         many=True,
         help_text="Соц. сети",
         required=False,
+    )
+    telephone = PhoneNumberField(
+        help_text="Номер телефона",
     )
 
     class Meta:
@@ -297,6 +301,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
                         establishment=establishment,
                         zone=zone.get("zone"),
                         seats=zone.get("seats"),
+                        available_seats=zone.get("seats"),
                     )
                 ]
             )
