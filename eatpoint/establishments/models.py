@@ -313,6 +313,8 @@ class ZoneEstablishment(models.Model):
     available_seats = models.PositiveIntegerField(
         verbose_name="Количество свободных мест",
         blank=True,
+        null=True,
+        help_text="Добавляется автоматически",
     )
 
     class Meta:
