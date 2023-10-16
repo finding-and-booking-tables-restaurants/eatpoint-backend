@@ -8,6 +8,10 @@ from phonenumber_field.serializerfields import PhoneNumberField
 
 
 class MyBaseSerializer(serializers.ModelSerializer):
+    """
+    Абстрактный базовый сериализатор данных пользователя.
+    """
+
     telephone = PhoneNumberField()
     first_name = serializers.CharField(
         max_length=150, validators=[string_validator]
@@ -18,6 +22,10 @@ class MyBaseSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(MyBaseSerializer):
+    """
+    Сериализатор данных пользователя.
+    """
+
     class Meta:
         fields = (
             "telephone",
@@ -59,6 +67,10 @@ class UserSerializer(MyBaseSerializer):
 
 
 class MeSerializer(MyBaseSerializer):
+    """
+    Сериализатор собственных данных пользователя.
+    """
+
     class Meta:
         model = User
         fields = (
@@ -71,6 +83,10 @@ class MeSerializer(MyBaseSerializer):
 
 
 class SignUpSerializer(MyBaseSerializer):
+    """
+    Сериализатор данных для регистрации пользователя.
+    """
+
     extra_kwargs = {"password": {"write_only": True}}
 
     class Meta:
@@ -133,6 +149,10 @@ class SignUpSerializer(MyBaseSerializer):
 
 
 class ConfirmCodeSerializer(MyBaseSerializer):
+    """
+    Сериализатор данных для подтверждения регистрации пользователя.
+    """
+
     class Meta:
         model = User
         fields = ("telephone", "confirmation_code")
@@ -150,6 +170,10 @@ class ConfirmCodeSerializer(MyBaseSerializer):
 
 
 class ConfirmCodeRefreshSerializer(MyBaseSerializer):
+    """
+    Сериализатор данных для обновления кода подтверждения при регистрации.
+    """
+
     class Meta:
         model = User
         fields = ("telephone",)

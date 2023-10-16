@@ -2,9 +2,12 @@ from django.contrib.auth.models import BaseUserManager
 
 
 class UserManager(BaseUserManager):
+    """Менеджер пользователя."""
+
     use_in_migrations = True
 
     def create_user(self, telephone, email, password, role, **extra_fields):
+        """Метод для создания пользователя."""
         if not telephone:
             raise ValueError("Необходимо ввести телефон")
         if not email:
@@ -25,6 +28,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password, **extra_fields):
+        """Метод для создания суперпользователя."""
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.is_staff = True

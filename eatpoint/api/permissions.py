@@ -4,6 +4,8 @@ import core.constants
 
 
 class IsUser(permissions.BasePermission):
+    """Возвращает результат проверки роли пользователя True если клиент."""
+
     def has_permission(self, request, view):
         if request.user.is_authenticated:
             return request.user.role == core.constants.CLIENT
@@ -13,6 +15,10 @@ class IsUser(permissions.BasePermission):
 
 
 class IsRestorateur(permissions.BasePermission):
+    """
+    Возвращает результат проверки роли пользователя True если ресторатор.
+    """
+
     def has_permission(self, request, view):
         if request.user.is_authenticated:
             return request.user.role == core.constants.RESTORATEUR
@@ -22,6 +28,11 @@ class IsRestorateur(permissions.BasePermission):
 
 
 class ReadOnly(permissions.BasePermission):
+    """
+    Возвращает результат проверки методов HTTP запросов
+    True если 'GET', 'HEAD', 'OPTIONS'.
+    """
+
     def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS
 
@@ -30,6 +41,10 @@ class ReadOnly(permissions.BasePermission):
 
 
 class IsOwnerRestaurant(permissions.BasePermission):
+    """
+    Возвращает True если пользователь является владельцем заведения.
+    """
+
     def has_permission(self, request, view):
         return request.method in permissions.SAFE_METHODS
 
@@ -38,12 +53,21 @@ class IsOwnerRestaurant(permissions.BasePermission):
 
 
 class IsAuthor(permissions.BasePermission):
+    """
+    Разрешение для редактирования если пользователь является автором объекта.
+    """
+
     def has_object_permission(self, request, view, obj):
         if request.user.is_authenticated:
             return obj.author == request.user
 
 
 class CreateRestaurant(permissions.BasePermission):
+    """
+    Разрешение для создания ресторана пользователь прошел аутентификацию и
+    является ресторатором, либо только просмотр списка заведений.
+    """
+
     def has_permission(self, request, view):
         if request.user.is_authenticated:
             if request.method == "POST" and request.user.is_restorateur:
