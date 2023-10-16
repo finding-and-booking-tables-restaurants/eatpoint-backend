@@ -55,7 +55,6 @@ class KitchenViewSet(viewsets.ModelViewSet):
 
     queryset = Kitchen.objects.all()
     serializer_class = KitchenSerializer
-    permission_classes = ReadOnly | IsAdminUser
     http_method_names = ["get"]
 
 
@@ -73,7 +72,6 @@ class CityViewSet(viewsets.ModelViewSet):
 
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    permission_classes = (ReadOnly,)
     http_method_names = ["get"]
     filter_backends = [CityFilter]
     search_fields = ("name",)
@@ -93,7 +91,6 @@ class TypeEstViewSet(viewsets.ModelViewSet):
 
     queryset = TypeEst.objects.all()
     serializer_class = TypeEstSerializer
-    permission_classes = ReadOnly | IsAdminUser
     http_method_names = ["get"]
 
 
@@ -111,7 +108,6 @@ class ServicesViewSet(viewsets.ModelViewSet):
 
     queryset = Service.objects.all()
     serializer_class = ServicesSerializer
-    permission_classes = ReadOnly
     http_method_names = ["get"]
 
 
@@ -141,9 +137,12 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     queryset = Establishment.objects.all()
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
-    permission_classes = [
-        CreateRestaurant | IsOwnerRestaurant | ReadOnly | IsAdminUser
-    ]
+    permission_classes = (
+        CreateRestaurant,
+        IsOwnerRestaurant,
+        ReadOnly,
+        IsAdminUser,
+    )
     search_fields = (
         "name",
         "address",
@@ -164,7 +163,9 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         return EstablishmentEditSerializer
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        serializer.save(
+            owner=self.request.user,
+        )
 
     def __added(self, model, user, pk, name):
         """Добавление(шаблон)"""
@@ -241,8 +242,7 @@ class ZoneViewSet(viewsets.ModelViewSet):
     """Вьюсет: Зоны заведения"""
 
     serializer_class = ZoneEstablishmentSerializer
-    permission_classes = [IsOwnerRestaurant | IsAdminUser]
-    http_method_names = ["get", "post", "patch"]
+    http_method_names = ["get"]
 
     def get_queryset(self):
         establishment_id = self.kwargs["establishment_id"]
@@ -268,7 +268,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет: Отзывы"""
 
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthor | ReadOnly | IsAdminUser]
+    permission_classes = (IsAuthor, ReadOnly, IsAdminUser)
     http_method_names = ["get", "post", "patch"]
 
     def get_queryset(self):
