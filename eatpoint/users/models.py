@@ -13,6 +13,8 @@ from .usermanager import UserManager
 
 
 class User(PermissionsMixin, AbstractBaseUser):
+    """Модель пользователя."""
+
     telephone = PhoneNumberField(unique=True)
     email = models.EmailField(
         verbose_name="email address",

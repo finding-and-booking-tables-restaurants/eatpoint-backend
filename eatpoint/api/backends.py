@@ -6,6 +6,8 @@ from users.models import User
 
 
 class JWTAuthentication(authentication.BaseAuthentication):
+    """Класс для аутентификации пользователя по JWT."""
+
     www_authenticate_realm = "api"
     authentication_header_prefix = "Bearer"
 

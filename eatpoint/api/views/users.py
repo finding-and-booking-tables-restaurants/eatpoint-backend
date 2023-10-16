@@ -36,6 +36,10 @@ from api.serializers.users import (
     ),
 )
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Сет для отображения и редактирования профиля пользователя.
+    """
+
     serializer_class = UserSerializer
     queryset = User.objects.all()
     filter_backends = (filters.SearchFilter,)
@@ -84,6 +88,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     ),
 )
 class SignUp(APIView):
+    """
+    Сет для регистрации пользователя.
+    """
+
     serializer_class = SignUpSerializer
 
     def post(self, request):
@@ -149,6 +157,10 @@ class SignUp(APIView):
     ),
 )
 class ConfirmCodeView(APIView):
+    """
+    Представление для подтверждения регистрации пользователя.
+    """
+
     serializer_class = ConfirmCodeSerializer
 
     def post(self, request):
@@ -218,6 +230,11 @@ class ConfirmCodeView(APIView):
     ),
 )
 class ConfirmCodeRefreshView(APIView):
+    """
+    Представление повторной отправки кода подтверждения
+    если пользователь его еще не ввел.
+    """
+
     serializer_class = ConfirmCodeRefreshSerializer
 
     def post(self, request):
@@ -263,7 +280,9 @@ class ConfirmCodeRefreshView(APIView):
     ),
 )
 class DjoserUserViewSet(views.UserViewSet):
-    pass
+    """
+    Сет для сброса и подтверждения сброса пароля пользователя.
+    """
 
 
 @extend_schema(tags=["Login"])
@@ -273,7 +292,9 @@ class DjoserUserViewSet(views.UserViewSet):
     ),
 )
 class MyTokenObtainPairView(TokenObtainPairView):
-    pass
+    """
+    Представление для входа пользователя в систему.
+    """
 
 
 @extend_schema(tags=["Login"])
@@ -283,4 +304,6 @@ class MyTokenObtainPairView(TokenObtainPairView):
     ),
 )
 class MyTokenRefreshView(TokenRefreshView):
-    pass
+    """
+    Представление для обновления JWT.
+    """
