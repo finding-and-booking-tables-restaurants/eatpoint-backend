@@ -16,6 +16,7 @@ from rest_framework_simplejwt.views import (
 
 import core.choices
 import core.constants
+from core.pagination import LargeResultsSetPagination
 from users.models import User
 from api.permissions import IsUser, IsRestorateur
 from api.serializers.users import (
@@ -43,6 +44,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     filter_backends = (filters.SearchFilter,)
+    pagination_class = LargeResultsSetPagination
     lookup_field = "telephone"
     permission_classes = [IsAdminUser]
 
