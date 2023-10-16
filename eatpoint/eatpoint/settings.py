@@ -208,7 +208,6 @@ SPECTACULAR_SETTINGS = {
 
 # OTHER SETTINGS
 
-
 if DEBUG:
     DEFAULT_FROM_EMAIL = os.getenv(
         "DEFAULT_FROM_EMAIL", default="mail@fake.ru"

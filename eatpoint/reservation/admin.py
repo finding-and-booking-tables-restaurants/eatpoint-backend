@@ -7,6 +7,8 @@ from .models import Reservation, ReservationHistory
 
 @admin.register(ReservationHistory)
 class ReservationHistory(admin.ModelAdmin):
+    """Админка: история бронирования"""
+
     list_display = (
         "id",
         "user",
@@ -15,6 +17,8 @@ class ReservationHistory(admin.ModelAdmin):
 
 @admin.register(Reservation)
 class EstablishmentReservAdmin(admin.ModelAdmin):
+    """Админка: бронирования"""
+
     list_display = (
         "id",
         "user",

@@ -7,5 +7,6 @@ class ReservationConfig(AppConfig):
     name = "reservation"
 
     def ready(self):
+        """Слушатель сигнала"""
         import reservation.signals
 # fmt: on

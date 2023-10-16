@@ -20,6 +20,8 @@ from .models import (
 
 
 class ContactForm(forms.ModelForm):
+    """Виджет для выбора кода региона"""
+
     class Meta:
         widgets = {
             "telephone": PhoneNumberPrefixWidget(initial="RU"),
@@ -28,22 +30,30 @@ class ContactForm(forms.ModelForm):
 
 @admin.register(ZoneEstablishment)
 class ZoneAdmin(admin.ModelAdmin):
+    """Админка: зона заведения"""
+
     list_display = ("id",)
 
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
+    """Админка: отзывы"""
+
     list_display = ("id",)
 
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
+    """Админка: события"""
+
     list_display = ("id",)
     empty_value_display = "-пусто-"
 
 
 @admin.register(Kitchen)
 class KitchenAdmin(admin.ModelAdmin):
+    """Админка: кухня"""
+
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
     prepopulated_fields = {"slug": ("name",)}
@@ -51,6 +61,8 @@ class KitchenAdmin(admin.ModelAdmin):
 
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
+    """Админка: город"""
+
     list_display = ("id", "name", "slug")
     empty_value_display = "-пусто-"
     search_fields = ("name",)
@@ -58,6 +70,8 @@ class CityAdmin(admin.ModelAdmin):
 
 @admin.register(TypeEst)
 class TypeAdmin(admin.ModelAdmin):
+    """Админка: тип заведения"""
+
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
     prepopulated_fields = {"slug": ("name",)}
@@ -65,6 +79,8 @@ class TypeAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
+    """Админка: доп. услуги"""
+
     list_display = ("id", "name", "description", "slug")
     empty_value_display = "-пусто-"
     prepopulated_fields = {"slug": ("name",)}
@@ -72,6 +88,8 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
+    """Админка: избранное"""
+
     list_display = (
         "id",
         "user",
@@ -84,23 +102,33 @@ class FavoriteAdmin(admin.ModelAdmin):
 
 
 class ZonesInLine(admin.TabularInline):
+    """Админка: добавление зоны заведения"""
+
     model = ZoneEstablishment
 
 
 class SocialInLine(admin.TabularInline):
+    """Админка: добавление соц. сетей"""
+
     model = SocialEstablishment
 
 
 class ImageInLine(admin.TabularInline):
+    """Админка: добавление изображений"""
+
     model = ImageEstablishment
 
 
 class WorkInLine(admin.TabularInline):
+    """Админка: добавление времени работы"""
+
     model = WorkEstablishment
 
 
 @admin.register(Establishment)
 class EstablishmentAdmin(admin.ModelAdmin):
+    """Админка: заведение"""
+
     form = ContactForm
     list_display = (
         "name",
@@ -115,6 +143,7 @@ class EstablishmentAdmin(admin.ModelAdmin):
     autocomplete_fields = ["cities"]
 
     def preview(self, obj):
+        """Отображение превью заведения"""
         return mark_safe(
             f'<img src="{obj.poster.url}" style="max-height: 50px;">'
         )

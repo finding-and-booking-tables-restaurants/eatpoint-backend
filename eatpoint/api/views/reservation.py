@@ -34,12 +34,13 @@ from api.serializers.reservations import (
     ),
 )
 class ReservationsViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обработки бронирования 1"""
+    """Вьюсет для обработки бронирования"""
 
     http_method_names = ["get", "post", "patch", "options"]
     pagination_class = LargeResultsSetPagination
 
     def get_serializer_class(self):
+        """Выбор serializer_class в зависимости от типа запроса"""
         if (
             self.request.user.is_anonymous
             or self.request.method in SAFE_METHODS

@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 
-from core.constants import INTERVAL_MINUTES
+from core.constants import INTERVAL_MINUTES, START_TIME, END_TIME
 
 
 def time_generator():
-    start_time = datetime.strptime("08:00", "%H:%M")
-    end_time = datetime.strptime("18:00", "%H:%M")
+    """Выводит списко времени с заданым интервалом"""
+    start_time = datetime.strptime(START_TIME, "%H:%M")
+    end_time = datetime.strptime(END_TIME, "%H:%M")
     time_list = []
 
     current_time = start_time
@@ -16,4 +17,5 @@ def time_generator():
 
 
 def choices_generator(data: list):
+    """Генерирует choices из списка"""
     return [(item, item) for item in data]

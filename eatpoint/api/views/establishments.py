@@ -51,6 +51,8 @@ from establishments.models import (
     ),
 )
 class KitchenViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Кухня"""
+
     queryset = Kitchen.objects.all()
     serializer_class = KitchenSerializer
     permission_classes = ReadOnly | IsAdminUser
@@ -67,6 +69,8 @@ class KitchenViewSet(viewsets.ModelViewSet):
     ),
 )
 class CityViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Город"""
+
     queryset = City.objects.all()
     serializer_class = CitySerializer
     permission_classes = (ReadOnly,)
@@ -85,6 +89,8 @@ class CityViewSet(viewsets.ModelViewSet):
     ),
 )
 class TypeEstViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Тип заведения"""
+
     queryset = TypeEst.objects.all()
     serializer_class = TypeEstSerializer
     permission_classes = ReadOnly | IsAdminUser
@@ -101,6 +107,8 @@ class TypeEstViewSet(viewsets.ModelViewSet):
     ),
 )
 class ServicesViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Доп. услуги"""
+
     queryset = Service.objects.all()
     serializer_class = ServicesSerializer
     permission_classes = ReadOnly
@@ -128,6 +136,8 @@ class ServicesViewSet(viewsets.ModelViewSet):
     update=extend_schema(summary="Изменить заведение [PUT]"),
 )
 class EstablishmentViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Заведение"""
+
     queryset = Establishment.objects.all()
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
@@ -142,11 +152,13 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     )
 
     def get_queryset(self):
+        """Выбор queryset в зависимости от типа запроса"""
         if self.request.method in SAFE_METHODS:
             return Establishment.objects.filter(is_verified=True)
         return Establishment.objects.all()
 
     def get_serializer_class(self):
+        """Выбор serializer_class в зависимости от типа запроса"""
         if self.request.method in SAFE_METHODS:
             return EstablishmentSerializer
         return EstablishmentEditSerializer
@@ -155,6 +167,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
 
     def __added(self, model, user, pk, name):
+        """Добавление(шаблон)"""
         establishment = get_object_or_404(Establishment, id=pk)
         if model.objects.filter(
             user=user, establishment=establishment
@@ -168,6 +181,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def __deleted(self, model, user, pk, name):
+        """Удаление(шаблон)"""
         establishment = get_object_or_404(Establishment, id=pk)
         removable = model.objects.filter(
             user=user, establishment=establishment
@@ -198,6 +212,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         url_path="favorite",
     )
     def favorite(self, request, pk=None):
+        """Добавление в избранное"""
         name = "избранное"
         user = request.user
         if request.method == "POST":
@@ -223,7 +238,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     ),
 )
 class ZoneViewSet(viewsets.ModelViewSet):
-    """Вьюсет  для обработки бронирования"""
+    """Вьюсет: Зоны заведения"""
 
     serializer_class = ZoneEstablishmentSerializer
     permission_classes = [IsOwnerRestaurant | IsAdminUser]
@@ -231,7 +246,6 @@ class ZoneViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         establishment_id = self.kwargs["establishment_id"]
-        # establishment = get_object_or_404(Establishment, id=establishment_id)
         return ZoneEstablishment.objects.filter(
             establishment_id=establishment_id
         )
@@ -251,6 +265,8 @@ class ZoneViewSet(viewsets.ModelViewSet):
     ),
 )
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Отзывы"""
+
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthor | ReadOnly | IsAdminUser]
     http_method_names = ["get", "post", "patch"]

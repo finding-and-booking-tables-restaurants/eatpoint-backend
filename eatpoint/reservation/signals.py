@@ -8,6 +8,7 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=Reservation)
 def post_reservations(sender, instance, created, **kwargs):
+    """Уменьшает количество свободных мест, если появилась запись о бронировании"""
     zone = instance.zone
 
     if zone.available_seats == 0:
@@ -21,6 +22,7 @@ def post_reservations(sender, instance, created, **kwargs):
 
 @receiver(pre_delete, sender=Reservation)
 def delete_reservation(sender, instance, **kwargs):
+    """Увеличивает количество свободных мест, если запись о бронировании удалена"""
     zone = instance.zone
     zone.available_seats += instance.number_guests
     if zone.available_seats > zone.seats:
@@ -29,6 +31,7 @@ def delete_reservation(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Reservation)
 def validate_booking_time(sender, instance, **kwargs):
+    """Проверяет время работы заведение и введенное время бронирования"""
     locale.setlocale(locale.LC_ALL, "ru")
     day_of_week = instance.date_reservation.strftime("%A").lower()
     working_hours = WorkEstablishment.objects.filter(
@@ -56,6 +59,7 @@ def validate_booking_time(sender, instance, **kwargs):
 
 # @receiver(post_save, sender=Reservation)
 # def move_booking_to_history(sender, instance, **kwargs):
+#     """Добавляет бронирование в историю"""
 #     now = timezone.now()
 #     end_reservation = datetime.strptime(instance.end_time_reservation, "%H:%M").time()
 #     res_end = datetime.combine(instance.date_reservation, end_reservation)
