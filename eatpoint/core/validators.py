@@ -73,7 +73,7 @@ def validate_time(validated_data):
 
 def validate_reservation_time_zone(data, establishment):
     """Проверяет время работы заведение и введенное время бронирования, а также зону"""
-    locale.setlocale(locale.LC_ALL, "ru")
+    locale.setlocale(locale.LC_ALL, "ru_RU.UTF-8")
     day_of_week = data.get("date_reservation").strftime("%A").lower()
     # establishment = data.get('establishment')
     zone = data.get("zone")
