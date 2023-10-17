@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - '!review'
-      - alpha
+      - alpha_v1
     
 jobs:
   tests:
