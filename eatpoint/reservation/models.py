@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
-from django.core.exceptions import ValidationError
 
 from core.choices import TIME_CHOICES
 from core.constants import MIN_SEATS, MAX_SEATS
@@ -26,6 +25,8 @@ class Reservation(models.Model):
     last_name = models.CharField(
         verbose_name="Фамилия",
         max_length=150,
+        blank=True,
+        null=True,
     )
     email = models.EmailField(
         verbose_name="Электронная почта",
@@ -68,6 +69,8 @@ class Reservation(models.Model):
         verbose_name="Время окончания бронирования",
         choices=TIME_CHOICES,
         max_length=145,
+        blank=True,
+        null=True,
     )
     comment = models.CharField(
         verbose_name="Пожелания к заказу",
@@ -95,14 +98,6 @@ class Reservation(models.Model):
         verbose_name = "Бронирование"
         verbose_name_plural = "Бронирования"
         ordering = ["-date_reservation"]
-
-    def clean(self):
-        if self.start_time_reservation >= self.end_time_reservation:
-            raise ValidationError(
-                {
-                    "end": "Укажите корректоное время окончания. Оно не может быть меньше времени начала"
-                }
-            )
 
     def __str__(self):
         return self.establishment.name
