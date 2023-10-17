@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - '!review'
-      - develop
+      - alpha_v1
     
 jobs:
   tests:
@@ -78,4 +78,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: ${{ github.workflow }} выполнен!
+        message: ${{ github.workflow }} выполнен! Новая версия приложения доступна по адресу http://80.87.109.70/redoc/
