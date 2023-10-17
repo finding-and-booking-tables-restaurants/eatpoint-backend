@@ -63,10 +63,10 @@ jobs:
           stack_file_name: docker-compose.yaml
           script: |
             cd infraa/
-            sudo docker compose stop
-            sudo docker compose rm backend
+            sudo docker-compose stop
+            sudo docker-compose rm backend
             sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_BACKEND }}:latest
-            sudo docker compose up -d
+            sudo docker-compose up -d
 
   send_message:
     name: Send telegram message
