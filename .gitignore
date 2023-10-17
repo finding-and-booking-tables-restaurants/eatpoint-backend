@@ -170,3 +170,4 @@ cython_debug/
 /eatpoint/.env
 /eatpoint/sent_emails/
 /eatpoint/reservation/migrations/
+.env
