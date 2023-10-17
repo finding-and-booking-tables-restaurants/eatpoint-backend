@@ -124,6 +124,8 @@ class ReservationHistory(models.Model):
     last_name = models.CharField(
         verbose_name="Фамилия",
         max_length=150,
+        blank=True,
+        null=True,
     )
     email = models.EmailField(
         verbose_name="Электронная почта",
@@ -156,6 +158,8 @@ class ReservationHistory(models.Model):
         verbose_name="Время окончания бронирования",
         choices=TIME_CHOICES,
         max_length=145,
+        blank=True,
+        null=True,
     )
     comment = models.CharField(
         verbose_name="Пожелания к заказу",
