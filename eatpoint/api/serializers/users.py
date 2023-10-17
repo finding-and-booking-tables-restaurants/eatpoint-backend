@@ -126,6 +126,19 @@ class SignUpSerializer(MyBaseSerializer):
                 f"или {core.constants.NOTHING}"
             )
 
+        # =========== Нужно убрать если включим отправку по SMTP и другой способ ======
+        if data.get("confirm_code_send_method") in (
+            core.constants.EMAIL,
+            core.constants.SMS,
+            core.constants.TELEGRAM,
+        ):
+            raise serializers.ValidationError(
+                f"Способ отправки кода '{data.get('confirm_code_send_method')}' "
+                f"отключен... "
+                f"укажите метод '{core.constants.NOTHING}'"
+            )
+        # ============================================================================
+
         if data.get("role") not in (
             core.constants.CLIENT,
             core.constants.RESTORATEUR,
