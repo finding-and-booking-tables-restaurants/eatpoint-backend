@@ -40,18 +40,13 @@ def validate_booking_time(sender, instance, **kwargs):
         day_off=False,
     )
     res_start = instance.start_time_reservation
-    res_end = instance.end_time_reservation
     working_hours_est = WorkEstablishment.objects.get(day=day_of_week)
     start = working_hours_est.start
     end = working_hours_est.end
 
-    if start > end:
-        raise ValidationError(
-            "Время начала бронирования не может быть больше конца"
-        )
     if not working_hours:
         raise ValidationError("Заведение не работает в указанный день недели")
-    if not (start <= res_start <= end and start <= res_end <= end):
+    if not (start <= res_start <= end):
         raise ValidationError(
             "Бронирование возможно только в часы работы заведения"
         )

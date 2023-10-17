@@ -25,7 +25,6 @@ class AuthReservationsEditSerializer(serializers.ModelSerializer):
             "number_guests",
             "date_reservation",
             "start_time_reservation",
-            "end_time_reservation",
             "comment",
             "reminder_one_day",
             "reminder_three_hours",
@@ -50,10 +49,6 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
         help_text="Номер телефона",
         required=False,
     )
-    last_name = serializers.CharField(
-        required=False,
-        help_text="Фамилия",
-    )
     first_name = serializers.CharField(
         required=False,
         help_text="Имя",
@@ -69,13 +64,11 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
             "id",
             "establishment",
             "first_name",
-            "last_name",
             "email",
             "telephone",
             "number_guests",
             "date_reservation",
             "start_time_reservation",
-            "end_time_reservation",
             "comment",
             "reminder_one_day",
             "reminder_three_hours",

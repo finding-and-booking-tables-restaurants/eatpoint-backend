@@ -50,10 +50,6 @@ def validate_reserv_anonim(user, validated_data):
         raise ValidationError(
             {"first_name": "Заполните имя или зарегистрируйтесь"}
         )
-    if not user.is_authenticated and "last_name" not in validated_data:
-        raise ValidationError(
-            {"first_name": "Заполните фамилию или зарегистрируйтесь"}
-        )
     if not user.is_authenticated and "telephone" not in validated_data:
         raise ValidationError(
             {"first_name": "Заполните номер телефона или зарегистрируйтесь"}
