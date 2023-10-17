@@ -8,7 +8,9 @@ from core.constants import IMAGE_SIZE
 from establishments.models import WorkEstablishment, ZoneEstablishment
 
 string_validator = RegexValidator(
-    r"^[a-zA-Zа-яА-Я]+$", "Имя и Фамилия должны содержать только буквы"
+    r"^[a-zA-Zа-яА-Я]{2,30}$",
+    "Имя и Фамилия должны содержать только "
+    "рус и лат буквы длиной от 2 до 30 символов",
 )
 
 
