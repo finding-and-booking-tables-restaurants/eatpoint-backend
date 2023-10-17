@@ -1,11 +1,11 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import SAFE_METHODS
 
 from core.pagination import LargeResultsSetPagination
-from establishments.models import Establishment, ZoneEstablishment
+from core.validators import validate_reservation_time_zone
+from establishments.models import Establishment
 from api.serializers.reservations import (
     ReservationsEditSerializer,
     AuthReservationsEditSerializer,
@@ -54,15 +54,10 @@ class ReservationsViewSet(viewsets.ModelViewSet):
         return establishment.reservation.all()
 
     def perform_create(self, serializer):
-        zone = serializer.validated_data.get("zone")
+        data = serializer.validated_data
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
-        if not ZoneEstablishment.objects.filter(
-            establishment=establishment, zone=zone
-        ):
-            raise ValidationError(
-                "Выбранная зона не принадлежит к указанному заведению."
-            )
+        validate_reservation_time_zone(data, establishment)
         user = self.request.user
         if self.request.user.is_anonymous:
             serializer.save(user=None, establishment=establishment)
