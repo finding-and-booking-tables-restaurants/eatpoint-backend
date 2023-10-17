@@ -64,8 +64,8 @@ jobs:
           script: |
             cd infraa/
             sudo docker compose stop
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_BACKEND }}:latest
             sudo docker compose rm backend
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_BACKEND }}:latest
             sudo docker compose up -d
 
   send_message:
