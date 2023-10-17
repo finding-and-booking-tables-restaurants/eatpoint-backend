@@ -138,10 +138,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
     permission_classes = (
-        CreateRestaurant,
-        IsOwnerRestaurant,
-        ReadOnly,
-        IsAdminUser,
+        CreateRestaurant | IsOwnerRestaurant | ReadOnly | IsAdminUser,
     )
     search_fields = (
         "name",
@@ -268,7 +265,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет: Отзывы"""
 
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthor, ReadOnly, IsAdminUser)
+    permission_classes = (IsAuthor | ReadOnly | IsAdminUser,)
     http_method_names = ["get", "post", "patch"]
 
     def get_queryset(self):
