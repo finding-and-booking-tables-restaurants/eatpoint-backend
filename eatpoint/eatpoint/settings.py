@@ -32,7 +32,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv("SECRET_KEY", default="valen_server.env")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", default=True)
+DEBUG = os.getenv("DEBUG", default=False)
 
 ALLOWED_HOSTS = ["80.87.109.70", "backend", "backend:8000", "127.0.0.1"]
 

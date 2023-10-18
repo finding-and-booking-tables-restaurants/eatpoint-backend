@@ -170,3 +170,4 @@ cython_debug/
 /infra/.env
 /eatpoint/sent_emails/
 /eatpoint/reservation/migrations/
+/infra/docs/
