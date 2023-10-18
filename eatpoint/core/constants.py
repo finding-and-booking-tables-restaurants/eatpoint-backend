@@ -1,3 +1,7 @@
+# Время жизни JWT токенов
+ACCESS_TOKEN_LIFETIME_MINUTES = 1440
+REFRESH_TOKEN_LIFETIME_DAYS = 30
+
 # Максимальное количество мест
 MAX_SEATS = 100
 
