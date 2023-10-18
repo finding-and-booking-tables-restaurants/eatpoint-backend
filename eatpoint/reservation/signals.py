@@ -1,6 +1,6 @@
 from rest_framework.validators import ValidationError
 from reservation.models import Reservation, ReservationHistory
-from django.db.models.signals import post_save, pre_delete, post_delete
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 
@@ -27,7 +27,7 @@ def delete_reservation(sender, instance, **kwargs):
         zone.available_seats = zone.seats
 
 
-@receiver(post_delete, sender=Reservation)
+@receiver(pre_delete, sender=Reservation)
 def move_booking_to_history(sender, instance, **kwargs):
     """Добавляет бронирование в историю"""
     ReservationHistory.objects.create(
@@ -45,4 +45,3 @@ def move_booking_to_history(sender, instance, **kwargs):
         comment=instance.comment,
         status=False,
     )
-    instance.delete()

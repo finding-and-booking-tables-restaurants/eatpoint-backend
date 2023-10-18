@@ -2,7 +2,11 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views.establishments import ZoneViewSet, CityViewSet
-from api.views.reservation import ReservationsViewSet
+from api.views.reservation import (
+    ReservationsViewSet,
+    ReservationsListViewSet,
+    ReservationsHistoryListViewSet,
+)
 from api.views.users import (
     SignUp,
     ConfirmCodeView,
@@ -34,6 +38,15 @@ router.register(
     r"establishments/(?P<establishment_id>\d+)/reservations",
     ReservationsViewSet,
     basename="reservations",
+)
+
+router.register(
+    "reservations/history",
+    ReservationsHistoryListViewSet,
+    basename="reservationslisthistory",
+)
+router.register(
+    "reservations", ReservationsListViewSet, basename="reservationslist"
 )
 router.register("kitchens", KitchenViewSet, basename="Kitchens")
 router.register("services", ServicesViewSet, basename="service")

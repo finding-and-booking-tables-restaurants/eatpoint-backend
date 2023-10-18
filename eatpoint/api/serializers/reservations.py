@@ -4,7 +4,7 @@ from rest_framework import serializers
 from core.validators import (
     validate_reserv_anonim,
 )
-from reservation.models import Reservation
+from reservation.models import Reservation, ReservationHistory
 
 
 class AuthReservationsEditSerializer(serializers.ModelSerializer):
@@ -83,3 +83,16 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         validate_reserv_anonim(user, validated_data)
         return validated_data
+
+
+class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReservationHistory
+        fields = (
+            "establishment",
+            "number_guests",
+            "date_reservation",
+            "start_time_reservation",
+            "comment",
+            "zone",
+        )
