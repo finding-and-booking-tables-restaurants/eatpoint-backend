@@ -114,7 +114,7 @@ class Establishment(models.Model):
     )
     name = models.CharField(
         verbose_name="Название заведения",
-        max_length=200,
+        max_length=150,
         unique=True,
     )
     types = models.ManyToManyField(
@@ -131,7 +131,7 @@ class Establishment(models.Model):
     )
     address = models.CharField(
         verbose_name="Адрес заведения",
-        max_length=1000,
+        max_length=100,
     )
     kitchens = models.ManyToManyField(
         Kitchen,
@@ -163,7 +163,9 @@ class Establishment(models.Model):
     )
     description = models.TextField(
         verbose_name="Описание заведения",
-        max_length=5000,
+        max_length=1500,
+        blank=True,
+        unique=True,
     )
     is_verified = models.BooleanField(
         verbose_name="Верификация заведения",

@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from core.validators import (
     validate_reserv_anonim,
+    string_validator,
 )
 from reservation.models import Reservation, ReservationHistory
 
@@ -52,8 +53,7 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
         required=False,
     )
     first_name = serializers.CharField(
-        required=False,
-        help_text="Имя",
+        required=False, help_text="Имя", validators=[string_validator]
     )
     email = serializers.EmailField(
         help_text="Почта",
