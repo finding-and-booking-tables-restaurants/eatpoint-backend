@@ -14,6 +14,11 @@ from datetime import timedelta
 
 from dotenv import load_dotenv
 
+from core.constants import (
+    ACCESS_TOKEN_LIFETIME_MINUTES,
+    REFRESH_TOKEN_LIFETIME_DAYS,
+)
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -190,8 +195,8 @@ DJOSER = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=ACCESS_TOKEN_LIFETIME_MINUTES),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=REFRESH_TOKEN_LIFETIME_DAYS),
     "SIGNING_KEY": SECRET_KEY,
     "AUTH_HEADER_TYPES": ("JWT",),
 }
