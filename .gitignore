@@ -164,10 +164,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 /eatpoint/media/
-/eatpoint/establishments/migrations/
-/eatpoint/users/migrations/
 /eatpoint/static/
 /infra/.env
 /eatpoint/sent_emails/
-/eatpoint/reservation/migrations/
 /infra/docs/
+
