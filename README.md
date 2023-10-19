@@ -1,4 +1,5 @@
 # eatpoint-backend
+![eatpoint_workflow](https://github.com/finding-and-booking-tables-restaurants/eatpoint-backend/actions/workflows/eatpoint_workflows.yml/badge.svg)
 
 ## Описание проекта
 
@@ -30,14 +31,13 @@
 
 ## Стек технологий
 - Python 3.11
-- Django 4.2
+- Django 4.2.5
 - Rest API
 - PostgreSQL
 - Nginx
 - gunicorn
 - Docker
 - DockerHub
-- JS
 - GitHub Actions (CI/CD)
 
 ## Установка проекта из репозитория
@@ -71,11 +71,3 @@ echo DEFAULT_FROM_EMAIL='your_mail@example.ru' >> .env
 
 ### Установка и запуск приложения в контейнерах (контейнер backend загружается из DockerHub):
 ```docker-compose up -d```
-
-### Запуск миграций, сбор статики и заполнение БД:
-
-```docker-compose exec backend python manage.py migrate```
-
-```docker-compose exec backend python manage.py collectstatic --no-input ```
-
-```docker-compose exec backend python manage.py loaddata data/fixtures.json```
