@@ -87,17 +87,16 @@ class SignUpSerializer(MyBaseSerializer):
     Сериализатор данных для регистрации пользователя.
     """
 
-    extra_kwargs = {"password": {"write_only": True}}
-
     class Meta:
         model = User
+        extra_kwargs = {"password": {"write_only": True}}
         fields = (
             "telephone",
             "email",
+            "password",
             "first_name",
             "last_name",
             "role",
-            "password",
             "is_agreement",
             "confirm_code_send_method",
         )
