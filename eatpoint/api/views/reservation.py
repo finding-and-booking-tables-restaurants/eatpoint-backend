@@ -17,7 +17,9 @@ from reservation.models import Reservation, ReservationHistory
 
 
 @extend_schema(
-    tags=["Бронирование"], methods=["GET", "POST", "PATCH", "PUT", "DELETE"]
+    tags=["Бронирование"],
+    methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
+    description="Клиент",
 )
 @extend_schema_view(
     list=extend_schema(
@@ -28,7 +30,6 @@ from reservation.models import Reservation, ReservationHistory
     ),
     create=extend_schema(
         summary="Добавить бронирование",
-        description="Для авторизованного пользователя имя, фамилия, телефон, почта заполняются автоматически",
     ),
     partial_update=extend_schema(
         summary="Изменить данные бронирования",
@@ -85,14 +86,17 @@ class ReservationsViewSet(viewsets.ModelViewSet):
             )
 
 
-@extend_schema(tags=["Мои бронирования"], methods=["GET", "DELETE"])
+@extend_schema(
+    tags=["Мои бронирования"],
+    methods=["GET", "DELETE"],
+    description="Клиент/ресторатор",
+)
 @extend_schema_view(
     list=extend_schema(
-        summary="Получить список броней заведения",
-        description="Ресторатор получает списко бронирований на свои заведения, а клиент общий список своий броней",
+        summary="Получить список бронирований",
     ),
     retrieve=extend_schema(
-        summary="Детальная информация о броне заведения",
+        summary="Детальная информация о бронировании заведения",
     ),
     destroy=extend_schema(
         summary="Удалить бронирование",
@@ -136,11 +140,14 @@ class ReservationsListViewSet(viewsets.ModelViewSet):
         )
 
 
-@extend_schema(tags=["История бронирования"], methods=["GET"])
+@extend_schema(
+    tags=["История бронирования"],
+    methods=["GET"],
+    description="Клиент/ресторатор",
+)
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список истории броней заведения",
-        description="Ресторатор получает список истории бронирований на свои заведения, а клиент общий список своий броней",
     ),
     retrieve=extend_schema(
         summary="Детальная информация о броне заведения",
