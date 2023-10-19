@@ -1,10 +1,9 @@
 name: eatpoint_workflow
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-      - '!review'
       - alpha_v1
     
 jobs:
