@@ -28,7 +28,7 @@ from api.serializers.users import (
 )
 
 
-@extend_schema(tags=["Users"])
+@extend_schema(tags=["Users"], description="Администратор")
 @extend_schema_view(
     list=extend_schema(summary="Список пользователей", methods=["GET"]),
     retrieve=extend_schema(
@@ -51,10 +51,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         summary="Редактирование профиля",
         methods=["PATCH"],
+        description="Клиент/ресторатор",
     )
     @extend_schema(
         summary="Профиль пользователя",
         methods=["GET"],
+        description="Клиент/ресторатор",
     )
     @action(
         methods=["GET", "PATCH"],
@@ -83,7 +85,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
 
-@extend_schema(tags=["SignUp"], methods=["POST"])
+@extend_schema(
+    tags=["SignUp"], methods=["POST"], description="Незарегистрированный"
+)
 @extend_schema_view(
     post=extend_schema(
         summary="Регистрация аккаунта",
@@ -152,7 +156,9 @@ class SignUp(APIView):
             )
 
 
-@extend_schema(tags=["SignUp"], methods=["POST"])
+@extend_schema(
+    tags=["SignUp"], methods=["POST"], description="Зарегистрированный"
+)
 @extend_schema_view(
     post=extend_schema(
         summary="Подтвердить регистрацию",
@@ -225,7 +231,9 @@ class ConfirmCodeView(APIView):
                 pass
 
 
-@extend_schema(tags=["SignUp"], methods=["POST"])
+@extend_schema(
+    tags=["SignUp"], methods=["POST"], description="Зарегистрированный"
+)
 @extend_schema_view(
     post=extend_schema(
         summary="Получить кода подтверждения повторно",
@@ -272,7 +280,9 @@ class ConfirmCodeRefreshView(APIView):
                 )
 
 
-@extend_schema(tags=["Password"], methods=["POST"])
+@extend_schema(
+    tags=["Password"], methods=["POST"], description="Авторизованный"
+)
 @extend_schema_view(
     reset_password=extend_schema(
         summary="Сброс пароля",
@@ -287,7 +297,7 @@ class DjoserUserViewSet(views.UserViewSet):
     """
 
 
-@extend_schema(tags=["Login"])
+@extend_schema(tags=["Login"], description="Зарегистрированный")
 @extend_schema_view(
     post=extend_schema(
         summary="Логин",
@@ -299,7 +309,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
     """
 
 
-@extend_schema(tags=["Login"])
+@extend_schema(tags=["Login"], description="Зарегистрированный")
 @extend_schema_view(
     post=extend_schema(
         summary="Обновление JWT токена",

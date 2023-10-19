@@ -42,7 +42,11 @@ from establishments.models import (
 )
 
 
-@extend_schema(tags=["Кухни"], methods=["GET"])
+@extend_schema(
+    tags=["Кухни"],
+    methods=["GET"],
+    description="Все пользователи",
+)
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список кухонь",
@@ -59,7 +63,11 @@ class KitchenViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
 
 
-@extend_schema(tags=["Список городов"], methods=["GET"])
+@extend_schema(
+    tags=["Список городов"],
+    methods=["GET"],
+    description="Все пользователи",
+)
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список городов",
@@ -78,7 +86,11 @@ class CityViewSet(viewsets.ModelViewSet):
     search_fields = ("name",)
 
 
-@extend_schema(tags=["Типы заведения"], methods=["GET"])
+@extend_schema(
+    tags=["Типы заведения"],
+    methods=["GET"],
+    description="Все пользователи",
+)
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список типов заведений",
@@ -95,7 +107,11 @@ class TypeEstViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
 
 
-@extend_schema(tags=["Доп. услуги"], methods=["GET"])
+@extend_schema(
+    tags=["Доп. услуги"],
+    methods=["GET"],
+    description="Все пользователи",
+)
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список услуг",
@@ -112,8 +128,16 @@ class ServicesViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
 
 
-@extend_schema(tags=["Заведения"], methods=["GET"])
-@extend_schema(tags=["Бизнес"], methods=["POST", "PATCH", "PUT", "DELETE"])
+@extend_schema(
+    tags=["Заведения"],
+    methods=["GET"],
+    description="Все пользователи",
+)
+@extend_schema(
+    tags=["Бизнес"],
+    methods=["POST", "PATCH", "PUT", "DELETE"],
+    description="Ресторатор",
+)
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список заведений",
@@ -195,6 +219,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         tags=["Избранное"],
+        description="Клиент",
         methods=["POST"],
         request=SpecialEstablishmentSerializer,
         responses=SpecialEstablishmentSerializer,
@@ -202,6 +227,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     )
     @extend_schema(
         tags=["Избранное"],
+        description="Клиент",
         methods=["DELETE"],
         summary="Удалить из избранного",
     )
@@ -224,7 +250,9 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=["Зоны"], methods=["GET", "POST", "PATCH", "PUT", "DELETE"]
+    tags=["Зоны"],
+    methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
+    description="Все пользователи",
 )
 @extend_schema_view(
     list=extend_schema(
@@ -236,6 +264,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     ),
     partial_update=extend_schema(
         summary="Редактировать зону",
+        description="Ресторатор",
     ),
 )
 class ZoneViewSet(viewsets.ModelViewSet):
@@ -251,14 +280,18 @@ class ZoneViewSet(viewsets.ModelViewSet):
         )
 
 
-@extend_schema(tags=["Отзывы"], methods=["GET", "POST", "PATCH"])
+@extend_schema(
+    tags=["Отзывы"], methods=["GET", "POST", "PATCH"], description="Клиент"
+)
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список отзывов к заведению с id=",
+        description="Клиент/ресторатор",
     ),
     create=extend_schema(summary="Оставить отзыв"),
     retrieve=extend_schema(
         summary="Один отзыв",
+        description="Клиент/ресторатор",
     ),
     partial_update=extend_schema(
         summary="Редактировать отзыв",
