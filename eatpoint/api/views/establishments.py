@@ -17,7 +17,7 @@ from api.permissions import (
     IsOwnerRestaurant,
     IsAuthor,
     CreateRestaurant,
-    IsUser,
+    IsClient,
 )
 from api.serializers.establishments import (
     EstablishmentSerializer,
@@ -236,7 +236,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         methods=["post", "delete"],
         url_path="favorite",
         filterset_class=EstablishmentFilter,
-        permission_classes=(IsUser,),
+        permission_classes=(IsClient,),
     )
     def favorite(self, request, pk=None):
         """Добавление в избранное"""

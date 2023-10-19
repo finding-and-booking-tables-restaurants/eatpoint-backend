@@ -4,7 +4,7 @@ from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 
-from api.permissions import IsUserReservation
+from api.permissions import IsClient, IsRestorateur
 from core.pagination import LargeResultsSetPagination
 from core.validators import validate_reservation_time_zone
 from establishments.models import Establishment
@@ -43,7 +43,7 @@ class ReservationsViewSet(viewsets.ModelViewSet):
 
     http_method_names = ["post", "patch"]
     pagination_class = LargeResultsSetPagination
-    permission_classes = (IsUserReservation,)
+    permission_classes = (IsClient | IsRestorateur,)
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -56,11 +56,6 @@ class ReservationsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_anonymous:
-            return Response(
-                {"errors": "Вы не авторизованы"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
         establishment = self.kwargs.get("establishment_id")
         reservation = Reservation.objects.filter(
             user=user, establishment=establishment
@@ -108,6 +103,9 @@ class ReservationsListViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "delete"]
     pagination_class = LargeResultsSetPagination
     serializer_class = AuthReservationsEditSerializer
+    permission_classes = [
+        IsRestorateur | IsClient,
+    ]
 
     def get_queryset(self):
         user = self.request.user
@@ -119,10 +117,6 @@ class ReservationsListViewSet(viewsets.ModelViewSet):
                 establishment__owner=user
             )
             return reservation_rest
-        return Response(
-            {"errors": "Вы не авторизованы"},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
@@ -159,6 +153,9 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
     serializer_class = ReservationsHistoryEditSerializer
+    permission_classes = [
+        IsRestorateur | IsClient,
+    ]
 
     def get_queryset(self):
         user = self.request.user
