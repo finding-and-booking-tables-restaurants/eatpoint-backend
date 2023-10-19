@@ -52,7 +52,9 @@ class EstablishmentFilter(FilterSet):
 
     def filters_favorited(self, queryset, name, value):
         """Возвращает только избранное пользователя"""
-        if value:
+        if not self.request.user.is_authenticated:
+            return Establishment.objects.none()
+        elif value:
             return queryset.filter(favorite__user=self.request.user)
         return Establishment.objects.all()
 
