@@ -44,4 +44,5 @@ def move_booking_to_history(sender, instance, **kwargs):
         end_time_reservation=instance.end_time_reservation,
         comment=instance.comment,
         status=False,
+        reservation_date=instance.reservation_date,
     )

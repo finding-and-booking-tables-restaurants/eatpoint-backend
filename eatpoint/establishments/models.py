@@ -165,7 +165,7 @@ class Establishment(models.Model):
         verbose_name="Описание заведения",
         max_length=1500,
         blank=True,
-        unique=True,
+        null=True,
     )
     is_verified = models.BooleanField(
         verbose_name="Верификация заведения",

@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "reservation.apps.ReservationConfig",
     "users.apps.UsersConfig",
+    "analytics.apps.AnalyticsConfig",
 ]
 
 MIDDLEWARE = [

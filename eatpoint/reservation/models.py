@@ -93,6 +93,10 @@ class Reservation(models.Model):
         verbose_name="Статус бронирования Активен/Выполнен",
         default=True,
     )
+    reservation_date = models.DateTimeField(
+        verbose_name="Дата создания",
+        auto_now_add=True,
+    )
 
     class Meta:
         verbose_name = "Бронирование"
@@ -164,6 +168,9 @@ class ReservationHistory(models.Model):
     status = models.BooleanField(
         verbose_name="Статус бронирования Активен/Выполнен",
         default=False,
+    )
+    reservation_date = models.DateTimeField(
+        verbose_name="Дата создания",
     )
 
     class Meta:
