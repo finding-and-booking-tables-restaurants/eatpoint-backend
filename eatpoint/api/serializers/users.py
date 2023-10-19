@@ -87,8 +87,6 @@ class SignUpSerializer(MyBaseSerializer):
     Сериализатор данных для регистрации пользователя.
     """
 
-    extra_kwargs = {"password": {"write_only": True}}
-
     class Meta:
         model = User
         fields = (
@@ -101,6 +99,7 @@ class SignUpSerializer(MyBaseSerializer):
             "is_agreement",
             "confirm_code_send_method",
         )
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)
