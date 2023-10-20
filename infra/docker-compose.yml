@@ -1,27 +1,26 @@
-version: '3.0'
+version: '3.3'
 services:
   db:
     image: postgres:12.4
     restart: always
     container_name: db
     volumes:
-      - ./persistentdata/db:/var/lib/postgresql/data
-    env_file:
-      - ./.env
+      - db_bas:/var/lib/postgresql/data
 
   backend:
     container_name: backend
     restart: always
     image: valentaine98/eatpoint-backend:latest
-    expose:
-      - 8000
+    ports:
+      - "8000:8000"
     volumes:
+      - .:/usr/src/app
       - static_value:/app/static/
       - media_value:/app/media/
     depends_on:
       - db
     env_file:
-      - ./.env
+      - .env
 
   nginx:
     image: nginx:1.21.3-alpine
@@ -53,3 +52,4 @@ services:
 volumes:
   static_value:
   media_value:
+  db_bas:
