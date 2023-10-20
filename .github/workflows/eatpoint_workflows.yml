@@ -63,9 +63,9 @@ jobs:
           script: |
             cd infraa/
             sudo docker-compose stop
-            sudo docker rm backend
-            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_BACKEND }}:latest
+            docker-compose pull
             sudo docker-compose up -d
+            sudo docker rmi $(docker images -f dangling=true -q)
 
   send_message:
     name: Send telegram message
