@@ -34,16 +34,11 @@ SECRET_KEY = os.getenv("SECRET_KEY", default="valen_server.env")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", default=False)
 
-if DEBUG:
-    ALLOWED_HOSTS = [
-        "127.0.0.1",
-    ]
-else:
-    ALLOWED_HOSTS = [
-        "backend",
-        "backend:8000",
-        "eatpoint.sytes.net",
-    ]
+ALLOWED_HOSTS = [
+    "backend",
+    "backend:8000",
+    "eatpoint.sytes.net",
+]
 
 # SSL and CSRF
 
