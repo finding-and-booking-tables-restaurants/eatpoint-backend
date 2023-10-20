@@ -13,6 +13,8 @@ services:
     container_name: backend
     restart: always
     image: valentaine98/eatpoint-backend:latest
+    ports:
+      - "8000:8000"
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
