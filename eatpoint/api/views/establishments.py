@@ -166,10 +166,10 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         CreateRestaurant | IsOwnerRestaurant | ReadOnly | IsAdminUser,
     )
     search_fields = (
-        "name",
-        "address",
-        "kitchens__name",
-        "types__name",
+        "$name",
+        "$address",
+        "$kitchens__name",
+        "$types__name",
     )
 
     def get_queryset(self):
