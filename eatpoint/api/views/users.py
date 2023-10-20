@@ -18,7 +18,7 @@ import core.choices
 import core.constants
 from core.pagination import LargeResultsSetPagination
 from users.models import User
-from api.permissions import IsUser, IsRestorateur
+from api.permissions import IsClient, IsRestorateur
 from api.serializers.users import (
     MeSerializer,
     SignUpSerializer,
@@ -62,7 +62,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         methods=["GET", "PATCH"],
         detail=False,
         permission_classes=(
-            IsUser | IsRestorateur | IsAdminUser,
+            IsClient | IsRestorateur | IsAdminUser,
             IsAuthenticated,
         ),
     )
