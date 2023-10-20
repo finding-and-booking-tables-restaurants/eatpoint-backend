@@ -6,8 +6,6 @@ services:
     container_name: db
     volumes:
       - db_bas:/var/lib/postgresql/data
-    env_file:
-      - .env
 
   backend:
     container_name: backend
@@ -16,6 +14,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      - .:/usr/src/app
       - static_value:/app/static/
       - media_value:/app/media/
     depends_on:
