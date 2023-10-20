@@ -34,22 +34,31 @@ SECRET_KEY = os.getenv("SECRET_KEY", default="valen_server.env")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", default=False)
 
-ALLOWED_HOSTS = [
-    "80.87.109.70",
-    "backend",
-    "backend:8000",
-    "127.0.0.1",
-    "eatpoint.sytes.net",
-]
+if DEBUG:
+    ALLOWED_HOSTS = [
+        "127.0.0.1",
+    ]
+else:
+    ALLOWED_HOSTS = [
+        "backend",
+        "backend:8000",
+        "eatpoint.sytes.net",
+    ]
 
+# SSL and CSRF
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     "https://eatpoint.sytes.net",
     "http://eatpoint.sytes.net",
 ]
-CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_DOMAIN = "eatpoint.sytes.net"
 CORS_URLS_REGEX = r"^/api/.*$"
 CORS_ORIGIN_ALLOW_ALL = True
+
 # Application definition
 
 INSTALLED_APPS = [
