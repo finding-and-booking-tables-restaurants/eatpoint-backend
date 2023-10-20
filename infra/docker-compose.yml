@@ -6,6 +6,8 @@ services:
     container_name: db
     volumes:
       - db:/var/lib/postgresql/data
+    env_file:
+      - .env
 
   backend:
     container_name: backend
