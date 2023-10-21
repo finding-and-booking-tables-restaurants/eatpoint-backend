@@ -4,7 +4,7 @@ from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 
-from api.permissions import IsClient, IsRestorateur
+from api.permissions import IsUserReservationCreate, IsRestorateur, IsClient
 from core.pagination import LargeResultsSetPagination
 from core.validators import validate_reservation_time_zone
 from establishments.models import Establishment
@@ -43,7 +43,7 @@ class ReservationsViewSet(viewsets.ModelViewSet):
 
     http_method_names = ["post", "patch"]
     pagination_class = LargeResultsSetPagination
-    permission_classes = (IsClient | IsRestorateur,)
+    permission_classes = (IsUserReservationCreate,)
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -121,13 +121,27 @@ class ReservationsListViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
         reservation_id = self.kwargs.get("pk")
-        removable = Reservation.objects.filter(user=user, id=reservation_id)
-        if not removable.exists():
-            return Response(
-                {"errors": "Бронирование отсутствует"},
-                status=status.HTTP_400_BAD_REQUEST,
+        if user.is_user:
+            removable = Reservation.objects.filter(
+                user=user, id=reservation_id
             )
-        removable.delete()
+            if not removable.exists():
+                return Response(
+                    {"errors": "Бронирование отсутствует"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            removable.delete()
+        elif user.is_restorateur:
+            removable = Reservation.objects.filter(
+                establishment__owner=user,
+                id=reservation_id,
+            )
+            if not removable.exists():
+                return Response(
+                    {"errors": "Бронирование отсутствует"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            removable.delete()
         return Response(
             {"message": "Бронирование удалено"},
             status=status.HTTP_204_NO_CONTENT,
