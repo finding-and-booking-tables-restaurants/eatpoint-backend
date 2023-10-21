@@ -43,7 +43,6 @@ class ReservationsViewSet(viewsets.ModelViewSet):
 
     http_method_names = ["post", "patch"]
     pagination_class = LargeResultsSetPagination
-    permission_classes = (IsClient | IsRestorateur,)
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
