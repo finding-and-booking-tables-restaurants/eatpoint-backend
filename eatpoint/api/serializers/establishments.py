@@ -162,7 +162,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     zones = ZoneEstablishmentSerializer(read_only=True, many=True)
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
-    poster = serializers.ImageField()
+    poster = Base64ImageField()
 
     class Meta:
         fields = [
@@ -209,7 +209,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = serializers.ImageField()
+    poster = Base64ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
@@ -236,6 +236,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField(
         help_text="Номер телефона",
     )
+    cities = serializers.CharField()
 
     class Meta:
         model = Establishment
@@ -258,6 +259,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "socials",
             "images",
         ]
+        lookup_field = ["cities"]
 
     def validate_image(self, image):
         """Проверка размера картинки (не броее 5 мб)"""
