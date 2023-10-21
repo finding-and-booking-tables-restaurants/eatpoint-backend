@@ -1,10 +1,10 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 
-from api.permissions import IsUserReservationCreate
+from api.permissions import IsUserReservationCreate, IsRestorateur, IsClient
 from core.pagination import LargeResultsSetPagination
 from core.validators import validate_reservation_time_zone
 from establishments.models import Establishment
@@ -108,7 +108,9 @@ class ReservationsListViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "delete"]
     pagination_class = LargeResultsSetPagination
     serializer_class = AuthReservationsEditSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [
+        IsRestorateur | IsClient,
+    ]
 
     def get_queryset(self):
         user = self.request.user
@@ -174,7 +176,9 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
     serializer_class = ReservationsHistoryEditSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [
+        IsRestorateur | IsClient,
+    ]
 
     def get_queryset(self):
         user = self.request.user
