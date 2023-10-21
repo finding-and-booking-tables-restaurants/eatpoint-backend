@@ -79,7 +79,7 @@ class ServicesSerializer(serializers.ModelSerializer):
 class SocialSerializer(serializers.ModelSerializer):
     """Сериализация данных: Соц. сети"""
 
-    name = serializers.URLField()
+    name = serializers.URLField(required=False)
 
     class Meta:
         model = SocialEstablishment
@@ -105,7 +105,7 @@ class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
     image = Base64ImageField()
-    name = serializers.CharField()
+    name = serializers.CharField(required=False)
 
     class Meta:
         model = ImageEstablishment
@@ -120,6 +120,7 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 
     day = serializers.ChoiceField(
         choices=DAY_CHOICES,
+        required=False,
     )
 
     class Meta:
@@ -215,6 +216,9 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
+    cities = serializers.CharField(
+        source="cities_name", required=True, help_text="Город"
+    )
     images = ImageSerializer(
         many=True,
         help_text="Несколько изображений",
@@ -223,10 +227,12 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     worked = WorkEstablishmentSerializer(
         many=True,
         help_text="Время работы",
+        required=False,
     )
     zones = ZoneEstablishmentSerializer(
         many=True,
         help_text="Зоны заведения",
+        required=False,
     )
     socials = SocialSerializer(
         many=True,
@@ -397,16 +403,3 @@ class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Establishment
         fields = ["establishment", "user"]
-
-
-class SpecialEstablishmentSerializer(serializers.ModelSerializer):
-    """Сериализация данных: Заведение(короткий)"""
-
-    class Meta:
-        model = Establishment
-        fields = [
-            "id",
-            "name",
-            "poster",
-            "description",
-        ]

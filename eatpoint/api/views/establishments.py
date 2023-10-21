@@ -23,13 +23,13 @@ from api.serializers.establishments import (
     EstablishmentSerializer,
     ReviewSerializer,
     EstablishmentEditSerializer,
-    SpecialEstablishmentSerializer,
     KitchenSerializer,
     TypeEstSerializer,
     ServicesSerializer,
     ZoneEstablishmentSerializer,
     CitySerializer,
 )
+from api.serializers.reservations import SpecialEstablishmentSerializer
 from core.pagination import LargeResultsSetPagination
 from establishments.models import (
     Establishment,
