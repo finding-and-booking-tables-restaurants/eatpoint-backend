@@ -128,6 +128,7 @@ class ReservationsUserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = (
+            "id",
             "establishment",
             "number_guests",
             "date_reservation",
