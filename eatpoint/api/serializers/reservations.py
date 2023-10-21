@@ -5,6 +5,7 @@ from core.validators import (
     validate_reserv_anonim,
     string_validator,
 )
+from establishments.models import ZoneEstablishment, Establishment
 from reservation.models import Reservation, ReservationHistory
 
 
@@ -94,5 +95,67 @@ class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
             "date_reservation",
             "start_time_reservation",
             "comment",
+            "zone",
+        )
+
+
+class ZoneReservationsListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ZoneEstablishment
+        fields = (
+            "zone",
+            "seats",
+        )
+
+
+class SpecialEstablishmentSerializer(serializers.ModelSerializer):
+    """Сериализация данных: Заведение(короткий)"""
+
+    class Meta:
+        model = Establishment
+        fields = [
+            "id",
+            "name",
+            "poster",
+            "address",
+        ]
+
+
+class ReservationsUserListSerializer(serializers.ModelSerializer):
+    zone = serializers.SerializerMethodField(source="zone__name")
+    establishment = SpecialEstablishmentSerializer()
+
+    class Meta:
+        model = Reservation
+        fields = (
+            "establishment",
+            "number_guests",
+            "date_reservation",
+            "start_time_reservation",
+            "zone",
+        )
+
+
+class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
+    zone = serializers.SerializerMethodField(source="zone__name")
+    establishment = serializers.SerializerMethodField(
+        source="establishment__name"
+    )
+
+    class Meta:
+        model = Reservation
+        fields = (
+            "id",
+            "establishment",
+            "first_name",
+            "email",
+            "telephone",
+            "number_guests",
+            "date_reservation",
+            "start_time_reservation",
+            "comment",
+            "reminder_one_day",
+            "reminder_three_hours",
+            "reminder_half_on_hour",
             "zone",
         )
