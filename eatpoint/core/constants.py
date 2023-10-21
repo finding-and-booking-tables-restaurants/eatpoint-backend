@@ -18,7 +18,7 @@ INTERVAL_MINUTES = 30
 START_TIME = "00:00"
 
 
-END_TIME = "23:00"
+END_TIME = "24:00"
 
 # Размер страницы
 PAGE_SIZE = 10
