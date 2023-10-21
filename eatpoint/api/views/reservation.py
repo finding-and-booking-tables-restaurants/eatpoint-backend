@@ -56,11 +56,6 @@ class ReservationsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_anonymous:
-            return Response(
-                {"errors": "Вы не авторизованы"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
         establishment = self.kwargs.get("establishment_id")
         reservation = Reservation.objects.filter(
             user=user, establishment=establishment
@@ -122,10 +117,6 @@ class ReservationsListViewSet(viewsets.ModelViewSet):
                 establishment__owner=user
             )
             return reservation_rest
-        return Response(
-            {"errors": "Вы не авторизованы"},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user

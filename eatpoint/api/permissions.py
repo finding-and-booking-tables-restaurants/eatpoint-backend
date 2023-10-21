@@ -18,6 +18,7 @@ class IsUserReservationCreate(permissions.BasePermission):
             return obj.user == request.user
 
 
+
 class IsClient(permissions.BasePermission):
     """Возвращает результат проверки роли пользователя True если клиент."""
 
