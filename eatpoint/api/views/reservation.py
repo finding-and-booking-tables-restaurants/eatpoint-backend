@@ -12,6 +12,8 @@ from api.serializers.reservations import (
     ReservationsEditSerializer,
     AuthReservationsEditSerializer,
     ReservationsHistoryEditSerializer,
+    ReservationsUserListSerializer,
+    ReservationsRestorateurListSerializer,
 )
 from reservation.models import Reservation, ReservationHistory
 
@@ -56,11 +58,6 @@ class ReservationsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_anonymous:
-            return Response(
-                {"errors": "Вы не авторизованы"},
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
         establishment = self.kwargs.get("establishment_id")
         reservation = Reservation.objects.filter(
             user=user, establishment=establishment
@@ -102,55 +99,80 @@ class ReservationsViewSet(viewsets.ModelViewSet):
         summary="Удалить бронирование",
     ),
 )
-class ReservationsListViewSet(viewsets.ModelViewSet):
+class ReservationsUserListViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования"""
 
     http_method_names = ["get", "delete"]
     pagination_class = LargeResultsSetPagination
-    serializer_class = AuthReservationsEditSerializer
     permission_classes = [
-        IsRestorateur | IsClient,
+        IsClient,
     ]
+    serializer_class = ReservationsUserListSerializer
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_user:
-            reservation = Reservation.objects.filter(user=user)
-            return reservation
-        elif user.is_restorateur:
-            reservation_rest = Reservation.objects.filter(
-                establishment__owner=user
-            )
-            return reservation_rest
-        return Response(
-            {"errors": "Вы не авторизованы"},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+        reservation = Reservation.objects.filter(user=user)
+        return reservation
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
         reservation_id = self.kwargs.get("pk")
-        if user.is_user:
-            removable = Reservation.objects.filter(
-                user=user, id=reservation_id
+        removable = Reservation.objects.filter(user=user, id=reservation_id)
+        if not removable.exists():
+            return Response(
+                {"errors": "Бронирование отсутствует"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            if not removable.exists():
-                return Response(
-                    {"errors": "Бронирование отсутствует"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            removable.delete()
-        elif user.is_restorateur:
-            removable = Reservation.objects.filter(
-                establishment__owner=user,
-                id=reservation_id,
+        removable.delete()
+        return Response(
+            {"message": "Бронирование удалено"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+@extend_schema(
+    tags=["Бизнес"],
+    methods=["GET", "DELETE"],
+    description="Ресторатор",
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список бронирований",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о бронировании заведения",
+    ),
+    destroy=extend_schema(
+        summary="Удалить бронирование",
+    ),
+)
+class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обработки бронирования"""
+
+    http_method_names = ["get", "delete"]
+    pagination_class = LargeResultsSetPagination
+    permission_classes = [
+        IsRestorateur,
+    ]
+    serializer_class = ReservationsRestorateurListSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Reservation.objects.filter(establishment__owner=user)
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.request.user
+        reservation_id = self.kwargs.get("pk")
+        removable = Reservation.objects.filter(
+            establishment__owner=user,
+            id=reservation_id,
+        )
+        if not removable.exists():
+            return Response(
+                {"errors": "Бронирование отсутствует"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            if not removable.exists():
-                return Response(
-                    {"errors": "Бронирование отсутствует"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            removable.delete()
+        removable.delete()
         return Response(
             {"message": "Бронирование удалено"},
             status=status.HTTP_204_NO_CONTENT,

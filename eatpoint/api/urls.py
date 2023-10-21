@@ -5,8 +5,9 @@ from api.views.analytics import AnalyticsViewSet, AnalyticsListViewSet
 from api.views.establishments import ZoneViewSet, CityViewSet
 from api.views.reservation import (
     ReservationsViewSet,
-    ReservationsListViewSet,
+    ReservationsUserListViewSet,
     ReservationsHistoryListViewSet,
+    ReservationsRestorateurListViewSet,
 )
 from api.views.users import (
     SignUp,
@@ -47,8 +48,14 @@ router.register(
     basename="reservationslisthistory",
 )
 router.register(
-    "reservations", ReservationsListViewSet, basename="reservationslist"
+    "reservations", ReservationsUserListViewSet, basename="reservationslist"
 )
+router.register(
+    "reservations/business",
+    ReservationsRestorateurListViewSet,
+    basename="business",
+)
+
 router.register("kitchens", KitchenViewSet, basename="Kitchens")
 router.register("services", ServicesViewSet, basename="service")
 router.register("types", TypeEstViewSet, basename="types")
