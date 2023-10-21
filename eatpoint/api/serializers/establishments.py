@@ -3,6 +3,8 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema_field,
 )
+
+
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
@@ -31,10 +33,7 @@ class KitchenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Kitchen
         fields = [
-            "id",
             "name",
-            "description",
-            "slug",
         ]
 
 
@@ -44,9 +43,7 @@ class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
         fields = [
-            "id",
             "name",
-            "slug",
         ]
 
 
@@ -56,10 +53,7 @@ class TypeEstSerializer(serializers.ModelSerializer):
     class Meta:
         model = TypeEst
         fields = [
-            "id",
             "name",
-            "description",
-            "slug",
         ]
 
 
@@ -69,10 +63,7 @@ class ServicesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = [
-            "id",
             "name",
-            "description",
-            "slug",
         ]
 
 
@@ -209,6 +200,26 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         )["score__avg"]
 
 
+class KitchenListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return KitchenSerializer(value).data
+
+
+class TypeListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return TypeEstSerializer(value).data
+
+
+class ServiceListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return ServicesSerializer(value).data
+
+
+class CityListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return CitySerializer(value).data
+
+
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
@@ -242,7 +253,16 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField(
         help_text="Номер телефона",
     )
-    cities = serializers.CharField()
+    cities = CityListField(slug_field="name", queryset=City.objects.all())
+    kitchens = KitchenListField(
+        slug_field="name", queryset=Kitchen.objects.all(), many=True
+    )
+    types = TypeListField(
+        slug_field="name", queryset=TypeEst.objects.all(), many=True
+    )
+    services = ServiceListField(
+        slug_field="name", queryset=Service.objects.all(), many=True
+    )
 
     class Meta:
         model = Establishment
@@ -265,7 +285,6 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "socials",
             "images",
         ]
-        lookup_field = ["cities"]
 
     def validate_image(self, image):
         """Проверка размера картинки (не броее 5 мб)"""
