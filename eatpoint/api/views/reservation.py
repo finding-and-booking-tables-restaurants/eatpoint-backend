@@ -1,10 +1,10 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 
-from api.permissions import IsUserReservation
+from api.permissions import IsUserReservationCreate
 from core.pagination import LargeResultsSetPagination
 from core.validators import validate_reservation_time_zone
 from establishments.models import Establishment
@@ -43,7 +43,7 @@ class ReservationsViewSet(viewsets.ModelViewSet):
 
     http_method_names = ["post", "patch"]
     pagination_class = LargeResultsSetPagination
-    permission_classes = (IsUserReservation,)
+    permission_classes = (IsUserReservationCreate,)
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -108,6 +108,7 @@ class ReservationsListViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "delete"]
     pagination_class = LargeResultsSetPagination
     serializer_class = AuthReservationsEditSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         user = self.request.user
@@ -127,13 +128,27 @@ class ReservationsListViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
         reservation_id = self.kwargs.get("pk")
-        removable = Reservation.objects.filter(user=user, id=reservation_id)
-        if not removable.exists():
-            return Response(
-                {"errors": "Бронирование отсутствует"},
-                status=status.HTTP_400_BAD_REQUEST,
+        if user.is_user:
+            removable = Reservation.objects.filter(
+                user=user, id=reservation_id
             )
-        removable.delete()
+            if not removable.exists():
+                return Response(
+                    {"errors": "Бронирование отсутствует"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            removable.delete()
+        elif user.is_restorateur:
+            removable = Reservation.objects.filter(
+                establishment__owner=user,
+                id=reservation_id,
+            )
+            if not removable.exists():
+                return Response(
+                    {"errors": "Бронирование отсутствует"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            removable.delete()
         return Response(
             {"message": "Бронирование удалено"},
             status=status.HTTP_204_NO_CONTENT,
@@ -159,6 +174,7 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
     serializer_class = ReservationsHistoryEditSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         user = self.request.user
