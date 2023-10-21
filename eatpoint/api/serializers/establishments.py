@@ -106,7 +106,10 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
-    image = Base64ImageField()
+    image = Base64ImageField(
+        max_length=None,
+        use_url=True,
+    )
     name = serializers.CharField(required=False)
 
     class Meta:
@@ -239,6 +242,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField(
         help_text="Номер телефона",
     )
+    cities = serializers.CharField()
 
     class Meta:
         model = Establishment
@@ -261,6 +265,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "socials",
             "images",
         ]
+        lookup_field = ["cities"]
 
     def validate_image(self, image):
         """Проверка размера картинки (не броее 5 мб)"""

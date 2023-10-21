@@ -185,8 +185,11 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         return EstablishmentEditSerializer
 
     def perform_create(self, serializer):
+        data = serializer.validated_data
+        city = get_object_or_404(City, name=data.get("cities"))
         serializer.save(
             owner=self.request.user,
+            cities=city,
         )
 
     def __added(self, model, user, pk, name):
