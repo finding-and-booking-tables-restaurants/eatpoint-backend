@@ -162,7 +162,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     zones = ZoneEstablishmentSerializer(read_only=True, many=True)
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
-    poster = Base64ImageField()
+    poster = serializers.ImageField()
 
     class Meta:
         fields = [
@@ -209,10 +209,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = Base64ImageField(
-        max_length=None,
-        use_url=True,
-    )
+    poster = serializers.ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
