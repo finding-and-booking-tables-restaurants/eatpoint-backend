@@ -91,6 +91,8 @@ class SocialSerializer(serializers.ModelSerializer):
 class ZoneEstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Зоны заведения"""
 
+    available_seats = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = ZoneEstablishment
         fields = [
@@ -120,7 +122,6 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 
     day = serializers.ChoiceField(
         choices=DAY_CHOICES,
-        required=False,
     )
 
     class Meta:
@@ -162,7 +163,6 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
-    cities = serializers.CharField(source="cities.name", required=False)
 
     class Meta:
         fields = [
@@ -216,28 +216,25 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
-    cities = serializers.CharField(
-        source="cities_name", required=True, help_text="Город"
-    )
     images = ImageSerializer(
         many=True,
         help_text="Несколько изображений",
         required=False,
+        default=None,
     )
     worked = WorkEstablishmentSerializer(
         many=True,
         help_text="Время работы",
-        required=False,
     )
     zones = ZoneEstablishmentSerializer(
         many=True,
         help_text="Зоны заведения",
-        required=False,
     )
     socials = SocialSerializer(
         many=True,
         help_text="Соц. сети",
         required=False,
+        default=None,
     )
     telephone = PhoneNumberField(
         help_text="Номер телефона",
@@ -272,16 +269,17 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
     def __create_image(self, images, establishment):
         """Создание картинки"""
-        for image in images:
-            ImageEstablishment.objects.bulk_create(
-                [
-                    ImageEstablishment(
-                        establishment=establishment,
-                        image=image.get("image"),
-                        name=image.get("name"),
-                    )
-                ]
-            )
+        if images is not None:
+            for image in images:
+                ImageEstablishment.objects.bulk_create(
+                    [
+                        ImageEstablishment(
+                            establishment=establishment,
+                            image=image.get("image"),
+                            name=image.get("name"),
+                        )
+                    ]
+                )
 
     def __create_work(self, worked, establishment):
         """Создание времени работы"""
@@ -314,15 +312,16 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
     def __create_social(self, socials, establishment):
         """Создание соц.сетей"""
-        for social in socials:
-            SocialEstablishment.objects.bulk_create(
-                [
-                    SocialEstablishment(
-                        establishment=establishment,
-                        name=social.get("name"),
-                    )
-                ]
-            )
+        if socials is not None:
+            for social in socials:
+                SocialEstablishment.objects.bulk_create(
+                    [
+                        SocialEstablishment(
+                            establishment=establishment,
+                            name=social.get("name"),
+                        )
+                    ]
+                )
 
     def create(self, validated_data):
         images = validated_data.pop("images")
