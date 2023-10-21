@@ -3,20 +3,22 @@ from rest_framework import permissions
 import core.constants
 
 
-class IsUserReservation(permissions.BasePermission):
+class IsUserReservationCreate(permissions.BasePermission):
     """Возвращает результат проверки роли пользователя True если клиент."""
 
     def has_permission(self, request, view):
         if request.user.is_authenticated:
             return request.user.role == core.constants.CLIENT
+
         elif request.user.is_anonymous:
             return True
 
     def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
+        if obj.user is not None:
+            return obj.user == request.user
 
 
-class IsUser(permissions.BasePermission):
+class IsClient(permissions.BasePermission):
     """Возвращает результат проверки роли пользователя True если клиент."""
 
     def has_permission(self, request, view):
