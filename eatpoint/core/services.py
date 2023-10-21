@@ -10,9 +10,10 @@ def time_generator():
     time_list = []
 
     current_time = start_time
-    while current_time < end_time:
+    while current_time <= end_time:
         time_list.append(current_time.strftime("%H:%M"))
         current_time += timedelta(minutes=INTERVAL_MINUTES)
+    print(time_list)
     return time_list
 
 
