@@ -9,7 +9,7 @@ TIME_CHOICES = choices_generator(time_generator())
 CHECK_CHOICES = choices_generator(CHECKS)
 
 # Выбор дня недели
-DAY_CHOICES = choices_generator(DAYS)
+DAY_CHOICES = choices_generator(DAYS) + [("23:30", "23:30")]
 
 # Выбор роли
 ROLE_CHOICES = (
