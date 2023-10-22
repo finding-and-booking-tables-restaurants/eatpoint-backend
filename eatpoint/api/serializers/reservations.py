@@ -122,7 +122,7 @@ class SpecialEstablishmentSerializer(serializers.ModelSerializer):
 
 
 class ReservationsUserListSerializer(serializers.ModelSerializer):
-    zone = serializers.SerializerMethodField(source="zone__name")
+    zone = serializers.StringRelatedField()
     establishment = SpecialEstablishmentSerializer()
 
     class Meta:

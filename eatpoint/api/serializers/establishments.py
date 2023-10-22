@@ -5,7 +5,6 @@ from drf_spectacular.utils import (
 )
 
 
-from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 
@@ -30,15 +29,22 @@ from users.models import User
 class KitchenSerializer(serializers.ModelSerializer):
     """Сериализация данных: Кухня"""
 
+    lookup_field = "name"
+
     class Meta:
         model = Kitchen
         fields = [
+            "id",
             "name",
+            "description",
+            "slug",
         ]
 
 
 class CitySerializer(serializers.ModelSerializer):
     """Сериализация данных: Города"""
+
+    lookup_field = "name"
 
     class Meta:
         model = City
@@ -50,20 +56,30 @@ class CitySerializer(serializers.ModelSerializer):
 class TypeEstSerializer(serializers.ModelSerializer):
     """Сериализация данных: Тип заведения"""
 
+    lookup_field = "name"
+
     class Meta:
         model = TypeEst
         fields = [
+            "id",
             "name",
+            "description",
+            "slug",
         ]
 
 
 class ServicesSerializer(serializers.ModelSerializer):
     """Сериализация данных: Доп. Услуги"""
 
+    lookup_field = "name"
+
     class Meta:
         model = Service
         fields = [
+            "id",
             "name",
+            "description",
+            "slug",
         ]
 
 
@@ -97,10 +113,7 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
-    image = Base64ImageField(
-        max_length=None,
-        use_url=True,
-    )
+    image = serializers.ImageField()
     name = serializers.CharField(required=False)
 
     class Meta:
@@ -156,7 +169,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     zones = ZoneEstablishmentSerializer(read_only=True, many=True)
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
-    poster = Base64ImageField()
+    poster = serializers.ImageField()
 
     class Meta:
         fields = [
@@ -223,10 +236,7 @@ class CityListField(serializers.SlugRelatedField):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = Base64ImageField(
-        max_length=None,
-        use_url=True,
-    )
+    poster = serializers.ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )

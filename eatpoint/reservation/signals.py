@@ -1,10 +1,10 @@
 from rest_framework.validators import ValidationError
 from reservation.models import Reservation, ReservationHistory
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 
 
-@receiver(post_save, sender=Reservation)
+@receiver(pre_save, sender=Reservation)
 def post_reservations(sender, instance, created, **kwargs):
     """Уменьшает количество свободных мест, если появилась запись о бронировании"""
     zone = instance.zone
