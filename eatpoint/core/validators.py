@@ -30,17 +30,6 @@ def validate_count(images):
     return images
 
 
-def validate_uniq(fields, validate_field):
-    """Валидатор: уникальное поле"""
-    items = []
-    for item in fields:
-        items.append(item[validate_field])
-    if items != list(set(items)):
-        raise ValidationError(
-            {"workerd": "Можно добавить не более 1 уникального поля"}
-        )
-
-
 def validate_reserv_anonim(user, validated_data):
     """Валидатор: анонимный юзер и обязательные поля"""
     if not user.is_authenticated and "first_name" not in validated_data:
