@@ -9,7 +9,9 @@ MAX_SEATS = 100
 MIN_SEATS = 0
 
 # Максимальный размер изображения
-IMAGE_SIZE = 5 * 1024 * 1024
+IMAGE_SIZE = 1 * 1024 * 1024
+
+IMAGE_COUNT = 10
 
 # Интервал времени
 INTERVAL_MINUTES = 30

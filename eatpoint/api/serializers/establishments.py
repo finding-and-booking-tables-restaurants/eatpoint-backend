@@ -10,7 +10,7 @@ from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
-from core.validators import validate_uniq, file_size
+from core.validators import validate_uniq, file_size, validate_count
 from establishments.models import (
     Establishment,
     WorkEstablishment,
@@ -297,11 +297,6 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "images",
         ]
 
-    def validate_image(self, image):
-        """Проверка размера картинки (не броее 5 мб)"""
-        file_size(image)
-        return image
-
     def __create_image(self, images, establishment):
         """Создание картинки"""
         if images is not None:
@@ -378,8 +373,14 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Проверка на уникальность поля day"""
+        images = data.get("images")
+        poster = data.get("poster")
         worked = data.get("worked")
         field = "day"
+        file_size(poster)
+        validate_count(images)
+        for image in images:
+            file_size(image.get("image"))
         validate_uniq(worked, field)
         return data
 
