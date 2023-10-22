@@ -1,4 +1,5 @@
 from django.db.models import Avg
+from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema_field,
@@ -113,7 +114,7 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
-    image = serializers.ImageField()
+    image = Base64ImageField()
     name = serializers.CharField(required=False)
 
     class Meta:
@@ -169,7 +170,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     zones = ZoneEstablishmentSerializer(read_only=True, many=True)
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
-    poster = serializers.ImageField()
+    poster = Base64ImageField()
 
     class Meta:
         fields = [
@@ -236,7 +237,7 @@ class CityListField(serializers.SlugRelatedField):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = serializers.ImageField()
+    poster = Base64ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )

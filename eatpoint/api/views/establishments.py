@@ -4,7 +4,6 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import viewsets, status
-from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import SAFE_METHODS, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -160,7 +159,6 @@ class ServicesViewSet(viewsets.ModelViewSet):
 class EstablishmentViewSet(viewsets.ModelViewSet):
     """Вьюсет: Заведение"""
 
-    parser_classes = [MultiPartParser]
     queryset = Establishment.objects.all()
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
