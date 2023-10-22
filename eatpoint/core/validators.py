@@ -1,10 +1,8 @@
 from django.core.validators import RegexValidator
 from rest_framework.validators import ValidationError
-from django.conf import settings
-from rest_framework import serializers
 import locale
 
-from core.constants import IMAGE_SIZE
+from core.constants import IMAGE_SIZE, IMAGE_COUNT
 from establishments.models import WorkEstablishment, ZoneEstablishment
 
 string_validator = RegexValidator(
@@ -18,22 +16,18 @@ def file_size(value):
     """Валидатор: размер файла"""
     limit = IMAGE_SIZE
     if value.size > limit:
-        raise ValidationError("Размер изображения не должен превышать 5 mb.")
+        raise ValidationError(
+            {"image": "Размер изображения не должен превышать 1 mb."},
+        )
 
 
-def validate_count(data):
-    """Валидатор: макс. и мин. количество"""
-    for value in data:
-        amount = int(value.get("amount"))
-        if amount < settings.MIN_AMOUNT:
-            raise ValidationError(
-                {"amount": "Количество не может быть меньше 1"}
-            )
-        if amount > settings.MAX_AMOUNT:
-            raise ValidationError(
-                {"amount": "Количество не может быть меньше 1000"}
-            )
-    return data
+def validate_count(images):
+    """Валидатор: макс. количество изображений"""
+    if len(images) > IMAGE_COUNT:
+        raise ValidationError(
+            {"images": "Можно загрузить не более 10 изображений."},
+        )
+    return images
 
 
 def validate_uniq(fields, validate_field):
@@ -42,8 +36,8 @@ def validate_uniq(fields, validate_field):
     for item in fields:
         items.append(item[validate_field])
     if items != list(set(items)):
-        raise serializers.ValidationError(
-            "Можно добавить не более 1 уникального поля"
+        raise ValidationError(
+            {"workerd": "Можно добавить не более 1 уникального поля"}
         )
 
 

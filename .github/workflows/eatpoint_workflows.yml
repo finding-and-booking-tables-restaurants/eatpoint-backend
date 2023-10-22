@@ -77,4 +77,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: ${{ github.workflow }} выполнен! Новая версия приложения доступна по адресу http://80.87.109.70/redoc/
+        message: ${{ github.workflow }} выполнен! Новая версия приложения доступна по адресу https://eatpoint.sytes.net/admin/

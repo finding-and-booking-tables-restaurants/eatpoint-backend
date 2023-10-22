@@ -1,14 +1,16 @@
 from django.db.models import Avg
+from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema_field,
 )
-from drf_extra_fields.fields import Base64ImageField
+
+
 from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
-from core.validators import validate_uniq, file_size
+from core.validators import validate_uniq, file_size, validate_count
 from establishments.models import (
     Establishment,
     WorkEstablishment,
@@ -28,6 +30,8 @@ from users.models import User
 class KitchenSerializer(serializers.ModelSerializer):
     """Сериализация данных: Кухня"""
 
+    lookup_field = "name"
+
     class Meta:
         model = Kitchen
         fields = [
@@ -41,17 +45,19 @@ class KitchenSerializer(serializers.ModelSerializer):
 class CitySerializer(serializers.ModelSerializer):
     """Сериализация данных: Города"""
 
+    lookup_field = "name"
+
     class Meta:
         model = City
         fields = [
-            "id",
             "name",
-            "slug",
         ]
 
 
 class TypeEstSerializer(serializers.ModelSerializer):
     """Сериализация данных: Тип заведения"""
+
+    lookup_field = "name"
 
     class Meta:
         model = TypeEst
@@ -65,6 +71,8 @@ class TypeEstSerializer(serializers.ModelSerializer):
 
 class ServicesSerializer(serializers.ModelSerializer):
     """Сериализация данных: Доп. Услуги"""
+
+    lookup_field = "name"
 
     class Meta:
         model = Service
@@ -90,6 +98,8 @@ class SocialSerializer(serializers.ModelSerializer):
 
 class ZoneEstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Зоны заведения"""
+
+    available_seats = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = ZoneEstablishment
@@ -120,7 +130,6 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 
     day = serializers.ChoiceField(
         choices=DAY_CHOICES,
-        required=False,
     )
 
     class Meta:
@@ -162,7 +171,6 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
-    cities = serializers.CharField(source="cities.name", required=False)
 
     class Meta:
         fields = [
@@ -206,41 +214,65 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         )["score__avg"]
 
 
+class KitchenListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return KitchenSerializer(value).data
+
+
+class TypeListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return TypeEstSerializer(value).data
+
+
+class ServiceListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return ServicesSerializer(value).data
+
+
+class CityListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return CitySerializer(value).data
+
+
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = Base64ImageField(
-        max_length=None,
-        use_url=True,
-    )
+    poster = Base64ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
-    )
-    cities = serializers.CharField(
-        source="cities_name", required=True, help_text="Город"
     )
     images = ImageSerializer(
         many=True,
         help_text="Несколько изображений",
         required=False,
+        default=None,
     )
     worked = WorkEstablishmentSerializer(
         many=True,
         help_text="Время работы",
-        required=False,
     )
     zones = ZoneEstablishmentSerializer(
         many=True,
         help_text="Зоны заведения",
-        required=False,
     )
     socials = SocialSerializer(
         many=True,
         help_text="Соц. сети",
         required=False,
+        default=None,
     )
     telephone = PhoneNumberField(
         help_text="Номер телефона",
+    )
+    cities = CityListField(slug_field="name", queryset=City.objects.all())
+    kitchens = KitchenListField(
+        slug_field="name", queryset=Kitchen.objects.all(), many=True
+    )
+    types = TypeListField(
+        slug_field="name", queryset=TypeEst.objects.all(), many=True
+    )
+    services = ServiceListField(
+        slug_field="name", queryset=Service.objects.all(), many=True
     )
 
     class Meta:
@@ -265,23 +297,19 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "images",
         ]
 
-    def validate_image(self, image):
-        """Проверка размера картинки (не броее 5 мб)"""
-        file_size(image)
-        return image
-
     def __create_image(self, images, establishment):
         """Создание картинки"""
-        for image in images:
-            ImageEstablishment.objects.bulk_create(
-                [
-                    ImageEstablishment(
-                        establishment=establishment,
-                        image=image.get("image"),
-                        name=image.get("name"),
-                    )
-                ]
-            )
+        if images is not None:
+            for image in images:
+                ImageEstablishment.objects.bulk_create(
+                    [
+                        ImageEstablishment(
+                            establishment=establishment,
+                            image=image.get("image"),
+                            name=image.get("name"),
+                        )
+                    ]
+                )
 
     def __create_work(self, worked, establishment):
         """Создание времени работы"""
@@ -314,15 +342,16 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
     def __create_social(self, socials, establishment):
         """Создание соц.сетей"""
-        for social in socials:
-            SocialEstablishment.objects.bulk_create(
-                [
-                    SocialEstablishment(
-                        establishment=establishment,
-                        name=social.get("name"),
-                    )
-                ]
-            )
+        if socials is not None:
+            for social in socials:
+                SocialEstablishment.objects.bulk_create(
+                    [
+                        SocialEstablishment(
+                            establishment=establishment,
+                            name=social.get("name"),
+                        )
+                    ]
+                )
 
     def create(self, validated_data):
         images = validated_data.pop("images")
@@ -344,8 +373,14 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Проверка на уникальность поля day"""
+        images = data.get("images")
+        poster = data.get("poster")
         worked = data.get("worked")
         field = "day"
+        file_size(poster)
+        validate_count(images)
+        for image in images:
+            file_size(image.get("image"))
         validate_uniq(worked, field)
         return data
 

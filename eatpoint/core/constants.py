@@ -9,7 +9,9 @@ MAX_SEATS = 100
 MIN_SEATS = 0
 
 # Максимальный размер изображения
-IMAGE_SIZE = 5 * 1024 * 1024
+IMAGE_SIZE = 1 * 1024 * 1024
+
+IMAGE_COUNT = 10
 
 # Интервал времени
 INTERVAL_MINUTES = 30
@@ -18,7 +20,7 @@ INTERVAL_MINUTES = 30
 START_TIME = "00:00"
 
 
-END_TIME = "23:00"
+END_TIME = "23:30"
 
 # Размер страницы
 PAGE_SIZE = 10
