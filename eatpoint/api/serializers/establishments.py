@@ -378,9 +378,10 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         worked = data.get("worked")
         field = "day"
         file_size(poster)
-        validate_count(images)
-        for image in images:
-            file_size(image.get("image"))
+        if images is not None:
+            validate_count(images)
+            for image in images:
+                file_size(image.get("image"))
         validate_uniq(worked, field)
         return data
 
