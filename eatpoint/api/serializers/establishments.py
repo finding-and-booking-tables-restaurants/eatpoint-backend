@@ -380,8 +380,8 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         file_size(poster)
         if images is not None:
             validate_count(images)
-        for image in images:
-            file_size(image.get("image"))
+            for image in images:
+                file_size(image.get("image"))
         validate_uniq(worked, field)
         return data
 
