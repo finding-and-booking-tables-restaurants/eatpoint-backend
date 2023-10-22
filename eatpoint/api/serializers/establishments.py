@@ -1,4 +1,5 @@
 from django.db.models import Avg
+from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema_field,
@@ -9,7 +10,7 @@ from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
-from core.validators import validate_uniq, file_size
+from core.validators import validate_uniq, file_size, validate_count
 from establishments.models import (
     Establishment,
     WorkEstablishment,
@@ -113,7 +114,7 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
-    image = serializers.ImageField()
+    image = Base64ImageField()
     name = serializers.CharField(required=False)
 
     class Meta:
@@ -169,7 +170,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     zones = ZoneEstablishmentSerializer(read_only=True, many=True)
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
-    poster = serializers.ImageField()
+    poster = Base64ImageField()
 
     class Meta:
         fields = [
@@ -236,7 +237,7 @@ class CityListField(serializers.SlugRelatedField):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = serializers.ImageField()
+    poster = Base64ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
@@ -295,11 +296,6 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "socials",
             "images",
         ]
-
-    def validate_image(self, image):
-        """Проверка размера картинки (не броее 5 мб)"""
-        file_size(image)
-        return image
 
     def __create_image(self, images, establishment):
         """Создание картинки"""
@@ -377,8 +373,14 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Проверка на уникальность поля day"""
+        images = data.get("images")
+        poster = data.get("poster")
         worked = data.get("worked")
         field = "day"
+        file_size(poster)
+        validate_count(images)
+        for image in images:
+            file_size(image.get("image"))
         validate_uniq(worked, field)
         return data
 
