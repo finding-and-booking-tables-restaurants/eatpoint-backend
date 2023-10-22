@@ -5,7 +5,7 @@ from django.dispatch import receiver
 
 
 @receiver(pre_save, sender=Reservation)
-def post_reservations(sender, instance, created, **kwargs):
+def post_reservations(sender, instance, **kwargs):
     """Уменьшает количество свободных мест, если появилась запись о бронировании"""
     zone = instance.zone
 
