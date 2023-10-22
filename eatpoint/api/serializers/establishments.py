@@ -10,7 +10,7 @@ from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
-from core.validators import file_size, validate_count
+from core.validators import validate_uniq, file_size, validate_count
 from establishments.models import (
     Establishment,
     WorkEstablishment,
@@ -302,6 +302,9 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         """Проверка на уникальность поля day"""
         images = data.get("images")
         poster = data.get("poster")
+        worked = data.get("worked")
+        field = "day"
+        validate_uniq(worked, field)
         file_size(poster)
         if images is not None:
             validate_count(images)
