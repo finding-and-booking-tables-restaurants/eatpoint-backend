@@ -66,6 +66,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+        ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 fields=("telephone", "email"), name="phone_email_unique"
