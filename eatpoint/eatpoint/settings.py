@@ -40,17 +40,19 @@ ALLOWED_HOSTS = [
     "eatpoint.sytes.net",
 ]
 
-# SSL and CSRF
+if DEBUG:
+    ALLOWED_HOSTS.append("127.0.0.1")
 
+# SSL and CSRF
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = False if DEBUG else True
+SESSION_COOKIE_SECURE = False if DEBUG else True
 CSRF_TRUSTED_ORIGINS = [
     "https://eatpoint.sytes.net",
     "http://eatpoint.sytes.net",
 ]
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_DOMAIN = "eatpoint.sytes.net"
+CSRF_COOKIE_SECURE = False if DEBUG else True
+CSRF_COOKIE_DOMAIN = "eatpoint.sytes.net" if not DEBUG else None
 CORS_URLS_REGEX = r"^/api/.*$"
 CORS_ORIGIN_ALLOW_ALL = True
 
