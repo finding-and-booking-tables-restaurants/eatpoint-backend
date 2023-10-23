@@ -88,3 +88,12 @@ class CreateRestaurant(permissions.BasePermission):
             if request.method == "POST" and request.user.is_restorateur:
                 return True
         return request.method in permissions.SAFE_METHODS
+
+
+class IsAdministrator(permissions.BasePermission):
+    """
+    Возвращает True если пользователь является администратором.
+    """
+
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.is_administrator

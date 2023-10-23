@@ -82,12 +82,16 @@ class User(PermissionsMixin, AbstractBaseUser):
         return True
 
     @property
-    def is_user(self):
+    def is_client(self):
         return self.role == core.constants.CLIENT
 
     @property
     def is_restorateur(self):
         return self.role == core.constants.RESTORATEUR
+
+    @property
+    def is_administrator(self):
+        return self.role == core.constants.ADMINISTRATOR
 
     @property
     def token(self):

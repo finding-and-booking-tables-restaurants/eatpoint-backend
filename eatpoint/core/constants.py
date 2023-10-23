@@ -42,6 +42,7 @@ CHECKS = ["до 1000", "1000 - 2000", "2000 - 3000", "от 3000"]
 # Роли
 CLIENT = "client"
 RESTORATEUR = "restorateur"
+ADMINISTRATOR = "administrator restorana"
 MODERATOR = "moderator"
 ADMIN = "admin"
 SUPERUSER = "superuser"
