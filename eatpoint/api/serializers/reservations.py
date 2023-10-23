@@ -138,10 +138,8 @@ class ReservationsUserListSerializer(serializers.ModelSerializer):
 
 
 class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
-    zone = serializers.SerializerMethodField(source="zone__name")
-    establishment = serializers.SerializerMethodField(
-        source="establishment__name"
-    )
+    establishment = serializers.CharField(source="establishment.name")
+    zone = serializers.CharField(source="zone.zone")
 
     class Meta:
         model = Reservation

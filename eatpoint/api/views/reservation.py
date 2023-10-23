@@ -131,7 +131,7 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=["Бизнес"],
+    tags=["Бизнес(бронирования)"],
     methods=["GET", "DELETE"],
     description="Ресторатор",
 )

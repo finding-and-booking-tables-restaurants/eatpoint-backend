@@ -32,14 +32,14 @@ class ContactForm(forms.ModelForm):
 class ZoneAdmin(admin.ModelAdmin):
     """Админка: зона заведения"""
 
-    list_display = ("id",)
+    list_display = ("id", "zone")
 
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     """Админка: отзывы"""
 
-    list_display = ("id",)
+    list_display = ("id", "author", "establishment")
 
 
 @admin.register(Event)

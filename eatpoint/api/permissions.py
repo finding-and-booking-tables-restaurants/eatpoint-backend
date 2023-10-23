@@ -39,7 +39,8 @@ class IsRestorateur(permissions.BasePermission):
             return request.user.role == core.constants.RESTORATEUR
 
     def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
+        if request.user.is_authenticated:
+            return request.user.role == core.constants.RESTORATEUR
 
 
 class ReadOnly(permissions.BasePermission):
