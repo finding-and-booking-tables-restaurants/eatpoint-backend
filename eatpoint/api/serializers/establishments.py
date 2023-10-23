@@ -159,9 +159,15 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 #         fields = "__all__"
 
 
+class CityListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return CitySerializer(value).data
+
+
 class EstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Заведение"""
 
+    owner = serializers.CharField(source="owner.email")
     kitchens = KitchenSerializer(read_only=True, many=True)
     types = TypeEstSerializer(read_only=True, many=True)
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
@@ -172,6 +178,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
+    cities = CityListField(slug_field="name", queryset=City.objects.all())
 
     class Meta:
         fields = [
@@ -228,11 +235,6 @@ class TypeListField(serializers.SlugRelatedField):
 class ServiceListField(serializers.SlugRelatedField):
     def to_representation(self, value):
         return ServicesSerializer(value).data
-
-
-class CityListField(serializers.SlugRelatedField):
-    def to_representation(self, value):
-        return CitySerializer(value).data
 
 
 class EstablishmentEditSerializer(serializers.ModelSerializer):
