@@ -34,7 +34,7 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     role = models.CharField(
         "User`s role",
-        max_length=20,
+        max_length=25,
         choices=core.choices.ROLE_CHOICES,
     )
 
