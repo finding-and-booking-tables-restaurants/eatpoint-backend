@@ -131,6 +131,7 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
     day = serializers.ChoiceField(
         choices=DAY_CHOICES,
     )
+    day_off = serializers.BooleanField(default=False)
 
     class Meta:
         model = WorkEstablishment
@@ -297,6 +298,20 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "images",
         ]
 
+    def validate(self, data):
+        """Проверка на уникальность поля day"""
+        images = data.get("images")
+        poster = data.get("poster")
+        worked = data.get("worked")
+        field = "day"
+        validate_uniq(worked, field)
+        file_size(poster)
+        if images is not None:
+            validate_count(images)
+            for image in images:
+                file_size(image.get("image"))
+        return data
+
     def __create_image(self, images, establishment):
         """Создание картинки"""
         if images is not None:
@@ -370,19 +385,6 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         self.__create_zone(zones, establishment)
         self.__create_social(socials, establishment)
         return establishment
-
-    def validate(self, data):
-        """Проверка на уникальность поля day"""
-        images = data.get("images")
-        poster = data.get("poster")
-        worked = data.get("worked")
-        field = "day"
-        file_size(poster)
-        validate_count(images)
-        for image in images:
-            file_size(image.get("image"))
-        validate_uniq(worked, field)
-        return data
 
 
 class SmallUserSerializer(serializers.ModelSerializer):

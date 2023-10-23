@@ -35,7 +35,8 @@ def validate_uniq(fields, validate_field):
     items = []
     for item in fields:
         items.append(item[validate_field])
-    if items != list(set(items)):
+    items_set = set(items)
+    if len(items) != len(items_set):
         raise ValidationError(
             {"workerd": "Можно добавить не более 1 уникального поля"}
         )
