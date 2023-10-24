@@ -1,7 +1,9 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
+    OpenApiParameter,
 )
 from rest_framework import viewsets, status
 from rest_framework.permissions import SAFE_METHODS, IsAdminUser
@@ -261,10 +263,34 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     create=extend_schema(summary="Добавить зону"),
     retrieve=extend_schema(
         summary="Одна зона",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
     partial_update=extend_schema(
         summary="Редактировать зону",
         description="Ресторатор",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
 )
 class ZoneViewSet(viewsets.ModelViewSet):
@@ -292,9 +318,33 @@ class ZoneViewSet(viewsets.ModelViewSet):
     retrieve=extend_schema(
         summary="Один отзыв",
         description="Клиент/ресторатор",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
     partial_update=extend_schema(
         summary="Редактировать отзыв",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
 )
 class ReviewViewSet(viewsets.ModelViewSet):
