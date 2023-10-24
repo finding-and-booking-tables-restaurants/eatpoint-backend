@@ -178,7 +178,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     worked = WorkEstablishmentSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
-    cities = CityListField(slug_field="name", queryset=City.objects.all())
+    cities = serializers.CharField(source="cities.name")
 
     class Meta:
         fields = [
