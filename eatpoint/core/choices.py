@@ -1,4 +1,4 @@
-from core.constants import CHECKS, DAYS
+from core.constants import CHECKS, DAYS, ADMINISTRATOR
 from core.services import choices_generator, time_generator
 from core.constants import CLIENT, RESTORATEUR, SMS, EMAIL, TELEGRAM, NOTHING
 
@@ -15,6 +15,7 @@ DAY_CHOICES = choices_generator(DAYS)
 ROLE_CHOICES = (
     (CLIENT, "Клиент"),
     (RESTORATEUR, "Ресторатор"),
+    (ADMINISTRATOR, "Администратор ресторана"),
 )
 
 # Выбор способа отправки кода подтверждения

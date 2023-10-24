@@ -204,7 +204,7 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_user:
+        if user.is_client:
             reservation = ReservationHistory.objects.filter(user=user)
             return reservation
         elif user.is_restorateur:

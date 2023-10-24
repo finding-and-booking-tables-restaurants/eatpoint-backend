@@ -34,7 +34,7 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     role = models.CharField(
         "User`s role",
-        max_length=20,
+        max_length=25,
         choices=core.choices.ROLE_CHOICES,
     )
 
@@ -66,6 +66,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+        ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 fields=("telephone", "email"), name="phone_email_unique"
@@ -82,12 +83,16 @@ class User(PermissionsMixin, AbstractBaseUser):
         return True
 
     @property
-    def is_user(self):
+    def is_client(self):
         return self.role == core.constants.CLIENT
 
     @property
     def is_restorateur(self):
         return self.role == core.constants.RESTORATEUR
+
+    @property
+    def is_administrator(self):
+        return self.role == core.constants.ADMINISTRATOR
 
     @property
     def token(self):
