@@ -179,6 +179,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
     cities = serializers.CharField(source="cities.name")
+    review_count = serializers.SerializerMethodField("get_review_count")
 
     class Meta:
         fields = [
@@ -202,6 +203,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
             "socials",
             "images",
             "rating",
+            "review_count",
         ]
         model = Establishment
 
@@ -220,6 +222,11 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         return Review.objects.filter(establishment=obj).aggregate(
             Avg("score")
         )["score__avg"]
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_review_count(self, obj):
+        """Отображение количества отзывов заведения"""
+        return Review.objects.filter(establishment=obj).count()
 
 
 class KitchenListField(serializers.SlugRelatedField):
