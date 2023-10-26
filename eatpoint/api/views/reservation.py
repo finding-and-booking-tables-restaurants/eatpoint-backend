@@ -1,4 +1,6 @@
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
@@ -32,9 +34,28 @@ from reservation.models import Reservation, ReservationHistory
     ),
     create=extend_schema(
         summary="Добавить бронирование",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
     ),
     partial_update=extend_schema(
         summary="Изменить данные бронирования",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
     destroy=extend_schema(
         summary="Удалить бронирование",
@@ -94,9 +115,23 @@ class ReservationsViewSet(viewsets.ModelViewSet):
     ),
     retrieve=extend_schema(
         summary="Детальная информация о бронировании заведения",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
     ),
     destroy=extend_schema(
         summary="Удалить бронирование",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
     ),
 )
 class ReservationsUserListViewSet(viewsets.ModelViewSet):
@@ -141,9 +176,23 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
     ),
     retrieve=extend_schema(
         summary="Детальная информация о бронировании заведения",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
     ),
     destroy=extend_schema(
         summary="Удалить бронирование",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
     ),
 )
 class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
@@ -190,6 +239,13 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
     ),
     retrieve=extend_schema(
         summary="Детальная информация о броне заведения",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
     ),
 )
 class ReservationsHistoryListViewSet(viewsets.ModelViewSet):

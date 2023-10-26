@@ -243,3 +243,24 @@ else:
 
 TIME_INPUT_FORMATS = ("%I:%M",)
 PHONENUMBER_DEFAULT_REGION = "RU"
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,
+        },
+    },
+    {
+        "NAME": "users.validators.MaximumLengthValidator",
+        "OPTIONS": {
+            "max_length": 30,
+        },
+    },
+    {
+        "NAME": "users.validators.NoRussianLettersValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
