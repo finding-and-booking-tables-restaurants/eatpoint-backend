@@ -2,7 +2,11 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views.analytics import AnalyticsViewSet, AnalyticsListViewSet
-from api.views.establishments import ZoneViewSet, CityViewSet
+from api.views.establishments import (
+    ZoneViewSet,
+    CityViewSet,
+    EstablishmentBusinessViewSet,
+)
 from api.views.reservation import (
     ReservationsViewSet,
     ReservationsUserListViewSet,
@@ -51,9 +55,14 @@ router.register(
     "reservations", ReservationsUserListViewSet, basename="reservationslist"
 )
 router.register(
-    "reservations/business",
+    "business/reservations",
     ReservationsRestorateurListViewSet,
-    basename="business",
+    basename="reservations-business",
+)
+router.register(
+    "business/establishments",
+    EstablishmentBusinessViewSet,
+    basename="establishments-business",
 )
 
 router.register("kitchens", KitchenViewSet, basename="Kitchens")
@@ -83,12 +92,12 @@ urlpatterns = [
         name="reset_password_confirm",
     ),
     path(
-        "analytics/<int:establishment_id>/",
+        "v1/business/analytics/<int:establishment_id>/",
         AnalyticsViewSet.as_view(),
         name="establishment-analytics",
     ),
     path(
-        "analytics/all/",
+        "v1/business/analytics/all/",
         AnalyticsListViewSet.as_view(),
         name="establishment-analytics-list",
     ),
