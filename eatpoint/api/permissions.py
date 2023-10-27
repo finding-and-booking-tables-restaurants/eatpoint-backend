@@ -73,7 +73,8 @@ class IsAuthor(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        return request.method in permissions.SAFE_METHODS
+        if request.user.is_authenticated:
+            return request.user.is_client
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_authenticated:
