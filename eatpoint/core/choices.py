@@ -15,7 +15,7 @@ DAY_CHOICES = choices_generator(DAYS)
 ROLE_CHOICES = (
     (CLIENT, "Клиент"),
     (RESTORATEUR, "Ресторатор"),
-    (ADMINISTRATOR, "Администратор ресторана"),
+    (ADMINISTRATOR, "Админ_ресторана"),
 )
 
 # Выбор способа отправки кода подтверждения
