@@ -1,8 +1,5 @@
-from datetime import datetime, timedelta
 import random
 
-import jwt
-from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
@@ -76,12 +73,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     def __str__(self):
         return self.email
 
-    def has_perm(self, perm, obj=None):
-        return True
-
-    def has_module_perms(self, app_label):
-        return True
-
     @property
     def is_client(self):
         return self.role == core.constants.CLIENT
@@ -93,10 +84,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     @property
     def is_administrator(self):
         return self.role == core.constants.ADMINISTRATOR
-
-    @property
-    def token(self):
-        return self._generate_jwt_token()
 
     @property
     def confirm_code(self):
@@ -111,17 +98,3 @@ class User(PermissionsMixin, AbstractBaseUser):
                 core.constants.MAX_LIMIT_CONFIRM_CODE,
             )
         )
-
-    def _generate_jwt_token(self):
-        dt = datetime.now()
-        td = timedelta(days=1)
-        payload = self.pk
-        token = jwt.encode(
-            {
-                "user_id": payload,
-                "exp": int((dt + td).timestamp()),
-            },
-            settings.SECRET_KEY,
-            algorithm="HS256",
-        )
-        return token
