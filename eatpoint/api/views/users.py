@@ -141,7 +141,11 @@ class SignUp(APIView):
                     """
 
                 case core.constants.TELEGRAM:
-                    asyncio.run(send_code(msg_code))
+                    asyncio.run(
+                        send_code(
+                            f"Код для пользователя: {user.email} --> {msg_code}"
+                        )
+                    )
 
                 case core.constants.NOTHING:
                     user.is_active = True
