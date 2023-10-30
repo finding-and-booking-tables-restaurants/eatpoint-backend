@@ -370,8 +370,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет: Отзывы"""
 
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthor | ReadOnly | IsAdminUser,)
-    http_method_names = ["get", "post", "patch"]
+    permission_classes = (IsAuthor | ReadOnly,)
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")

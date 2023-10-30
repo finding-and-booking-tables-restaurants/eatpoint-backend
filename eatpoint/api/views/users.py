@@ -1,3 +1,5 @@
+import asyncio
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError
@@ -17,6 +19,7 @@ from rest_framework_simplejwt.views import (
 import core.choices
 import core.constants
 from core.pagination import LargeResultsSetPagination
+from core.tgbot import send_code
 from users.models import User
 from api.permissions import IsClient, IsRestorateur
 from api.serializers.users import (
@@ -138,7 +141,11 @@ class SignUp(APIView):
                     """
 
                 case core.constants.TELEGRAM:
-                    message = "На Ваш Telegram отправлен код подтверждения"
+                    asyncio.run(
+                        send_code(
+                            f"Код для пользователя: {user.email} --> {msg_code}"
+                        )
+                    )
 
                 case core.constants.NOTHING:
                     user.is_active = True
