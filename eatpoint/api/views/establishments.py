@@ -1,7 +1,9 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
+    OpenApiParameter,
 )
 from rest_framework import viewsets, status
 from rest_framework.permissions import SAFE_METHODS, IsAdminUser
@@ -14,10 +16,9 @@ from api.filters.establishments import (
 )
 from api.permissions import (
     ReadOnly,
-    IsOwnerRestaurant,
     IsAuthor,
-    CreateRestaurant,
     IsClient,
+    IsRestorateur,
 )
 from api.serializers.establishments import (
     EstablishmentSerializer,
@@ -129,13 +130,8 @@ class ServicesViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=["Заведения"],
-    methods=["GET"],
-    description="Все пользователи",
-)
-@extend_schema(
-    tags=["Бизнес"],
-    methods=["POST", "PATCH", "PUT", "DELETE"],
+    tags=["Бизнес(заведения)"],
+    methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
     description="Ресторатор",
 )
 @extend_schema_view(
@@ -156,15 +152,12 @@ class ServicesViewSet(viewsets.ModelViewSet):
     ),
     update=extend_schema(summary="Изменить заведение [PUT]"),
 )
-class EstablishmentViewSet(viewsets.ModelViewSet):
-    """Вьюсет: Заведение"""
+class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Заведение(для бизнеса)"""
 
-    queryset = Establishment.objects.all()
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
-    permission_classes = (
-        CreateRestaurant | IsOwnerRestaurant | ReadOnly | IsAdminUser,
-    )
+    permission_classes = (IsRestorateur,)
     search_fields = (
         "$name",
         "$address",
@@ -173,10 +166,8 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     )
 
     def get_queryset(self):
-        """Выбор queryset в зависимости от типа запроса"""
-        if self.request.method in SAFE_METHODS:
-            return Establishment.objects.filter(is_verified=True)
-        return Establishment.objects.all()
+        user = self.request.user
+        return Establishment.objects.filter(owner=user)
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -188,6 +179,36 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
         serializer.save(
             owner=self.request.user,
         )
+
+
+@extend_schema(
+    tags=["Заведения"],
+    methods=["GET"],
+    description="Все пользователи",
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список заведений",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о заведении",
+    ),
+)
+class EstablishmentViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Заведение"""
+
+    queryset = Establishment.objects.filter(is_verified=True)
+    filterset_class = EstablishmentFilter
+    pagination_class = LargeResultsSetPagination
+    permission_classes = (ReadOnly | IsAdminUser,)
+    search_fields = (
+        "$name",
+        "$address",
+        "$kitchens__name",
+        "$types__name",
+    )
+    serializer_class = EstablishmentSerializer
+    http_method_names = ("get",)
 
     def __added(self, model, user, pk, name):
         """Добавление(шаблон)"""
@@ -261,10 +282,34 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     create=extend_schema(summary="Добавить зону"),
     retrieve=extend_schema(
         summary="Одна зона",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
     partial_update=extend_schema(
         summary="Редактировать зону",
         description="Ресторатор",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
 )
 class ZoneViewSet(viewsets.ModelViewSet):
@@ -292,9 +337,33 @@ class ZoneViewSet(viewsets.ModelViewSet):
     retrieve=extend_schema(
         summary="Один отзыв",
         description="Клиент/ресторатор",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
     partial_update=extend_schema(
         summary="Редактировать отзыв",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
 )
 class ReviewViewSet(viewsets.ModelViewSet):

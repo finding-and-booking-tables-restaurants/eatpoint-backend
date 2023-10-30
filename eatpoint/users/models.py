@@ -15,7 +15,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     telephone = PhoneNumberField(unique=True)
     email = models.EmailField(
         verbose_name="email address",
-        max_length=254,
+        max_length=50,
         db_index=True,
         unique=True,
     )
