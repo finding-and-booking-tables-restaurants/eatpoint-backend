@@ -20,3 +20,4 @@ Babel==2.13.0
 Pillow==10.0.1
 PyJWT==2.8.0
 django-cors-headers==4.2.0
+python-telegram-bot==20.6
