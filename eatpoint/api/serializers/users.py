@@ -130,7 +130,7 @@ class SignUpSerializer(MyBaseSerializer):
         if data.get("confirm_code_send_method") in (
             core.constants.EMAIL,
             core.constants.SMS,
-            core.constants.TELEGRAM,
+            # core.constants.TELEGRAM,
         ):
             raise serializers.ValidationError(
                 f"Способ отправки кода '{data.get('confirm_code_send_method')}' "
