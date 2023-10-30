@@ -59,6 +59,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 # Application definition
 
 INSTALLED_APPS = [
+    # 'jazzmin',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -100,7 +101,7 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [TEMPLATES_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -243,6 +244,21 @@ else:
 
 TIME_INPUT_FORMATS = ("%I:%M",)
 PHONENUMBER_DEFAULT_REGION = "RU"
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Eatpoint Admin",
+    "site_header": "Администрирование Eatpoint",
+    "site_brand": "EatPoint",
+    # "site_icon": "jazzmin/admin/bird_2.jpg",
+    # "site_logo": "/jazzmin/admin/bird_2.jpg",
+    # "site_logo_classes": "img-circle",
+    "welcome_sign": "Добро пожаловать в EatPoint",
+    "copyright": "Яндекс.Акселератор",
+    "dark_mode_theme": "darkly",
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "use_google_fonts_cdn": True,
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
