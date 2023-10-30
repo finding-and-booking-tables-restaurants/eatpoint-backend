@@ -1,0 +1,17 @@
+{% extends "admin/base.html" %}
+
+{% load static %}
+
+{% block title %}{{ title }} | Админ-панель Eatpoint{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <img src="{% static 'logo_eatpoint.jpg' %}" height="40px" />
+    </a>
+</h1>
+
+<h1 id="content">Администрирование Eatpoint</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
