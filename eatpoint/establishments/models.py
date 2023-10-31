@@ -437,8 +437,4 @@ class Favorite(models.Model):
             models.UniqueConstraint(
                 fields=["user", "establishment"], name="uniquefavorit"
             ),
-            models.CheckConstraint(
-                check=~models.Q(user=models.F("establishment")),
-                name="favoriteuniq",
-            ),
         ]
