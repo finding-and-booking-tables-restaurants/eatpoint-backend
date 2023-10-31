@@ -4,38 +4,47 @@ from rest_framework import serializers
 from core.validators import (
     validate_reserv_anonim,
     string_validator,
+    validate_seats,
 )
 from establishments.models import ZoneEstablishment, Establishment
-from reservation.models import Reservation, ReservationHistory
+from reservation.models import Reservation, ReservationHistory, Availability
 
 
-class AuthReservationsEditSerializer(serializers.ModelSerializer):
-    """Сериализация данных: форма бронирования для авторизованного пользователя"""
-
-    establishment = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
-    user = serializers.SlugRelatedField(
-        slug_field="id",
-        read_only=True,
-    )
-
-    class Meta:
-        model = Reservation
-        fields = (
-            "id",
-            "establishment",
-            "number_guests",
-            "date_reservation",
-            "start_time_reservation",
-            "comment",
-            "reminder_one_day",
-            "reminder_three_hours",
-            "reminder_half_on_hour",
-            "user",
-            "zone",
-        )
+# class AuthReservationsEditSerializer(serializers.ModelSerializer):
+#     """Сериализация данных: форма бронирования для авторизованного пользователя"""
+#
+#     establishment = serializers.SlugRelatedField(
+#         slug_field="name",
+#         read_only=True,
+#     )
+#     user = serializers.SlugRelatedField(
+#         slug_field="id",
+#         read_only=True,
+#     )
+#
+#     class Meta:
+#         model = Reservation
+#         fields = (
+#             "id",
+#             "establishment",
+#             "number_guests",
+#             "date_reservation",
+#             "start_time_reservation",
+#             "comment",
+#             "reminder_one_day",
+#             "reminder_three_hours",
+#             "reminder_half_on_hour",
+#             "user",
+#             "zone",
+#         )
+#
+#     def validate(self, validated_data):
+#         number_guests = validated_data.get('number_guests')
+#         zone = validated_data.get("zone")
+#         date = validated_data.get("date_reservation")
+#         available_seats = Availability.objects.filter(zone=zone, date=date).first()
+#         validate_seats(available_seats.available_seats, number_guests)
+#         return validated_data
 
 
 class ReservationsEditSerializer(serializers.ModelSerializer):
@@ -82,7 +91,14 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
 
     def validate(self, validated_data):
         user = self.context["request"].user
+        number_guests = validated_data.get("number_guests")
+        zone = validated_data.get("zone")
+        date = validated_data.get("date_reservation")
         validate_reserv_anonim(user, validated_data)
+        available_seats = Availability.objects.filter(
+            zone=zone, date=date
+        ).first()
+        validate_seats(available_seats.available_seats, number_guests)
         return validated_data
 
 
