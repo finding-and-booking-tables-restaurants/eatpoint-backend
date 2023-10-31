@@ -152,17 +152,6 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
         return data
 
 
-class FavoriteEstablishmentSerializer(serializers.ModelSerializer):
-    establishment = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
-
-    class Meta:
-        model = Favorite
-        fields = ("establishment",)
-
-
 class CityListField(serializers.SlugRelatedField):
     def to_representation(self, value):
         return CitySerializer(value).data
