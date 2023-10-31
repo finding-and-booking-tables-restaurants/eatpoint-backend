@@ -2,7 +2,6 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from drf_spectacular.utils import OpenApiParameter
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 
@@ -12,7 +11,7 @@ from core.validators import validate_reservation_time_zone
 from establishments.models import Establishment
 from api.serializers.reservations import (
     ReservationsEditSerializer,
-    AuthReservationsEditSerializer,
+    # AuthReservationsEditSerializer,
     ReservationsHistoryEditSerializer,
     ReservationsUserListSerializer,
     ReservationsRestorateurListSerializer,
@@ -61,21 +60,22 @@ from reservation.models import Reservation, ReservationHistory
         summary="Удалить бронирование",
     ),
 )
-class ReservationsViewSet(viewsets.ModelViewSet):
+class ReservationsEditViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования"""
 
     http_method_names = ["post", "patch"]
     pagination_class = LargeResultsSetPagination
     permission_classes = (IsUserReservationCreate,)
+    serializer_class = ReservationsEditSerializer
 
-    def get_serializer_class(self):
-        """Выбор serializer_class в зависимости от типа запроса"""
-        if (
-            self.request.user.is_anonymous
-            or self.request.method in SAFE_METHODS
-        ):
-            return ReservationsEditSerializer
-        return AuthReservationsEditSerializer
+    # def get_serializer_class(self):
+    #     """Выбор serializer_class в зависимости от типа запроса"""
+    #     if (
+    #         self.request.user.is_anonymous
+    #         or self.request.method in SAFE_METHODS
+    #     ):
+    #         return ReservationsEditSerializer
+    #     return AuthReservationsEditSerializer
 
     def get_queryset(self):
         user = self.request.user

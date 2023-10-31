@@ -12,6 +12,18 @@ string_validator = RegexValidator(
 )
 
 
+def validate_seats(available_seats, number_guests):
+    if available_seats:
+        if available_seats == 0:
+            raise ValidationError({"seats": "Мест больше нет"})
+        if available_seats < number_guests:
+            raise ValidationError(
+                {"seats": "Кол-во персон больше кол-ва мест"}
+            )
+    else:
+        raise ValidationError({"seats": "Нет информации о свободных местах."})
+
+
 def file_size(value):
     """Валидатор: размер файла"""
     limit = IMAGE_SIZE
@@ -44,18 +56,23 @@ def validate_uniq(fields, validate_field):
 
 def validate_reserv_anonim(user, validated_data):
     """Валидатор: анонимный юзер и обязательные поля"""
-    if not user.is_authenticated and "first_name" not in validated_data:
-        raise ValidationError(
-            {"first_name": "Заполните имя или зарегистрируйтесь"}
-        )
-    if not user.is_authenticated and "telephone" not in validated_data:
-        raise ValidationError(
-            {"first_name": "Заполните номер телефона или зарегистрируйтесь"}
-        )
-    if not user.is_authenticated and "email" not in validated_data:
-        raise ValidationError(
-            {"first_name": "Заполните email телефона или зарегистрируйтесь"}
-        )
+    if not user.is_authenticated:
+        if "first_name" not in validated_data:
+            raise ValidationError(
+                {"first_name": "Заполните имя или зарегистрируйтесь"}
+            )
+        if "telephone" not in validated_data:
+            raise ValidationError(
+                {
+                    "first_name": "Заполните номер телефона или зарегистрируйтесь"
+                }
+            )
+        if "email" not in validated_data:
+            raise ValidationError(
+                {
+                    "first_name": "Заполните email телефона или зарегистрируйтесь"
+                }
+            )
 
 
 def validate_time(validated_data):
