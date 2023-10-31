@@ -143,7 +143,7 @@ class SignUp(APIView):
                 case core.constants.TELEGRAM:
                     asyncio.run(
                         send_code(
-                            f"Код для пользователя: {user.email} --> {msg_code}"
+                            f"Код для пользователя: {user.telephone} --> {msg_code}"
                         )
                     )
 
@@ -235,7 +235,25 @@ class ConfirmCodeView(APIView):
             case core.constants.SMS:
                 pass
             case core.constants.TELEGRAM:
-                pass
+                if user.confirmation_code == confirmation_code:
+                    user.is_active = True
+                    user.is_agreement = True
+                    user.confirmation_code = ""
+                    user.save()
+
+                    asyncio.run(
+                        send_code(
+                            f"Код для пользователя: {user.telephone} подтвержден"
+                        )
+                    )
+                    return Response(
+                        "Аккаунт зарегистрирован, можете войти в систему",
+                        status=status.HTTP_201_CREATED,
+                    )
+                return Response(
+                    "Вы ввели не правильный код",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
 
 @extend_schema(
@@ -285,6 +303,20 @@ class ConfirmCodeRefreshView(APIView):
                     "Код подтверждения отправлен на email",
                     status=status.HTTP_200_OK,
                 )
+
+            case core.constants.TELEGRAM:
+                asyncio.run(
+                    send_code(
+                        f"Код для пользователя: {user.telephone} --> {message}"
+                    )
+                )
+                return Response(
+                    "Код подтверждения отправлен в Telegram",
+                    status=status.HTTP_200_OK,
+                )
+
+            case core.constants.SMS:
+                pass
 
 
 @extend_schema(

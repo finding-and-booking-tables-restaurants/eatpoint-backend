@@ -152,13 +152,6 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
         return data
 
 
-# class EventSerializer(serializers.ModelSerializer):
-#     """Сериализация данных: События"""
-#     class Meta:
-#         model = Event
-#         fields = "__all__"
-
-
 class CityListField(serializers.SlugRelatedField):
     def to_representation(self, value):
         return CitySerializer(value).data
@@ -434,18 +427,3 @@ class ReviewSerializer(serializers.ModelSerializer):
                     "Нельзя оставить повторный отзыв на одно заведение"
                 )
         return data
-
-
-class FavoriteSerializer(serializers.ModelSerializer):
-    """Сериализация данных: Избранное"""
-
-    recipe = serializers.PrimaryKeyRelatedField(
-        queryset=Establishment.objects.all(),
-    )
-    user = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
-    )
-
-    class Meta:
-        model = Establishment
-        fields = ["establishment", "user"]
