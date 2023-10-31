@@ -6,9 +6,10 @@ from api.views.establishments import (
     ZoneViewSet,
     CityViewSet,
     EstablishmentBusinessViewSet,
+    FavoriteViewSet,
 )
 from api.views.reservation import (
-    ReservationsViewSet,
+    ReservationsEditViewSet,
     ReservationsUserListViewSet,
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
@@ -42,7 +43,7 @@ router.register(
 )
 router.register(
     r"establishments/(?P<establishment_id>\d+)/reservations",
-    ReservationsViewSet,
+    ReservationsEditViewSet,
     basename="reservations",
 )
 
@@ -76,7 +77,6 @@ router.register(
 )
 router.register("users", UserViewSet, basename="users"),
 
-
 urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),
     path("v1/auth/confirm-code/", ConfirmCodeView.as_view()),
@@ -100,6 +100,10 @@ urlpatterns = [
         "v1/business/analytics/all/",
         AnalyticsListViewSet.as_view(),
         name="establishment-analytics-list",
+    ),
+    path(
+        "v1/establishments/<int:establishment_id>/favorite/",
+        FavoriteViewSet.as_view(),
     ),
     path(
         "v1/login/jwt/create/", MyTokenObtainPairView.as_view(), name="login"
