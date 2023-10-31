@@ -9,6 +9,17 @@ from establishments.models import Establishment, ZoneEstablishment
 from users.models import User
 
 
+class Availability(models.Model):
+    zone = models.ForeignKey(ZoneEstablishment, on_delete=models.CASCADE)
+    date = models.DateField()
+    available_seats = models.PositiveIntegerField(
+        verbose_name="Количество свободных мест",
+        blank=True,
+        null=True,
+        help_text="Добавляется автоматически",
+    )
+
+
 class Reservation(models.Model):
     """Форма бронирования"""
 
