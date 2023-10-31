@@ -268,7 +268,7 @@ class FavoriteViewSet(APIView):
         removable.delete()
         return Response(
             {"errors": f"Вы удалили {establishment.name} из {name}"},
-            status=status.HTTP_204_NO_CONTENT,
+            status=status.HTTP_404_NOT_FOUND,
         )
 
 
