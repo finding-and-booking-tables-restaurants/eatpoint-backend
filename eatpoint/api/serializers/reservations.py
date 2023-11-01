@@ -2,9 +2,10 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 
 from core.validators import (
-    validate_reserv_anonim,
     string_validator,
     validate_seats,
+    validate_reservation_time_zone,
+    validated_available_seats,
 )
 from establishments.models import ZoneEstablishment, Establishment
 from reservation.models import Reservation, ReservationHistory, Availability
@@ -90,15 +91,15 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, validated_data):
-        user = self.context["request"].user
+        establishment = self.context["request"].parser_context["kwargs"][
+            "establishment_id"
+        ]
         number_guests = validated_data.get("number_guests")
         zone = validated_data.get("zone")
         date = validated_data.get("date_reservation")
-        validate_reserv_anonim(user, validated_data)
-        available_seats = Availability.objects.filter(
-            zone=zone, date=date
-        ).first()
+        available_seats = validated_available_seats(zone, date)
         validate_seats(available_seats.available_seats, number_guests)
+        validate_reservation_time_zone(validated_data, establishment)
         return validated_data
 
 
@@ -173,4 +174,17 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
             "reminder_three_hours",
             "reminder_half_on_hour",
             "zone",
+        )
+
+
+class AvailabilitySerializer(serializers.ModelSerializer):
+    zone = serializers.CharField(source="zone.zone")
+
+    class Meta:
+        model = Availability
+        fields = (
+            "id",
+            "zone",
+            "date",
+            "available_seats",
         )

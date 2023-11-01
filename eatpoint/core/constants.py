@@ -51,6 +51,10 @@ SUPERUSER = "superuser"
 MIN_LIMIT_CONFIRM_CODE = 100_000
 MAX_LIMIT_CONFIRM_CODE = 999_999
 
+# Диапазон кода подтверждения бронирования
+MIN_LIMIT_RESERVATION_CODE = 0000
+MAX_LIMIT_RESERVATION_CODE = 9999
+
 # Способы отправки кода подтверждения
 SMS = "sms"
 EMAIL = "email"

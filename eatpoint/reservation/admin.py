@@ -1,7 +1,17 @@
 from django.contrib import admin
 from django import forms
 
-from .models import Reservation, ReservationHistory, Availability
+from .models import (
+    Reservation,
+    ReservationHistory,
+    Availability,
+    ConfirmationCode,
+)
+
+
+@admin.register(ConfirmationCode)
+class ConfirmationCode(admin.ModelAdmin):
+    """Админка: история бронирования"""
 
 
 @admin.register(Availability)

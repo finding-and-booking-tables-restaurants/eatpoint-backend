@@ -1,9 +1,11 @@
 from django.core.validators import RegexValidator
 from rest_framework.validators import ValidationError
 import locale
+from datetime import datetime
 
 from core.constants import IMAGE_SIZE, IMAGE_COUNT
 from establishments.models import WorkEstablishment, ZoneEstablishment
+from reservation.models import Availability
 
 string_validator = RegexValidator(
     r"^[a-zA-Zа-яА-Я]{2,30}$",
@@ -14,14 +16,16 @@ string_validator = RegexValidator(
 
 def validate_seats(available_seats, number_guests):
     if available_seats:
-        if available_seats == 0:
-            raise ValidationError({"seats": "Мест больше нет"})
+        if number_guests == 0:
+            raise ValidationError(
+                {"seats": "Количество гостей не может быть равно 0"}
+            )
         if available_seats < number_guests:
             raise ValidationError(
                 {"seats": "Кол-во персон больше кол-ва мест"}
             )
     else:
-        raise ValidationError({"seats": "Нет информации о свободных местах."})
+        raise ValidationError({"seats": "Мест больше нет"})
 
 
 def file_size(value):
@@ -31,6 +35,16 @@ def file_size(value):
         raise ValidationError(
             {"image": "Размер изображения не должен превышать 1 mb."},
         )
+
+
+def validated_available_seats(zone, date):
+    if not Availability.objects.filter(zone=zone, date=date).exists():
+        raise ValidationError(
+            {"date": f"Нет информации о свободных местах на {date} в {zone}"},
+        )
+
+    available_seats = Availability.objects.filter(zone=zone, date=date).first()
+    return available_seats
 
 
 def validate_count(images):
@@ -89,21 +103,31 @@ def validate_reservation_time_zone(data, establishment):
     """Проверяет время работы заведение и введенное время бронирования, а также зону"""
     locale.setlocale(locale.LC_ALL, "ru_RU.UTF-8")
     day_of_week = data.get("date_reservation").strftime("%A").lower()
-    # establishment = data.get('establishment')
+    date = data.get("date_reservation")
     zone = data.get("zone")
     working_hours = WorkEstablishment.objects.filter(
         establishment=establishment,
         day=day_of_week,
         day_off=False,
     )
+    if date < datetime.now().date():
+        raise ValidationError(
+            {
+                "date_reservation": f"Введите корректную дадту. Дата не может быть меньше {datetime.now().date()}"
+            },
+        )
     if not working_hours:
-        raise ValidationError("Заведение не работает в указанный день недели")
+        raise ValidationError(
+            {
+                "date_reservation": "Заведение не работает в указанный день недели"
+            }
+        )
 
     if not ZoneEstablishment.objects.filter(
         establishment=establishment, zone=zone
     ):
         raise ValidationError(
-            "Выбранная зона не принадлежит к указанному заведению."
+            {"zone": "Выбранная зона не принадлежит к указанному заведению."}
         )
 
     res_start = data.get("start_time_reservation")
@@ -115,5 +139,7 @@ def validate_reservation_time_zone(data, establishment):
 
     if not (start <= res_start <= end):
         raise ValidationError(
-            "Бронирование возможно только в часы работы заведения"
+            {
+                "start_time_reservation": "Бронирование возможно только в часы работы заведения"
+            }
         )

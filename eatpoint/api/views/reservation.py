@@ -7,7 +7,9 @@ from rest_framework import viewsets, status
 
 from api.permissions import IsUserReservationCreate, IsRestorateur, IsClient
 from core.pagination import LargeResultsSetPagination
-from core.validators import validate_reservation_time_zone
+from core.validators import (
+    validate_reserv_anonim,
+)
 from establishments.models import Establishment
 from api.serializers.reservations import (
     ReservationsEditSerializer,
@@ -15,8 +17,14 @@ from api.serializers.reservations import (
     ReservationsHistoryEditSerializer,
     ReservationsUserListSerializer,
     ReservationsRestorateurListSerializer,
+    AvailabilitySerializer,
 )
-from reservation.models import Reservation, ReservationHistory
+from reservation.models import (
+    Reservation,
+    ReservationHistory,
+    ConfirmationCode,
+    Availability,
+)
 
 
 @extend_schema(
@@ -79,20 +87,33 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        establishment = self.kwargs.get("establishment_id")
-        reservation = Reservation.objects.filter(
-            user=user, establishment=establishment
-        )
-        return reservation
+        if user.is_authenticated:
+            establishment = self.kwargs.get("establishment_id")
+            reservation = Reservation.objects.filter(
+                user=user, establishment=establishment
+            )
+            return reservation
 
-    def perform_create(self, serializer):
-        data = serializer.validated_data
+    def create(self, request, *args, **kwargs):
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
-        validate_reservation_time_zone(data, establishment)
         user = self.request.user
+        telephone = request.data.get("telephone")
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         if self.request.user.is_anonymous:
+            validate_reserv_anonim(user, serializer.data)
+            try:
+                ConfirmationCode.objects.get(
+                    phone_number=telephone, is_verified=True
+                )
+            except ConfirmationCode.DoesNotExist:
+                return Response(
+                    {"detail": "Подтвердите номер телефона!"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             serializer.save(user=None, establishment=establishment)
+            return Response(serializer.data)
         else:
             serializer.save(
                 user=user,
@@ -102,6 +123,8 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
                 first_name=user.first_name,
                 last_name=user.last_name,
             )
+
+            return Response(serializer.data)
 
 
 @extend_schema(
@@ -272,3 +295,29 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
             {"errors": "Вы не авторизованы"},
             status=status.HTTP_401_UNAUTHORIZED,
         )
+
+
+@extend_schema(
+    tags=["Слоты для бронирования"],
+    methods=["GET"],
+    description="Все пользователи",
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список слотов к заведению с id",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о слоте",
+    ),
+)
+class AvailabilityViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Слоты"""
+
+    queryset = Availability.objects.all()
+    serializer_class = AvailabilitySerializer
+    http_method_names = ["get"]
+    pagination_class = LargeResultsSetPagination
+
+    def get_queryset(self):
+        establishment_id = self.kwargs.get("establishment_id")
+        return Availability.objects.filter(establishment=establishment_id)
