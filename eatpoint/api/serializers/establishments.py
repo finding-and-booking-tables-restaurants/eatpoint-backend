@@ -10,6 +10,7 @@ from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
+from core.services import days_available
 from core.validators import validate_uniq, file_size, validate_count
 from establishments.models import (
     Establishment,
@@ -24,6 +25,7 @@ from establishments.models import (
     TypeEst,
     City,
 )
+from reservation.models import Availability
 from users.models import User
 
 
@@ -349,9 +351,14 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
                         establishment=establishment,
                         zone=zone.get("zone"),
                         seats=zone.get("seats"),
-                    )
+                    ),
                 ]
             )
+
+    def __create_availavle(self, establishment):
+        days_available(
+            establishment, ZoneEstablishment, WorkEstablishment, Availability
+        )
 
     def __create_social(self, socials, establishment):
         """Создание соц.сетей"""
@@ -382,6 +389,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         self.__create_work(worked, establishment)
         self.__create_zone(zones, establishment)
         self.__create_social(socials, establishment)
+        self.__create_availavle(establishment)
         return establishment
 
 
