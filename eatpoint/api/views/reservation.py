@@ -102,7 +102,8 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if self.request.user.is_anonymous:
-            validate_reserv_anonim(user, serializer.data)
+            validate_reserv_anonim(user, request.data)
+
             try:
                 ConfirmationCode.objects.get(
                     phone_number=telephone, is_verified=True
