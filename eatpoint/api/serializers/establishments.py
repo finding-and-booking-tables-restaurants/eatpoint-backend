@@ -99,15 +99,12 @@ class SocialSerializer(serializers.ModelSerializer):
 class ZoneEstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Зоны заведения"""
 
-    available_seats = serializers.IntegerField(read_only=True)
-
     class Meta:
         model = ZoneEstablishment
         fields = [
             "id",
             "zone",
             "seats",
-            "available_seats",
         ]
 
 
@@ -352,7 +349,6 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
                         establishment=establishment,
                         zone=zone.get("zone"),
                         seats=zone.get("seats"),
-                        available_seats=zone.get("seats"),
                     )
                 ]
             )
