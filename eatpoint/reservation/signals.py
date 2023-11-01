@@ -11,11 +11,8 @@ def post_reservations(sender, instance, **kwargs):
         zone=instance.zone, date=instance.date_reservation
     ).first()
     if availability:
-        if availability.available_seats > 0:
+        if instance.number_guests <= availability.available_seats:
             availability.available_seats -= instance.number_guests
-            availability.save()
-        if availability.available_seats < instance.number_guests:
-            availability.available_seats = 0
             availability.save()
 
 

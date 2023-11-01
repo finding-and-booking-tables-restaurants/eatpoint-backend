@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+import random
 
+import core
 from core.constants import INTERVAL_MINUTES, START_TIME, END_TIME
 
 
@@ -19,3 +21,13 @@ def time_generator():
 def choices_generator(data: list):
     """Генерирует choices из списка"""
     return [(item, item) for item in data]
+
+
+def generate_reservation_code():
+    random.seed()
+    return str(
+        random.randint(
+            core.constants.MIN_LIMIT_RESERVATION_CODE,
+            core.constants.MAX_LIMIT_RESERVATION_CODE,
+        )
+    )
