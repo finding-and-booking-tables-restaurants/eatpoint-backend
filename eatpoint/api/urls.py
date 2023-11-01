@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views.analytics import AnalyticsViewSet, AnalyticsListViewSet
+from api.views.code_generate import SendSMSCode, VerifySMSCode
 from api.views.establishments import (
     ZoneViewSet,
     CityViewSet,
@@ -13,6 +14,7 @@ from api.views.reservation import (
     ReservationsUserListViewSet,
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
+    AvailabilityViewSet,
 )
 from api.views.users import (
     SignUp,
@@ -76,11 +78,18 @@ router.register(
     basename="reviews",
 )
 router.register("users", UserViewSet, basename="users"),
+router.register(
+    r"establishments/(?P<establishment_id>\d+)/availability",
+    AvailabilityViewSet,
+    basename="availability",
+)
 
 urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),
     path("v1/auth/confirm-code/", ConfirmCodeView.as_view()),
     path("v1/auth/confirm-code-refresh/", ConfirmCodeRefreshView.as_view()),
+    path("v1/auth/send-reservations-code/", SendSMSCode.as_view()),
+    path("v1/auth/verify-reservations-code/", VerifySMSCode.as_view()),
     path(
         "v1/reset-password/",
         DjoserUserViewSet.as_view({"post": "reset_password"}),

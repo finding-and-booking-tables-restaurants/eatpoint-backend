@@ -9,7 +9,22 @@ from establishments.models import Establishment, ZoneEstablishment
 from users.models import User
 
 
+class ConfirmationCode(models.Model):
+    """Код подтверждения"""
+
+    phone_number = models.CharField(max_length=15)
+    code = models.CharField(max_length=6)
+    is_verified = models.BooleanField(default=False)
+
+
 class Availability(models.Model):
+    """Свободные слоты"""
+
+    establishment = models.ForeignKey(
+        Establishment,
+        verbose_name="Ресторан",
+        on_delete=models.CASCADE,
+    )
     zone = models.ForeignKey(ZoneEstablishment, on_delete=models.CASCADE)
     date = models.DateField()
     available_seats = models.PositiveIntegerField(
