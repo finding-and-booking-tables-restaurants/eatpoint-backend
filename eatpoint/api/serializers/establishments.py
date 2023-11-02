@@ -231,14 +231,14 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         """Отображение количества отзывов заведения"""
         return Review.objects.filter(establishment=obj).count()
 
-    def to_representation(self, instance):
-        data = super(EstablishmentSerializer, self).to_representation(instance)
-        if instance.poster:
-            with instance.poster.open("rb") as image_file:
-                data["poster"] = base64.b64encode(image_file.read()).decode(
-                    "utf-8"
-                )
-        return data
+    # def to_representation(self, instance):
+    #     data = super(EstablishmentSerializer, self).to_representation(instance)
+    #     if instance.poster:
+    #         with instance.poster.open("rb") as image_file:
+    #             data["poster"] = base64.b64encode(image_file.read()).decode(
+    #                 "utf-8"
+    #             )
+    #     return data
 
 
 class KitchenListField(serializers.SlugRelatedField):
