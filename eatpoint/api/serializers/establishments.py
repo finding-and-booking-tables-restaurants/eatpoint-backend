@@ -239,7 +239,7 @@ class ServiceListField(serializers.SlugRelatedField):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = Base64ImageField()
+    poster = Base64ImageField(use_url=True)
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
@@ -391,6 +391,12 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         self.__create_social(socials, establishment)
         self.__create_availavle(establishment)
         return establishment
+
+    def update(self, instance, validated_data):
+        return super().update(
+            instance,
+            validated_data,
+        )
 
 
 class SmallUserSerializer(serializers.ModelSerializer):
