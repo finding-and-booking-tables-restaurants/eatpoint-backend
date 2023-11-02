@@ -29,16 +29,10 @@ from reservation.models import (
 
 @extend_schema(
     tags=["Бронирование"],
-    methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
+    methods=["POST"],
     description="Клиент",
 )
 @extend_schema_view(
-    list=extend_schema(
-        summary="Получить список броней заведения",
-    ),
-    retrieve=extend_schema(
-        summary="Детальная информация о броне заведения",
-    ),
     create=extend_schema(
         summary="Добавить бронирование",
         parameters=[
@@ -49,29 +43,11 @@ from reservation.models import (
             )
         ],
     ),
-    partial_update=extend_schema(
-        summary="Изменить данные бронирования",
-        parameters=[
-            OpenApiParameter(
-                name="establishment_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-        ],
-    ),
-    destroy=extend_schema(
-        summary="Удалить бронирование",
-    ),
 )
 class ReservationsEditViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования"""
 
-    http_method_names = ["post", "patch"]
+    http_method_names = ["post"]
     pagination_class = LargeResultsSetPagination
     permission_classes = (IsUserReservationCreate,)
     serializer_class = ReservationsEditSerializer
@@ -130,7 +106,7 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
 
 @extend_schema(
     tags=["Мои бронирования"],
-    methods=["GET", "DELETE"],
+    methods=["GET", "DELETE", "PATCH"],
     description="Клиент/ресторатор",
 )
 @extend_schema_view(
@@ -157,11 +133,26 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
             )
         ],
     ),
+    partial_update=extend_schema(
+        summary="Изменить данные бронирования",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
+    ),
 )
 class ReservationsUserListViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования"""
 
-    http_method_names = ["get", "delete"]
+    http_method_names = ["get", "patch", "delete"]
     pagination_class = LargeResultsSetPagination
     permission_classes = [
         IsClient,
@@ -185,7 +176,7 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
         removable.delete()
         return Response(
             {"message": "Бронирование удалено"},
-            status=status.HTTP_204_NO_CONTENT,
+            status=status.HTTP_404_NOT_FOUND,
         )
 
 
@@ -248,7 +239,7 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         removable.delete()
         return Response(
             {"message": "Бронирование удалено"},
-            status=status.HTTP_204_NO_CONTENT,
+            status=status.HTTP_404_NOT_FOUND,
         )
 
 
