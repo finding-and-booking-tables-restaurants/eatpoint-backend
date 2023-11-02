@@ -1,3 +1,5 @@
+import base64
+
 from django.db.models import Avg
 from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
@@ -123,6 +125,15 @@ class ImageSerializer(serializers.ModelSerializer):
             "image",
         ]
 
+    def to_representation(self, instance):
+        data = super(ImageSerializer, self).to_representation(instance)
+        if instance.image:
+            with instance.image.open("rb") as image_file:
+                data["image"] = base64.b64encode(image_file.read()).decode(
+                    "utf-8"
+                )
+        return data
+
 
 class WorkEstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Время работы"""
@@ -219,6 +230,15 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     def get_review_count(self, obj):
         """Отображение количества отзывов заведения"""
         return Review.objects.filter(establishment=obj).count()
+
+    def to_representation(self, instance):
+        data = super(EstablishmentSerializer, self).to_representation(instance)
+        if instance.poster:
+            with instance.poster.open("rb") as image_file:
+                data["poster"] = base64.b64encode(image_file.read()).decode(
+                    "utf-8"
+                )
+        return data
 
 
 class KitchenListField(serializers.SlugRelatedField):
@@ -393,10 +413,44 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         return establishment
 
     def update(self, instance, validated_data):
+        if "images" in validated_data:
+            images = validated_data.pop("images")
+            ImageEstablishment.objects.filter(establishment=instance).delete()
+            instance.images.clear()
+            self.__create_image(images, instance)
+        if "worked" in validated_data:
+            worked = validated_data.pop("worked")
+            WorkEstablishment.objects.filter(establishment=instance).delete()
+            instance.worked.clear()
+            self.__create_work(worked, instance)
+        if "zones" in validated_data:
+            zones = validated_data.pop("zones")
+            ZoneEstablishment.objects.filter(establishment=instance).delete()
+            instance.zones.clear()
+            self.__create_zone(zones, instance)
+        if "socials" in validated_data:
+            socials = validated_data.pop("socials")
+            SocialEstablishment.objects.filter(establishment=instance).delete()
+            instance.socials.clear()
+            self.__create_social(socials, instance)
+        if "kitchens" in validated_data:
+            instance.kitchens.set(validated_data.pop("kitchens"))
+        if "types" in validated_data:
+            instance.types.set(validated_data.pop("types"))
+        if "services" in validated_data:
+            instance.services.set(validated_data.pop("services"))
+        self.__create_availavle(instance)
+
         return super().update(
             instance,
             validated_data,
         )
+
+    def to_representation(self, instance):
+        return EstablishmentSerializer(
+            instance,
+            context={"request": self.context.get("request")},
+        ).data
 
 
 class SmallUserSerializer(serializers.ModelSerializer):
