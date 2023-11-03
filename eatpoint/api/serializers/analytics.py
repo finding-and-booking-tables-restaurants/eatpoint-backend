@@ -3,6 +3,8 @@ from django.utils.timezone import now
 
 
 class AnalyticsStaticSerializer(serializers.Serializer):
+    """Аналитика статичная"""
+
     daily_reservation = serializers.IntegerField(
         help_text="Бронирования за день",
     )
@@ -26,6 +28,8 @@ class AnalyticsStaticSerializer(serializers.Serializer):
 
 
 class AnalyticsDynamicSerializer(serializers.Serializer):
+    """Аналитика зы выбранные период"""
+
     start_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M",
         default="1999-01-01 10:00",

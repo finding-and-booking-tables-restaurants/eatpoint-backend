@@ -15,6 +15,7 @@ string_validator = RegexValidator(
 
 
 def validate_seats(available_seats, number_guests):
+    """Проверка кол-ва мест"""
     if available_seats:
         if number_guests == 0:
             raise ValidationError(
@@ -38,6 +39,7 @@ def file_size(value):
 
 
 def validated_available_seats(zone, date):
+    """Проверка свободных мест на день"""
     if not Availability.objects.filter(zone=zone, date=date).exists():
         raise ValidationError(
             {"date": f"Нет информации о свободных местах на {date} в {zone}"},

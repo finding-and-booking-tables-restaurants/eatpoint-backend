@@ -16,7 +16,7 @@ class ConfirmationCode(admin.ModelAdmin):
 
 @admin.register(Availability)
 class AvailabilityHistory(admin.ModelAdmin):
-    """Админка: история бронирования"""
+    """Админка: свободные места"""
 
     list_display = (
         "id",

@@ -116,8 +116,8 @@ class Reservation(models.Model):
         default=False,
     )
     status = models.BooleanField(
-        verbose_name="Статус бронирования Активен/Выполнен",
-        default=True,
+        verbose_name="Статус бронирования Активен/Принят",
+        default=False,
     )
     reservation_date = models.DateTimeField(
         verbose_name="Дата создания",

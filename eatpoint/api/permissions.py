@@ -4,6 +4,8 @@ import core.constants
 
 
 class IsAnonymous(permissions.BasePermission):
+    """Только аноним"""
+
     def has_permission(self, request, view):
         return request.user.is_anonymous
 
