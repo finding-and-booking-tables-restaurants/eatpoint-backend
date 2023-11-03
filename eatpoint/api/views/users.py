@@ -6,11 +6,12 @@ from django.db import IntegrityError
 from djoser import views
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, status, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -39,7 +40,9 @@ from api.serializers.users import (
         methods=["GET"],
     ),
 )
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(
+    mixins.UpdateModelMixin, mixins.ListModelMixin, GenericViewSet
+):
     """
     Сет для отображения и редактирования профиля пользователя.
     """
