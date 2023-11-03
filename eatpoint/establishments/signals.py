@@ -12,6 +12,7 @@ from reservation.models import Availability
 
 @receiver(post_save, sender=WorkEstablishment)
 def create_availability_work(sender, instance, created, **kwargs):
+    """Создает свободные слоты при создании времени работы"""
     establishment = instance.establishment
     zone = ZoneEstablishment
     work = WorkEstablishment
@@ -21,6 +22,7 @@ def create_availability_work(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=ZoneEstablishment)
 def create_availability_zone(sender, instance, created, **kwargs):
+    """Создает свободные слоты при создании зоны"""
     establishment = instance.establishment
     zone = ZoneEstablishment
     work = WorkEstablishment
@@ -30,6 +32,7 @@ def create_availability_zone(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Establishment)
 def create_availability_est(sender, instance, created, **kwargs):
+    """Создает свободные слоты при создании заведения"""
     establishment = instance
     zone = ZoneEstablishment
     work = WorkEstablishment
