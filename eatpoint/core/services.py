@@ -25,6 +25,7 @@ def choices_generator(data: list):
 
 
 def generate_reservation_code():
+    """Генерация кода подтверждения"""
     random.seed()
     return str(
         random.randint(
@@ -35,6 +36,7 @@ def generate_reservation_code():
 
 
 def days_available(establishment, zone, work, available):
+    """Создает свободные дни"""
     locale.setlocale(locale.LC_ALL, "ru_RU.UTF-8")
     start_date = datetime.now().date()
     days = 7

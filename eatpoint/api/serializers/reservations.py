@@ -104,6 +104,8 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
 
 
 class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
+    """История бронирования"""
+
     class Meta:
         model = ReservationHistory
         fields = (
@@ -139,6 +141,8 @@ class SpecialEstablishmentSerializer(serializers.ModelSerializer):
 
 
 class ReservationsUserListSerializer(serializers.ModelSerializer):
+    """Пользователь"""
+
     zone = serializers.StringRelatedField()
     establishment = SpecialEstablishmentSerializer()
 
@@ -155,6 +159,8 @@ class ReservationsUserListSerializer(serializers.ModelSerializer):
 
 
 class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
+    """Ресторатор"""
+
     establishment = serializers.CharField(source="establishment.name")
     zone = serializers.CharField(source="zone.zone")
 
@@ -178,6 +184,8 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
 
 
 class AvailabilitySerializer(serializers.ModelSerializer):
+    """Свободные места на день"""
+
     zone = serializers.CharField(source="zone.zone")
 
     class Meta:
