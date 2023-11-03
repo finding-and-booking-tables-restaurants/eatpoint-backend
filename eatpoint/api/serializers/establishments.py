@@ -116,7 +116,7 @@ class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
     image = Base64ImageField()
-    name = serializers.CharField(required=False)
+    name = serializers.CharField(required=False, default="Изображение")
 
     class Meta:
         model = ImageEstablishment
@@ -167,18 +167,66 @@ class CityListField(serializers.SlugRelatedField):
         return CitySerializer(value).data
 
 
+class KitchenListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return KitchenSerializer(value).data
+
+
+class TypeListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return TypeEstSerializer(value).data
+
+
+class ServiceListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return ServicesSerializer(value).data
+
+
+class ImageListField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return ImageSerializer(value).data
+
+
+class SocialField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return SocialSerializer(value).data
+
+
+class ZoneSmallSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ZoneEstablishment
+        fields = ("zone", "seats")
+
+
 class EstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Заведение"""
 
     owner = serializers.CharField(source="owner.email")
-    kitchens = KitchenSerializer(read_only=True, many=True)
-    types = TypeEstSerializer(read_only=True, many=True)
+    kitchens = KitchenListField(
+        slug_field="name", queryset=Kitchen.objects.all(), many=True
+    )
+    types = TypeListField(
+        slug_field="name", queryset=TypeEst.objects.all(), many=True
+    )
+    services = ServiceListField(
+        slug_field="name", queryset=Service.objects.all(), many=True
+    )
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
-    services = ServicesSerializer(read_only=True, many=True)
-    socials = SocialSerializer(read_only=True, many=True)
-    images = ImageSerializer(read_only=True, many=True)
-    zones = ZoneEstablishmentSerializer(read_only=True, many=True)
-    worked = WorkEstablishmentSerializer(read_only=True, many=True)
+    images = ImageListField(
+        slug_field="image",
+        queryset=ImageEstablishment.objects.all(),
+        many=True,
+    )
+    worked = WorkEstablishmentSerializer(
+        many=True,
+        help_text="Время работы",
+    )
+    zones = ZoneSmallSerializer(many=True)
+    socials = SocialField(
+        slug_field="name",
+        queryset=SocialEstablishment.objects.all(),
+        many=True,
+    )
     rating = serializers.SerializerMethodField("get_rating")
     poster = Base64ImageField()
     cities = serializers.CharField(source="cities.name")
@@ -239,21 +287,6 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     #                 "utf-8"
     #             )
     #     return data
-
-
-class KitchenListField(serializers.SlugRelatedField):
-    def to_representation(self, value):
-        return KitchenSerializer(value).data
-
-
-class TypeListField(serializers.SlugRelatedField):
-    def to_representation(self, value):
-        return TypeEstSerializer(value).data
-
-
-class ServiceListField(serializers.SlugRelatedField):
-    def to_representation(self, value):
-        return ServicesSerializer(value).data
 
 
 class EstablishmentEditSerializer(serializers.ModelSerializer):
