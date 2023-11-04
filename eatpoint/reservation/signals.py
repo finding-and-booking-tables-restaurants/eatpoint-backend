@@ -21,11 +21,12 @@ def delete_reservation(sender, instance, **kwargs):
     """Увеличивает количество свободных мест, если запись о бронировании удалена"""
     zone = instance.zone
     availability = Availability.objects.filter(
-        zone=instance.zone, date=instance.date_reservation
+        zone=zone, date=instance.date_reservation
     ).first()
     availability.available_seats += instance.number_guests
     if availability.available_seats > zone.seats:
         availability.available_seats = zone.seats
+    availability.save()
 
 
 @receiver(pre_delete, sender=Reservation)
