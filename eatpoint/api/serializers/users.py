@@ -71,6 +71,8 @@ class MeSerializer(MyBaseSerializer):
     Сериализатор собственных данных пользователя.
     """
 
+    role = serializers.CharField(read_only=True)
+
     class Meta:
         model = User
         fields = (
@@ -78,6 +80,7 @@ class MeSerializer(MyBaseSerializer):
             "email",
             "first_name",
             "last_name",
+            "role",
         )
         extra_kwargs = {
             "email": {"required": False},
