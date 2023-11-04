@@ -1,3 +1,5 @@
+import base64
+
 from django.db.models import Avg
 from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
