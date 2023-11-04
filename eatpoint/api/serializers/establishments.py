@@ -1,5 +1,3 @@
-import base64
-
 from django.db.models import Avg
 from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
@@ -125,14 +123,14 @@ class ImageSerializer(serializers.ModelSerializer):
             "image",
         ]
 
-    def to_representation(self, instance):
-        data = super(ImageSerializer, self).to_representation(instance)
-        if instance.image:
-            with instance.image.open("rb") as image_file:
-                data["image"] = base64.b64encode(image_file.read()).decode(
-                    "utf-8"
-                )
-        return data
+    # def to_representation(self, instance):
+    #     data = super(ImageSerializer, self).to_representation(instance)
+    #     if instance.image:
+    #         with instance.image.open("rb") as image_file:
+    #             data["image"] = base64.b64encode(image_file.read()).decode(
+    #                 "utf-8"
+    #             )
+    #     return data
 
 
 class WorkEstablishmentSerializer(serializers.ModelSerializer):
