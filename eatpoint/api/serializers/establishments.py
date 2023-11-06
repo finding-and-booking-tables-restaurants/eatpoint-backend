@@ -113,7 +113,7 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
-    image = serializers.ImageField()
+    image = Base64ImageField()
     name = serializers.CharField(required=False, default="Изображение")
 
     class Meta:
