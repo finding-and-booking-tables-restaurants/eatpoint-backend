@@ -11,7 +11,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
 from core.services import days_available
-from core.validators import validate_uniq, file_size, validate_count
+from core.validators import validate_uniq, file_size
 from establishments.models import (
     Establishment,
     WorkEstablishment,
@@ -113,24 +113,20 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
-    image = Base64ImageField()
+    image = serializers.ImageField()
     name = serializers.CharField(required=False, default="Изображение")
 
     class Meta:
         model = ImageEstablishment
         fields = [
-            "name",
             "image",
+            "name",
         ]
 
-    # def to_representation(self, instance):
-    #     data = super(ImageSerializer, self).to_representation(instance)
-    #     if instance.image:
-    #         with instance.image.open("rb") as image_file:
-    #             data["image"] = base64.b64encode(image_file.read()).decode(
-    #                 "utf-8"
-    #             )
-    #     return data
+    def to_representation(self, instance):
+        data = super(ImageSerializer, self).to_representation(instance)
+        if instance.image:
+            return data.get("image")
 
 
 class WorkEstablishmentSerializer(serializers.ModelSerializer):
@@ -167,27 +163,22 @@ class CityListField(serializers.SlugRelatedField):
 
 class KitchenListField(serializers.SlugRelatedField):
     def to_representation(self, value):
-        return KitchenSerializer(value).data
+        return value.name
 
 
 class TypeListField(serializers.SlugRelatedField):
     def to_representation(self, value):
-        return TypeEstSerializer(value).data
+        return value.name
 
 
 class ServiceListField(serializers.SlugRelatedField):
     def to_representation(self, value):
-        return ServicesSerializer(value).data
-
-
-class ImageListField(serializers.SlugRelatedField):
-    def to_representation(self, value):
-        return ImageSerializer(value).data
+        return value.name
 
 
 class SocialField(serializers.SlugRelatedField):
     def to_representation(self, value):
-        return SocialSerializer(value).data
+        return value.name
 
 
 class ZoneSmallSerializer(serializers.ModelSerializer):
@@ -210,11 +201,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         slug_field="name", queryset=Service.objects.all(), many=True
     )
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
-    images = ImageListField(
-        slug_field="image",
-        queryset=ImageEstablishment.objects.all(),
-        many=True,
-    )
+    images = ImageSerializer(many=True)
     worked = WorkEstablishmentSerializer(
         many=True,
         help_text="Время работы",
@@ -226,7 +213,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         many=True,
     )
     rating = serializers.SerializerMethodField("get_rating")
-    poster = Base64ImageField()
+    poster = serializers.ImageField()
     cities = serializers.CharField(source="cities.name")
     review_count = serializers.SerializerMethodField("get_review_count")
 
@@ -290,15 +277,9 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = Base64ImageField(use_url=True)
+    poster = Base64ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
-    )
-    images = ImageSerializer(
-        many=True,
-        help_text="Несколько изображений",
-        required=False,
-        default=None,
     )
     worked = WorkEstablishmentSerializer(
         many=True,
@@ -308,12 +289,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         many=True,
         help_text="Зоны заведения",
     )
-    socials = SocialSerializer(
-        many=True,
-        help_text="Соц. сети",
-        required=False,
-        default=None,
-    )
+    socials = serializers.ListField(required=False)
     telephone = PhoneNumberField(
         help_text="Номер телефона",
     )
@@ -327,6 +303,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     services = ServiceListField(
         slug_field="name", queryset=Service.objects.all(), many=True
     )
+    images = serializers.ListField(required=False)
 
     class Meta:
         model = Establishment
@@ -352,31 +329,12 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Проверка на уникальность поля day"""
-        images = data.get("images")
         poster = data.get("poster")
         worked = data.get("worked")
         field = "day"
         validate_uniq(worked, field)
         file_size(poster)
-        if images is not None:
-            validate_count(images)
-            for image in images:
-                file_size(image.get("image"))
         return data
-
-    def __create_image(self, images, establishment):
-        """Создание картинки"""
-        if images is not None:
-            for image in images:
-                ImageEstablishment.objects.bulk_create(
-                    [
-                        ImageEstablishment(
-                            establishment=establishment,
-                            image=image.get("image"),
-                            name=image.get("name"),
-                        )
-                    ]
-                )
 
     def __create_work(self, worked, establishment):
         """Создание времени работы"""
@@ -406,6 +364,20 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
                 ]
             )
 
+    def __create_image(self, images, establishment):
+        """Создание картинки"""
+        if images is not None:
+            for image in images:
+                ImageEstablishment.objects.bulk_create(
+                    [
+                        ImageEstablishment(
+                            establishment=establishment,
+                            image=image,
+                            name="Изображение",
+                        )
+                    ]
+                )
+
     def __create_availavle(self, establishment):
         days_available(
             establishment, ZoneEstablishment, WorkEstablishment, Availability
@@ -415,17 +387,18 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         """Создание соц.сетей"""
         if socials is not None:
             for social in socials:
+                print(social)
                 SocialEstablishment.objects.bulk_create(
                     [
                         SocialEstablishment(
                             establishment=establishment,
-                            name=social.get("name"),
+                            name=social,
                         )
                     ]
                 )
 
     def create(self, validated_data):
-        images = validated_data.pop("images")
+        image = validated_data.pop("images")
         worked = validated_data.pop("worked")
         zones = validated_data.pop("zones")
         socials = validated_data.pop("socials")
@@ -436,7 +409,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         establishment.kitchens.set(kitchens)
         establishment.types.set(types)
         establishment.services.set(services)
-        self.__create_image(images, establishment)
+        self.__create_image(image, establishment)
         self.__create_work(worked, establishment)
         self.__create_zone(zones, establishment)
         self.__create_social(socials, establishment)
@@ -444,11 +417,6 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         return establishment
 
     def update(self, instance, validated_data):
-        if "images" in validated_data:
-            images = validated_data.pop("images")
-            ImageEstablishment.objects.filter(establishment=instance).delete()
-            instance.images.clear()
-            self.__create_image(images, instance)
         if "worked" in validated_data:
             worked = validated_data.pop("worked")
             WorkEstablishment.objects.filter(establishment=instance).delete()
