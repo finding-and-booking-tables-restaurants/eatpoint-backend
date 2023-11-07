@@ -102,6 +102,17 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
         validate_reservation_time_zone(validated_data, establishment)
         return validated_data
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["zone"] = str(instance.zone)
+        return representation
+
+
+class UpdateReservationStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reservation
+        fields = ["status"]
+
 
 class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
     """История бронирования"""

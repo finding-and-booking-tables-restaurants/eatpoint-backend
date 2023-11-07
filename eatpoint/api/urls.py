@@ -33,6 +33,8 @@ from api.views.establishments import (
     TypeEstViewSet,
 )
 
+app_name = "api"
+
 router = DefaultRouter()
 
 router.register(
