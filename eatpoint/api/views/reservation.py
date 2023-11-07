@@ -1,3 +1,6 @@
+import asyncio
+from datetime import datetime
+
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from drf_spectacular.utils import OpenApiParameter
@@ -7,6 +10,7 @@ from rest_framework import viewsets, status
 
 from api.permissions import IsUserReservationCreate, IsRestorateur, IsClient
 from core.pagination import LargeResultsSetPagination
+from core.tgbot import send_code
 from core.validators import (
     validate_reserv_anonim,
 )
@@ -18,6 +22,7 @@ from api.serializers.reservations import (
     ReservationsUserListSerializer,
     ReservationsRestorateurListSerializer,
     AvailabilitySerializer,
+    UpdateReservationStatusSerializer,
 )
 from reservation.models import (
     Reservation,
@@ -75,8 +80,12 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
         establishment = get_object_or_404(Establishment, id=establishment_id)
         user = self.request.user
         telephone = request.data.get("telephone")
+
+        quests = request.data.get("number_guests")
         serializer = self.get_serializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
+
         if self.request.user.is_anonymous:
             validate_reserv_anonim(user, request.data)
 
@@ -90,7 +99,6 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             serializer.save(user=None, establishment=establishment)
-            return Response(serializer.data)
         else:
             serializer.save(
                 user=user,
@@ -100,8 +108,13 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
                 first_name=user.first_name,
                 last_name=user.last_name,
             )
-
-            return Response(serializer.data)
+        zone = serializer.data.get("zone")
+        asyncio.run(
+            send_code(
+                f"Подтвердите бронирование в {establishment}. Зона - {zone}, гостей - {quests}"
+            )
+        )
+        return Response(serializer.data)
 
 
 @extend_schema(
@@ -182,7 +195,7 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
 
 @extend_schema(
     tags=["Бизнес(бронирования)"],
-    methods=["GET", "DELETE"],
+    methods=["GET", "DELETE", "PATCH"],
     description="Ресторатор",
 )
 @extend_schema_view(
@@ -209,23 +222,33 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
             )
         ],
     ),
+    partial_update=extend_schema(
+        summary="Принять бронирование",
+    ),
 )
 class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования"""
 
-    http_method_names = ["get", "delete"]
+    http_method_names = ["get", "delete", "patch"]
     pagination_class = LargeResultsSetPagination
     permission_classes = [
         IsRestorateur,
     ]
-    serializer_class = ReservationsRestorateurListSerializer
 
     def get_queryset(self):
         user = self.request.user
         return Reservation.objects.filter(establishment__owner=user)
 
+    def get_serializer_class(self):
+        """Выбор serializer_class в зависимости от типа запроса"""
+        if self.request.method == "PATCH":
+            return UpdateReservationStatusSerializer
+        return ReservationsRestorateurListSerializer
+
     def destroy(self, request, *args, **kwargs):
+        """Удаление бронирования"""
         user = self.request.user
+        current_datetime = datetime.now()
         reservation_id = self.kwargs.get("pk")
         removable = Reservation.objects.filter(
             establishment__owner=user,
@@ -236,10 +259,51 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
                 {"errors": "Бронирование отсутствует"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        new_removable = Reservation.objects.filter(
+            establishment__owner=user,
+            id=reservation_id,
+            status=True,
+            date_reservation__gte=current_datetime,
+        )
+        if new_removable.exists():
+            return Response(
+                {"errors": "Нельзя удалить подтвержденное бронирование."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         removable.delete()
         return Response(
             {"message": "Бронирование удалено"},
             status=status.HTTP_404_NOT_FOUND,
+        )
+
+    def partial_update(self, request, *args, **kwargs):
+        """Изменяет status бронирования"""
+        instance = self.get_object()
+        reservation_id = self.kwargs.get("pk")
+        if Reservation.objects.filter(
+            id=reservation_id,
+            status=True,
+        ).exists():
+            return Response(
+                {"message": "Бронирование уже подтверждено!"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        email = Reservation.objects.get(
+            id=reservation_id,
+        ).email
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        asyncio.run(
+            send_code(
+                f"Бронирование для пользователя {email} в {instance} подтверждено!"
+            )
+        )
+        return Response(
+            {"message": "Бронирование подтверждено!"},
+            status=status.HTTP_200_OK,
         )
 
 
