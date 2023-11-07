@@ -231,9 +231,9 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
 
     http_method_names = ["get", "delete", "patch"]
     pagination_class = LargeResultsSetPagination
-    permission_classes = [
-        IsRestorateur,
-    ]
+    # permission_classes = [
+    #     IsRestorateur,
+    # ]
 
     def get_queryset(self):
         user = self.request.user
