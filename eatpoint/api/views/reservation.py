@@ -8,7 +8,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 
-from api.permissions import IsUserReservationCreate, IsRestorateur, IsClient
+from api.permissions import (
+    IsUserReservationCreate,
+    IsRestorateur,
+    IsClient,
+    IsRestorateurEdit,
+)
 from core.pagination import LargeResultsSetPagination
 from core.tgbot import send_code
 from core.validators import (
@@ -231,9 +236,9 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
 
     http_method_names = ["get", "delete", "patch"]
     pagination_class = LargeResultsSetPagination
-    # permission_classes = [
-    #     IsRestorateur,
-    # ]
+    permission_classes = [
+        IsRestorateurEdit,
+    ]
 
     def get_queryset(self):
         user = self.request.user
