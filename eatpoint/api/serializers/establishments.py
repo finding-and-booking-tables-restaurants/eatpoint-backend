@@ -279,7 +279,10 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = Base64ImageField()
+    poster = Base64ImageField(
+        max_length=None,
+        use_url=True,
+    )
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
