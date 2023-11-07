@@ -192,6 +192,7 @@ class ZoneSmallSerializer(serializers.ModelSerializer):
 class EstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Заведение"""
 
+    poster = Base64ImageField()
     owner = serializers.CharField(source="owner.email")
     kitchens = KitchenListField(
         slug_field="name", queryset=Kitchen.objects.all(), many=True
@@ -215,7 +216,6 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         many=True,
     )
     rating = serializers.SerializerMethodField("get_rating")
-    poster = serializers.ImageField()
     cities = serializers.CharField(source="cities.name")
     review_count = serializers.SerializerMethodField("get_review_count")
 
