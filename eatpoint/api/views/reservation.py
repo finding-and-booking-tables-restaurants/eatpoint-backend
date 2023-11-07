@@ -272,7 +272,7 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         )
         if new_removable.exists():
             return Response(
-                {"errors": "Нельзя удалить подтвержденное бронирование."},
+                {"errors": "Нельзя удалить активное бронирование."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         removable.delete()
@@ -285,6 +285,11 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         """Изменяет status бронирования"""
         instance = self.get_object()
         reservation_id = self.kwargs.get("pk")
+        # if self.request.data.get("status") is None:
+        #     return Response(
+        #         {"status": "FFFFFFFFFFFF!"},
+        #         status=status.HTTP_404_NOT_FOUND,
+        #     )
         if Reservation.objects.filter(
             id=reservation_id,
             status=True,
@@ -296,7 +301,7 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         email = Reservation.objects.get(
             id=reservation_id,
         ).email
-        serializer = self.get_serializer(
+        serializer = UpdateReservationStatusSerializer(
             instance, data=request.data, partial=True
         )
         serializer.is_valid(raise_exception=True)
