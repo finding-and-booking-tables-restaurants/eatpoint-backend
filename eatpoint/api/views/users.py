@@ -122,46 +122,53 @@ class SignUp(APIView):
                     "confirm_code_send_method"
                 ),
             )
-            user.set_password(request.data.get("password"))
-            msg_code = user.confirm_code
-            user.confirmation_code = msg_code
-            user.save()
-
             message = ""
-            match user.confirm_code_send_method:
-                case core.constants.EMAIL:
-                    send_mail(
-                        "Код подтверждения EatPoint",
-                        f"Код для подтверждения на сайте: {msg_code}",
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        fail_silently=False,
-                    )
-                    message = "На Ваш email отправлен код подтверждения"
-                case core.constants.SMS:
-                    message = """
-                        На Ваш телефон отправлена СМС с кодом подтверждения
-                    """
-
-                case core.constants.TELEGRAM:
-                    asyncio.run(
-                        send_code(
-                            f"Код для пользователя: {user.telephone} --> {msg_code}"
-                        )
-                    )
-
-                case core.constants.NOTHING:
-                    user.is_active = True
-                    user.confirmation_code = ""
-                    user.save()
-                    message = "Аккаунт зарегистрирован, авторизуйтесь..."
-
+            if not created and user.is_active:
+                return Response(
+                    "Аккаунт уже подтвержден, авторизуйтесь...",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            elif not created and not user.is_active:
+                return Response(
+                    "Аккаунт не подтвержден, введите код подтверждения...",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             if created:
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(message, status=status.HTTP_200_OK)
+                user.set_password(request.data.get("password"))
+                msg_code = user.confirm_code
+                user.confirmation_code = msg_code
+                user.save()
+
+                match user.confirm_code_send_method:
+                    case core.constants.EMAIL:
+                        send_mail(
+                            "Код подтверждения EatPoint",
+                            f"Код для подтверждения на сайте: {msg_code}",
+                            settings.DEFAULT_FROM_EMAIL,
+                            [user.email],
+                            fail_silently=False,
+                        )
+                        message = "На Ваш email отправлен код подтверждения"
+                    case core.constants.SMS:
+                        message = """
+                            На Ваш телефон отправлена СМС с кодом подтверждения
+                        """
+                    case core.constants.TELEGRAM:
+                        asyncio.run(
+                            send_code(
+                                f"Код для пользователя: {user.telephone} --> {msg_code}"
+                            )
+                        )
+                    case core.constants.NOTHING:
+                        user.is_active = True
+                        user.confirmation_code = ""
+                        user.save()
+                        message = "Аккаунт зарегистрирован, авторизуйтесь..."
+                return Response(message, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except IntegrityError:
             return Response(
-                "Аккаунт уже зарегистрирован, авторизуйтесь...",
+                "Проверьте вводимые данные и попробуйте ещё раз",
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -246,7 +253,7 @@ class ConfirmCodeView(APIView):
 
                     asyncio.run(
                         send_code(
-                            f"Код для пользователя: {user.telephone} подтвержден"
+                            f"Аккаунт для пользователя: {user.telephone} активирован"
                         )
                     )
                     return Response(
