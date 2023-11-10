@@ -227,7 +227,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         many=True,
         help_text="Время работы",
     )
-    zones = ZoneSmallSerializer(many=True)
+    zones = ZoneEstablishmentSerializer(many=True)
     socials = SocialField(
         slug_field="name",
         queryset=SocialEstablishment.objects.all(),
