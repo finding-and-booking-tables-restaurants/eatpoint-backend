@@ -6,6 +6,7 @@ from drf_spectacular.utils import (
     OpenApiParameter,
 )
 from rest_framework import viewsets, status
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import SAFE_METHODS, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -39,6 +40,7 @@ from establishments.models import (
     Service,
     ZoneEstablishment,
     City,
+    ImageEstablishment,
 )
 
 
@@ -163,6 +165,7 @@ class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
         "$kitchens__name",
         "$types__name",
     )
+    parser_classes = [MultiPartParser]
 
     def get_queryset(self):
         user = self.request.user
@@ -174,10 +177,47 @@ class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
             return EstablishmentSerializer
         return EstablishmentEditSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(
-            owner=self.request.user,
+    def create(self, request, *args, **kwargs):
+        serializer = EstablishmentEditSerializer(
+            data=request.data, context={"request": self.request}
         )
+        serializer.is_valid(raise_exception=True)
+        user = self.request.user
+        serializer.save(owner=user)
+
+        images = request.FILES.getlist("images", [])
+        for image in images:
+            ImageEstablishment.objects.create(
+                establishment=serializer.instance, image=image, name=image.name
+            )
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = EstablishmentEditSerializer(
+            instance,
+            data=request.data,
+            partial=True,
+            context={"request": self.request},
+        )
+        serializer.is_valid(raise_exception=True)
+        user = self.request.user
+        serializer.save(owner=user)
+
+        new_images = set(request.FILES.getlist("images", []))
+        existing_images = set(instance.images.all())
+
+        to_delete = existing_images - new_images
+        for image in to_delete:
+            image.delete()
+
+        for image in new_images:
+            ImageEstablishment.objects.create(
+                establishment=serializer.instance, image=image, name=image.name
+            )
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
