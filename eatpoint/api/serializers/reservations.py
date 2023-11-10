@@ -1,5 +1,6 @@
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from core.validators import (
     string_validator,
@@ -109,9 +110,18 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
 
 
 class UpdateReservationStatusSerializer(serializers.ModelSerializer):
+    status = serializers.BooleanField(required=True)
+
     class Meta:
         model = Reservation
         fields = ["status"]
+
+    def validate(self, validated_data):
+        if validated_data.get("status") is None:
+            raise ValidationError(
+                {"status": "Введите ture для подтверждения бронирования!"}
+            )
+        return validated_data
 
 
 class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
@@ -191,6 +201,7 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
             "reminder_three_hours",
             "reminder_half_on_hour",
             "zone",
+            "status",
         )
 
 
