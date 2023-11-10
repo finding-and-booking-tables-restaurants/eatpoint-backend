@@ -130,7 +130,7 @@ class SignUp(APIView):
                 )
             elif not created and not user.is_active:
                 return Response(
-                    "Аккаунт не подтвержден, введите код подтверждения...",
+                    "Аккаунт не активен, введите код подтверждения...",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if created:
@@ -159,13 +159,16 @@ class SignUp(APIView):
                                 f"Код для пользователя: {user.telephone} --> {msg_code}"
                             )
                         )
+                        message = "В Телеграм отправлен код подтверждения"
                     case core.constants.NOTHING:
                         user.is_active = True
                         user.confirmation_code = ""
                         user.save()
                         message = "Аккаунт зарегистрирован, авторизуйтесь..."
-                return Response(message, status=status.HTTP_200_OK)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    serializer.data | {"message": message},
+                    status=status.HTTP_201_CREATED,
+                )
         except IntegrityError:
             return Response(
                 "Проверьте вводимые данные и попробуйте ещё раз",
