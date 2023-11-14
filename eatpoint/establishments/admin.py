@@ -144,8 +144,11 @@ class EstablishmentAdmin(admin.ModelAdmin):
 
     def preview(self, obj):
         """Отображение превью заведения"""
-        return mark_safe(
-            f'<img src="{obj.poster.url}" style="max-height: 50px;">'
-        )
+        if obj.poster:
+            return mark_safe(
+                f'<img src="{obj.poster.url}" style="max-height: 50px;">'
+            )
+        else:
+            return "No preview"
 
     preview.short_description = "Превью"

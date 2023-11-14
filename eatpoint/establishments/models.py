@@ -151,6 +151,9 @@ class Establishment(models.Model):
     poster = models.ImageField(
         verbose_name="Постер заведения",
         upload_to="establishment/images/poster",
+        blank=True,
+        null=True,
+        default="",
     )
     email = models.EmailField(
         verbose_name="Почта",

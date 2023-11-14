@@ -8,6 +8,7 @@ from api.views.establishments import (
     CityViewSet,
     EstablishmentBusinessViewSet,
     FavoriteViewSet,
+    ImageEstablishmentViewSet,
 )
 from api.views.reservation import (
     ReservationsEditViewSet,
@@ -84,6 +85,11 @@ router.register(
     r"establishments/(?P<establishment_id>\d+)/availability",
     AvailabilityViewSet,
     basename="availability",
+)
+router.register(
+    r"images/(?P<establishment_id>\d+)",
+    ImageEstablishmentViewSet,
+    basename="image",
 )
 
 urlpatterns = [
