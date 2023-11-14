@@ -110,24 +110,19 @@ class ZoneEstablishmentSerializer(serializers.ModelSerializer):
         ]
 
 
-@extend_schema_field(OpenApiTypes.BYTE)
 class ImageSerializer(serializers.ModelSerializer):
     """Сериализация данных: Изображения заведения"""
 
-    # image = serializers.ImageField()
-    # name = serializers.CharField(required=False, default="Изображение")
+    image = serializers.ImageField()
+    name = serializers.CharField(required=False, default="Изображение")
 
     class Meta:
         model = ImageEstablishment
         fields = [
+            "id",
             "image",
             "name",
         ]
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        if instance.image:
-            return data.get("image")
 
 
 class WorkEstablishmentSerializer(serializers.ModelSerializer):
@@ -183,12 +178,12 @@ class SocialField(serializers.SlugRelatedField):
         return value.name
 
 
-class ImageField(serializers.SlugRelatedField):
-    def to_representation(self, value):
-        request = self.context.get("request")
-        if request is not None:
-            return request.build_absolute_uri(value.image.url)
-        return super().to_representation(value)
+class PosterEditSerializer(serializers.ModelSerializer):
+    poster = serializers.ImageField(required=True)
+
+    class Meta:
+        model = Establishment
+        fields = ("poster",)
 
 
 class ZoneSmallSerializer(serializers.ModelSerializer):
@@ -218,11 +213,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         many=True,
     )
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
-    images = ImageField(
-        slug_field="image",
-        queryset=ImageEstablishment.objects.all(),
-        many=True,
-    )
+    images = ImageSerializer(many=True)
     worked = WorkEstablishmentSerializer(
         many=True,
         help_text="Время работы",
@@ -295,32 +286,24 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         many=True,
         help_text="Время работы",
     )
-    zones = ZoneEstablishmentSerializer(many=True, required=True)
-    poster = serializers.ImageField()
-    socials = serializers.ListField(
-        child=serializers.CharField(),
-        required=False,
+    zones = ZoneEstablishmentSerializer(
+        many=True,
+        help_text="Зоны заведения",
     )
+    socials = serializers.ListField(required=False)
     telephone = PhoneNumberField(
         help_text="Номер телефона",
-        required=True,
     )
-    cities = CityListField(
-        required=True, slug_field="name", queryset=City.objects.all()
+    cities = CityListField(slug_field="name", queryset=City.objects.all())
+    kitchens = KitchenListField(
+        slug_field="name", queryset=Kitchen.objects.all(), many=True
     )
-    kitchens = serializers.ListField(
-        child=serializers.CharField(),
-        required=True,
+    types = TypeListField(
+        slug_field="name", queryset=TypeEst.objects.all(), many=True
     )
-    types = serializers.ListField(
-        child=serializers.CharField(),
-        required=True,
+    services = ServiceListField(
+        slug_field="name", queryset=Service.objects.all(), many=True
     )
-    services = serializers.ListField(
-        child=serializers.CharField(),
-        required=True,
-    )
-    images = ImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Establishment
@@ -340,31 +323,16 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "description",
             "worked",
             "socials",
-            "images",
-            "poster",
         ]
-
-    def validate(self, data):
-        """
-        Валидация данных при изменении.
-        """
-        if "types" not in data:
-            raise serializers.ValidationError(
-                "Типы заведения обязательны при изменении."
-            )
-        return data
 
     # def validate(self, data):
     #     """Проверка на уникальность поля day"""
+    #     poster = data.get("poster")
     #     worked = data.get("worked")
     #     field = "day"
     #     validate_uniq(worked, field)
-    #
+    #     file_size(poster)
     #     return data
-
-    # def validate_poster(self, value):
-    #
-    #     return value
 
     def __create_work(self, worked, establishment):
         """Создание времени работы"""
@@ -373,7 +341,10 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
                 [
                     WorkEstablishment(
                         establishment=establishment,
-                        **work,
+                        day=work.get("day"),
+                        day_off=work.get("day_off"),
+                        start=work.get("start"),
+                        end=work.get("end"),
                     )
                 ]
             )
@@ -383,7 +354,11 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         for zone in zones:
             ZoneEstablishment.objects.bulk_create(
                 [
-                    ZoneEstablishment(establishment=establishment, **zone),
+                    ZoneEstablishment(
+                        establishment=establishment,
+                        zone=zone.get("zone"),
+                        seats=zone.get("seats"),
+                    ),
                 ]
             )
 
@@ -406,18 +381,16 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
                 )
 
     def create(self, validated_data):
-        worked = validated_data.pop("worked", [])
-        zones = validated_data.pop("zones", [])
+        worked = validated_data.pop("worked")
+        zones = validated_data.pop("zones")
         socials = validated_data.pop("socials")
-        kitchens = validated_data.pop("kitchens", [])
-        types = validated_data.pop("types", [])
-        services = validated_data.pop("services", [])
-
+        kitchens = validated_data.pop("kitchens")
+        types = validated_data.pop("types")
+        services = validated_data.pop("services")
         establishment = Establishment.objects.create(**validated_data)
-
-        establishment.kitchens.set(Kitchen.objects.filter(name__in=kitchens))
-        establishment.types.set(TypeEst.objects.filter(name__in=types))
-        establishment.services.set(Service.objects.filter(name__in=services))
+        establishment.kitchens.set(kitchens)
+        establishment.types.set(types)
+        establishment.services.set(services)
         self.__create_work(worked, establishment)
         self.__create_zone(zones, establishment)
         self.__create_social(socials, establishment)
@@ -425,29 +398,28 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         return establishment
 
     def update(self, instance, validated_data):
-        worked = validated_data.pop("worked")
-        WorkEstablishment.objects.filter(establishment=instance).delete()
-        instance.worked.clear()
-        self.__create_work(worked, instance)
-        zones = validated_data.pop("zones", [])
-        ZoneEstablishment.objects.filter(establishment=instance).delete()
-        instance.zones.clear()
-        self.__create_zone(zones, instance)
-        socials = validated_data.pop("socials")
-        SocialEstablishment.objects.filter(establishment=instance).delete()
-        instance.socials.clear()
-        self.__create_social(socials, instance)
+        if "worked" in validated_data:
+            worked = validated_data.pop("worked")
+            WorkEstablishment.objects.filter(establishment=instance).delete()
+            instance.worked.clear()
+            self.__create_work(worked, instance)
+        if "zones" in validated_data:
+            zones = validated_data.pop("zones")
+            ZoneEstablishment.objects.filter(establishment=instance).delete()
+            instance.zones.clear()
+            self.__create_zone(zones, instance)
+        if "socials" in validated_data:
+            socials = validated_data.pop("socials")
+            SocialEstablishment.objects.filter(establishment=instance).delete()
+            instance.socials.clear()
+            self.__create_social(socials, instance)
+        if "kitchens" in validated_data:
+            instance.kitchens.set(validated_data.pop("kitchens"))
+        if "types" in validated_data:
+            instance.types.set(validated_data.pop("types"))
+        if "services" in validated_data:
+            instance.services.set(validated_data.pop("services"))
         self.__create_availavle(instance)
-
-        kitchens = validated_data.pop("kitchens", [])
-        types = validated_data.pop("types", [])
-        services = validated_data.pop("services", [])
-        instance.kitchens.clear()
-        instance.types.clear()
-        instance.services.clear()
-        instance.kitchens.set(Kitchen.objects.filter(name__in=kitchens))
-        instance.types.set(TypeEst.objects.filter(name__in=types))
-        instance.services.set(Service.objects.filter(name__in=services))
 
         return super().update(
             instance,
