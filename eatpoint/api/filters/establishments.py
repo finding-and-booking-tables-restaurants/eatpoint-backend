@@ -1,5 +1,6 @@
 from django_filters.rest_framework import filters, FilterSet
 from rest_framework.filters import SearchFilter
+from rest_framework.validators import ValidationError
 
 from core.choices import CHECK_CHOICES
 from establishments.models import (
@@ -38,6 +39,7 @@ class EstablishmentFilter(FilterSet):
         to_field_name="slug",
     )
     is_favorited = filters.BooleanFilter(method="filters_favorited")
+    location = filters.CharFilter(method="filter_location")
 
     class Meta:
         model = Establishment
@@ -48,6 +50,7 @@ class EstablishmentFilter(FilterSet):
             "average_check",
             "cities",
             "is_favorited",
+            "location",
         ]
 
     def filters_favorited(self, queryset, name, value):
@@ -57,6 +60,20 @@ class EstablishmentFilter(FilterSet):
         elif value:
             return queryset.filter(favorite__user=self.request.user)
         return Establishment.objects.all()
+
+    def filter_location(self, queryset, name, value):
+        try:
+            lat, lon = map(float, value.split(","))
+            return queryset.filter(
+                latitude__range=(lat - 0.05, lat + 0.05),
+                longitude__range=(lon - 0.05, lon + 0.05),
+            )
+        except ValueError:
+            raise ValidationError(
+                {
+                    "location": "Введите корректную позицию в формате широта,долгота"
+                }
+            )
 
 
 class CityFilter(SearchFilter):
