@@ -324,6 +324,31 @@ class ZoneEstablishment(models.Model):
         return self.zone
 
 
+class TypeEvents(models.Model):
+    """Тип события"""
+
+    name = models.CharField(
+        verbose_name="Тип события",
+        max_length=200,
+    )
+    description = models.TextField(
+        verbose_name="Описание",
+        max_length=2000,
+    )
+    slug = models.SlugField(
+        verbose_name="Ссылка",
+        max_length=200,
+        unique=True,
+    )
+
+    class Meta:
+        verbose_name = "Тип события"
+        verbose_name_plural = "Типы события"
+
+    def __str__(self):
+        return self.name
+
+
 class Event(models.Model):
     """События"""
 
@@ -350,17 +375,23 @@ class Event(models.Model):
     date_end = models.DateTimeField(
         verbose_name="Окончание события",
         blank=True,
+        null=True,
+    )
+    type_event = models.ManyToManyField(
+        TypeEvents,
+        verbose_name="Тип события",
+        related_name="establishments",
+        blank=True,
+    )
+    price = models.PositiveSmallIntegerField(
+        verbose_name="Цена события",
+        blank=True,
+        null=True,
     )
 
     class Meta:
         verbose_name = "Событие"
         verbose_name_plural = "События"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["name", "establishment", "date_start"],
-                name="unique_slots",
-            ),
-        ]
 
     def __str__(self):
         return f"{self.name}: {self.date_start} - {self.date_end}"
