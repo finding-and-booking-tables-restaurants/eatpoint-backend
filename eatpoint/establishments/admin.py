@@ -179,6 +179,7 @@ class EstablishmentAdmin(admin.ModelAdmin):
             "Средний чек и описание",
             {"fields": ("average_check", "description")},
         ),
+        ("Координаты", {"fields": ("latitude", "longitude")}),
     )
     list_filter = ("name",)
     empty_value_display = "-пусто-"

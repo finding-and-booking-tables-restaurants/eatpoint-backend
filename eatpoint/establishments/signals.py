@@ -1,10 +1,12 @@
+from geopy import Nominatim
+
 from core.services import days_available
 from establishments.models import (
     WorkEstablishment,
     ZoneEstablishment,
     Establishment,
 )
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from reservation.models import Availability
@@ -38,3 +40,17 @@ def create_availability_est(sender, instance, created, **kwargs):
     work = WorkEstablishment
     available = Availability
     days_available(establishment, zone, work, available)
+
+
+@receiver(pre_save, sender=Establishment)
+def create_coordinates_by_address(sender, instance, **kwargs):
+    geolocator = Nominatim(user_agent="Eatpoint")
+    address = str(instance.address)
+    city = str(instance.cities)
+    full_address = city + " " + address
+    location = geolocator.geocode(full_address)
+    if location:
+        instance.latitude, instance.longitude = (
+            location.latitude,
+            location.longitude,
+        )
