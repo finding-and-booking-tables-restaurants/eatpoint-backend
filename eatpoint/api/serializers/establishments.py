@@ -1,4 +1,5 @@
 from django.db.models import Avg
+from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema_field,
@@ -22,6 +23,7 @@ from establishments.models import (
     ImageEstablishment,
     TypeEst,
     City,
+    Event,
 )
 from reservation.models import Availability
 from users.models import User
@@ -471,3 +473,74 @@ class ReviewSerializer(serializers.ModelSerializer):
                     "Нельзя оставить повторный отзыв на одно заведение"
                 )
         return data
+
+
+class EventSerializer(serializers.ModelSerializer):
+    """Сериализатор событий"""
+
+    establishment = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+    image = Base64ImageField()
+
+    class Meta:
+        model = Event
+        fields = (
+            "name",
+            "establishment",
+            "description",
+            "date_start",
+            "date_end",
+            "type_event",
+            "price",
+            "image",
+        )
+
+
+class EventEditSerializer(serializers.ModelSerializer):
+    """Сериализатор событий"""
+
+    establishment = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Event
+        fields = (
+            "name",
+            "establishment",
+            "description",
+            "date_start",
+            "date_end",
+            "type_event",
+            "price",
+        )
+
+    def to_representation(self, instance):
+        return EventSerializer(
+            instance,
+            context={"request": self.context.get("request")},
+        ).data
+
+    def validate(self, data):
+        name = data.get("name")
+        date_start = data.get("date_start")
+        if Event.objects.filter(name=name, date_start=date_start).exists():
+            raise ValueError()
+
+    def create(self, validated_data):
+        type_event = validated_data.pop("type_event")
+        event = Event.objects.create(**validated_data)
+        event.kitchens.set(type_event)
+        return event
+
+    def update(self, instance, validated_data):
+        if "type_event" in validated_data:
+            instance.type_event.set(validated_data.pop("type_event"))
+
+        return super().update(
+            instance,
+            validated_data,
+        )
