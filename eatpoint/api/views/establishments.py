@@ -6,7 +6,7 @@ from drf_spectacular.utils import (
     OpenApiParameter,
 )
 from rest_framework import viewsets, status
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import SAFE_METHODS, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,6 +20,7 @@ from api.permissions import (
     IsAuthor,
     IsClient,
     IsRestorateur,
+    IsRestorateurEdit,
 )
 from api.serializers.establishments import (
     EstablishmentSerializer,
@@ -30,6 +31,8 @@ from api.serializers.establishments import (
     ServicesSerializer,
     ZoneEstablishmentSerializer,
     CitySerializer,
+    ImageSerializer,
+    EventSerializer,
 )
 from core.pagination import LargeResultsSetPagination
 from establishments.models import (
@@ -41,6 +44,7 @@ from establishments.models import (
     ZoneEstablishment,
     City,
     ImageEstablishment,
+    Event,
 )
 
 
@@ -131,6 +135,70 @@ class ServicesViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
+    tags=["Изображения"],
+    methods=["POST", "PATCH", "DELETE"],
+    description="Хозяин заведения",
+)
+@extend_schema_view(
+    create=extend_schema(
+        summary="Создать изображения",
+    ),
+    partial_update=extend_schema(
+        summary="Изменить изображения",
+    ),
+    destroy=extend_schema(summary="Удалить изображение"),
+)
+class ImageEstablishmentViewSet(viewsets.ModelViewSet):
+    """Добавление и редактирование изображений"""
+
+    serializer_class = ImageSerializer
+    parser_classes = (MultiPartParser, FormParser)
+    http_method_names = ("patch", "post", "delete")
+    permission_classes = (IsRestorateurEdit,)
+
+    def get_queryset(self):
+        establishment_id = self.kwargs.get("establishment_id")
+        images = ImageEstablishment.objects.filter(
+            establishment=establishment_id
+        )
+        return images
+
+    def create(self, request, *args, **kwargs):
+        establishment_id = self.kwargs.get("establishment_id")
+        instance = Establishment.objects.get(pk=establishment_id)
+
+        images_data = self.request.FILES.getlist("image")
+        user = self.request.user
+        if user == instance.owner:
+            current_images_count = ImageEstablishment.objects.filter(
+                establishment=instance
+            ).count()
+            max_images_count = 10
+
+            if current_images_count + len(images_data) > max_images_count:
+                return Response(
+                    {"detail": "Слишком много"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            for idx, image_data in enumerate(images_data):
+                image, created = ImageEstablishment.objects.get_or_create(
+                    establishment=instance,
+                    image=image_data,
+                    name=image_data.name,
+                )
+
+                if idx == 0:
+                    instance.poster = image.image
+                    instance.save()
+
+            return Response(
+                {"detail": "Создано"}, status=status.HTTP_201_CREATED
+            )
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+@extend_schema(
     tags=["Бизнес(заведения)"],
     methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
     description="Ресторатор",
@@ -165,7 +233,6 @@ class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
         "$kitchens__name",
         "$types__name",
     )
-    parser_classes = [MultiPartParser]
 
     def get_queryset(self):
         user = self.request.user
@@ -177,47 +244,10 @@ class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
             return EstablishmentSerializer
         return EstablishmentEditSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = EstablishmentEditSerializer(
-            data=request.data, context={"request": self.request}
+    def perform_create(self, serializer):
+        serializer.save(
+            owner=self.request.user,
         )
-        serializer.is_valid(raise_exception=True)
-        user = self.request.user
-        serializer.save(owner=user)
-
-        images = request.FILES.getlist("images", [])
-        for image in images:
-            ImageEstablishment.objects.create(
-                establishment=serializer.instance, image=image, name=image.name
-            )
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = EstablishmentEditSerializer(
-            instance,
-            data=request.data,
-            partial=True,
-            context={"request": self.request},
-        )
-        serializer.is_valid(raise_exception=True)
-        user = self.request.user
-        serializer.save(owner=user)
-
-        new_images = set(request.FILES.getlist("images", []))
-        existing_images = set(instance.images.all())
-
-        to_delete = existing_images - new_images
-        for image in to_delete:
-            image.delete()
-
-        for image in new_images:
-            ImageEstablishment.objects.create(
-                establishment=serializer.instance, image=image, name=image.name
-            )
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -430,3 +460,77 @@ class ReviewViewSet(viewsets.ModelViewSet):
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
         serializer.save(author=self.request.user, establishment=establishment)
+
+
+@extend_schema(
+    tags=["События"],
+    methods=["GET", "POST", "PATCH", "DELETE"],
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список событий к заведению с id=",
+        description="Клиент/ресторатор",
+    ),
+)
+class EventUsersViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Отзывы(пользователь)"""
+
+    serializer_class = EventSerializer
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        establishment_id = self.kwargs.get("establishment_id")
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        return establishment.event.all()
+
+    def perform_create(self, serializer):
+        establishment_id = self.kwargs.get("establishment_id")
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        serializer.save(establishment=establishment)
+
+
+@extend_schema(
+    tags=["Бизнес(события)"],
+    methods=["GET", "POST", "PATCH", "DELETE"],
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список событий",
+        description="Клиент/ресторатор",
+    ),
+    destroy=extend_schema(
+        summary="Удалить событие",
+        description="Ресторатор",
+    ),
+    create=extend_schema(summary="Создать событие"),
+    retrieve=extend_schema(
+        summary="Одно событий",
+        description="Клиент/ресторатор",
+    ),
+    partial_update=extend_schema(
+        summary="Редактировать событие",
+    ),
+    upload_image=extend_schema(
+        summary="Загрузить картинку для события",
+    ),
+)
+class EventBusinessViewSet(viewsets.ModelViewSet):
+    """Вьюсет события(бизнес)"""
+
+    serializer_class = EventSerializer
+    http_method_names = ["get", "post", "patch", "delete"]
+    permission_classes = (IsRestorateurEdit,)
+
+    # def get_serializer_class(self):
+    #     if self.request.method in SAFE_METHODS:
+    #         return EventSerializer
+    #     return EventEditSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Event.objects.filter(establishment__owner=user)
+
+    def perform_create(self, serializer):
+        establishment_id = self.kwargs.get("establishment_id")
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        serializer.save(establishment=establishment)
