@@ -16,6 +16,7 @@ from .models import (
     SocialEstablishment,
     Favorite,
     City,
+    TypeEvents,
 )
 
 
@@ -32,7 +33,7 @@ class ContactForm(forms.ModelForm):
 class ZoneAdmin(admin.ModelAdmin):
     """Админка: зона заведения"""
 
-    list_display = ("id", "zone")
+    list_display = ("zone", "id")
 
 
 @admin.register(Review)
@@ -42,19 +43,45 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ("id", "author", "establishment")
 
 
+@admin.register(TypeEvents)
+class TypeEventAdmin(admin.ModelAdmin):
+    """Админка: события"""
+
+    list_display = ("name", "id")
+    empty_value_display = "-пусто-"
+    prepopulated_fields = {"slug": ("name",)}
+
+
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     """Админка: события"""
 
-    list_display = ("id",)
+    list_display = ("name", "preview", "id", "date_start")
     empty_value_display = "-пусто-"
+    fieldsets = (
+        ("Основная информация", {"fields": ("name", "establishment")}),
+        ("Постер и описание", {"fields": ("image", "description")}),
+        ("Начало и конец события", {"fields": ("date_start", "date_end")}),
+        ("Тип события и стоимость", {"fields": ("type_event", "price")}),
+    )
+
+    def preview(self, obj):
+        """Отображение превью заведения"""
+        if obj.image:
+            return mark_safe(
+                f'<img src="{obj.image.url}" style="max-height: 50px;">'
+            )
+        else:
+            return "No preview"
+
+    preview.short_description = "Превью"
 
 
 @admin.register(Kitchen)
 class KitchenAdmin(admin.ModelAdmin):
     """Админка: кухня"""
 
-    list_display = ("id", "name", "description", "slug")
+    list_display = ("name", "id")
     empty_value_display = "-пусто-"
     prepopulated_fields = {"slug": ("name",)}
 
@@ -63,7 +90,7 @@ class KitchenAdmin(admin.ModelAdmin):
 class CityAdmin(admin.ModelAdmin):
     """Админка: город"""
 
-    list_display = ("id", "name", "slug")
+    list_display = ("name", "id")
     empty_value_display = "-пусто-"
     search_fields = ("name",)
 
@@ -72,7 +99,7 @@ class CityAdmin(admin.ModelAdmin):
 class TypeAdmin(admin.ModelAdmin):
     """Админка: тип заведения"""
 
-    list_display = ("id", "name", "description", "slug")
+    list_display = ("name", "id")
     empty_value_display = "-пусто-"
     prepopulated_fields = {"slug": ("name",)}
 
@@ -81,7 +108,7 @@ class TypeAdmin(admin.ModelAdmin):
 class ServiceAdmin(admin.ModelAdmin):
     """Админка: доп. услуги"""
 
-    list_display = ("id", "name", "description", "slug")
+    list_display = ("name", "id")
     empty_value_display = "-пусто-"
     prepopulated_fields = {"slug": ("name",)}
 
@@ -136,6 +163,22 @@ class EstablishmentAdmin(admin.ModelAdmin):
         "preview",
         "email",
         "is_verified",
+    )
+    fieldsets = (
+        ("Основная информация", {"fields": ("owner", "name", "poster")}),
+        ("Верификация", {"fields": ("is_verified",)}),
+        (
+            "Контакты и адреса",
+            {"fields": ("cities", "address", "telephone", "email")},
+        ),
+        (
+            "Кухни, типы, сервисы",
+            {"fields": ("types", "kitchens", "services")},
+        ),
+        (
+            "Средний чек и описание",
+            {"fields": ("average_check", "description")},
+        ),
     )
     list_filter = ("name",)
     empty_value_display = "-пусто-"

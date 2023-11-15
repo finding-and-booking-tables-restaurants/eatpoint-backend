@@ -88,3 +88,34 @@ class EstablishmentReservAdmin(admin.ModelAdmin):
         "date_reservation",
     )
     empty_value_display = "-пусто-"
+    fieldsets = (
+        ("Статус бронирования", {"fields": ("status",)}),
+        (
+            "Основная информация о клиенте",
+            {"fields": ("user", "first_name", "last_name")},
+        ),
+        ("Контакты клиента", {"fields": ("telephone", "email")}),
+        (
+            "Бронирование",
+            {
+                "fields": (
+                    "establishment",
+                    "zone",
+                    "number_guests",
+                    "date_reservation",
+                    "start_time_reservation",
+                    "comment",
+                )
+            },
+        ),
+        (
+            "Напоминания",
+            {
+                "fields": (
+                    "reminder_one_day",
+                    "reminder_three_hours",
+                    "reminder_half_on_hour",
+                )
+            },
+        ),
+    )
