@@ -16,19 +16,19 @@ class EstablishmentFilter(FilterSet):
     """Фильтры заведения"""
 
     kitchens = filters.ModelMultipleChoiceFilter(
-        field_name="kitchens__slug",
+        field_name="kitchens__name",
         queryset=Kitchen.objects.all(),
-        to_field_name="slug",
+        to_field_name="name",
     )
     types = filters.ModelMultipleChoiceFilter(
-        field_name="types__slug",
+        field_name="types__name",
         queryset=TypeEst.objects.all(),
-        to_field_name="slug",
+        to_field_name="name",
     )
     services = filters.ModelMultipleChoiceFilter(
         field_name="services__name",
         queryset=Service.objects.all(),
-        to_field_name="slug",
+        to_field_name="name",
     )
     average_check = filters.ChoiceFilter(
         choices=CHECK_CHOICES,
@@ -36,7 +36,7 @@ class EstablishmentFilter(FilterSet):
     cities = filters.ModelChoiceFilter(
         field_name="cities__name",
         queryset=City.objects.all(),
-        to_field_name="slug",
+        to_field_name="name",
     )
     is_favorited = filters.BooleanFilter(method="filters_favorited")
     location = filters.CharFilter(method="filter_location")

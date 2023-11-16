@@ -53,6 +53,7 @@ class CitySerializer(serializers.ModelSerializer):
         model = City
         fields = [
             "name",
+            "slug",
         ]
 
 
