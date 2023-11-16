@@ -17,8 +17,8 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-import core.choices
-import core.constants
+
+from core import constants
 from core.pagination import LargeResultsSetPagination
 from core.tgbot import send_code
 from users.models import User
@@ -140,7 +140,7 @@ class SignUp(APIView):
                 user.save()
 
                 match user.confirm_code_send_method:
-                    case core.constants.EMAIL:
+                    case constants.EMAIL:
                         send_mail(
                             "Код подтверждения EatPoint",
                             f"Код для подтверждения на сайте: {msg_code}",
@@ -149,17 +149,17 @@ class SignUp(APIView):
                             fail_silently=False,
                         )
                         message = "На Ваш email отправлен код подтверждения"
-                    case core.constants.SMS:
+                    case constants.SMS:
                         message = """
                             На Ваш телефон отправлена СМС с кодом подтверждения
                         """
-                    case core.constants.TELEGRAM:
+                    case constants.TELEGRAM:
                         asyncio.run(
                             send_code(
                                 f"Код для пользователя: {user.telephone} --> {msg_code}"
                             )
                         )
-                    case core.constants.NOTHING:
+                    case constants.NOTHING:
                         user.is_active = True
                         user.confirmation_code = ""
                         user.save()
@@ -211,7 +211,7 @@ class ConfirmCodeView(APIView):
             )
 
         match user.confirm_code_send_method:
-            case core.constants.NOTHING:
+            case constants.NOTHING:
                 user.is_active = True
                 user.is_agreement = True
                 user.confirmation_code = ""
@@ -220,7 +220,7 @@ class ConfirmCodeView(APIView):
                     "Аккаунт зарегистрирован, можете войти в систему",
                     status=status.HTTP_201_CREATED,
                 )
-            case core.constants.EMAIL:
+            case constants.EMAIL:
                 if user.confirmation_code == confirmation_code:
                     user.is_active = True
                     user.is_agreement = True
@@ -242,9 +242,9 @@ class ConfirmCodeView(APIView):
                     "Вы ввели не правильный код",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            case core.constants.SMS:
+            case constants.SMS:
                 pass
-            case core.constants.TELEGRAM:
+            case constants.TELEGRAM:
                 if user.confirmation_code == confirmation_code:
                     user.is_active = True
                     user.is_agreement = True
@@ -301,7 +301,7 @@ class ConfirmCodeRefreshView(APIView):
         user.save()
 
         match user.confirm_code_send_method:
-            case core.constants.EMAIL:
+            case constants.EMAIL:
                 send_mail(
                     "Код подтверждения EatPoint",
                     f"Код для подтверждения на сайте: {message}",
@@ -314,7 +314,7 @@ class ConfirmCodeRefreshView(APIView):
                     status=status.HTTP_200_OK,
                 )
 
-            case core.constants.TELEGRAM:
+            case constants.TELEGRAM:
                 asyncio.run(
                     send_code(
                         f"Код для пользователя: {user.telephone} --> {message}"
@@ -325,7 +325,7 @@ class ConfirmCodeRefreshView(APIView):
                     status=status.HTTP_200_OK,
                 )
 
-            case core.constants.SMS:
+            case constants.SMS:
                 pass
 
 

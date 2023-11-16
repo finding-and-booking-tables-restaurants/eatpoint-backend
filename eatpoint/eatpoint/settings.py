@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     "django_filters",
     "phonenumber_field",
-    "jwt",
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
@@ -70,6 +69,8 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "analytics.apps.AnalyticsConfig",
     "django.contrib.postgres",
+    "django_celery_results",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -233,21 +234,6 @@ else:
 TIME_INPUT_FORMATS = ("%I:%M",)
 PHONENUMBER_DEFAULT_REGION = "RU"
 
-JAZZMIN_SETTINGS = {
-    "site_title": "Eatpoint Admin",
-    "site_header": "Администрирование Eatpoint",
-    "site_brand": "EatPoint",
-    # "site_icon": "jazzmin/admin/bird_2.jpg",
-    # "site_logo": "/jazzmin/admin/bird_2.jpg",
-    # "site_logo_classes": "img-circle",
-    "welcome_sign": "Добро пожаловать в EatPoint",
-    "copyright": "Яндекс.Акселератор",
-    "dark_mode_theme": "darkly",
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "use_google_fonts_cdn": True,
-}
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -268,3 +254,28 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+# Celery Configuration Options
+REDIS_HOST = "localhost"
+REDIS_PORT = "6379"
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+CELERY_RESULT_BACKEND = "django-db"
+# CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_CACHE_BACKEND = "default"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"

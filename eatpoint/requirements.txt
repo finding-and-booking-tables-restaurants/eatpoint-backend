@@ -21,3 +21,8 @@ Pillow==10.0.1
 PyJWT==2.8.0
 django-cors-headers==4.2.0
 python-telegram-bot==20.6
+celery==5.3.5
+redis==5.0.1
+django-celery-results==2.5.1
+django-celery-beat==2.5.0
+django-redis==5.4.0

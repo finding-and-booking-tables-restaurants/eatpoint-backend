@@ -51,6 +51,40 @@ services:
     depends_on:
       - nginx
 
+  redis:
+    restart: unless-stopped
+    image: redis:7.0.5-alpine
+    container_name: redis
+
+  worker:
+    restart: unless-stopped
+    build:
+      context: .
+    entrypoint: celery
+    command: -A eatpoint worker --loglevel=info
+    volumes:
+      - .:/usr/src/app
+    links:
+      - redis
+    depends_on:
+      - backend
+      - redis
+
+  beats:
+    restart: unless-stopped
+    build:
+      context: .
+    entrypoint: celery
+    command: -A eatpoint beat --loglevel=info
+    volumes:
+      - .:/usr/src/app
+    links:
+      - redis
+    depends_on:
+      - backend
+      - redis
+      - worker
+
 volumes:
   static_value:
   media_value:

@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-import core.constants
+from core.constants import CLIENT
 
 
 class IsAnonymous(permissions.BasePermission):
@@ -15,7 +15,7 @@ class IsUserReservationCreate(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if request.user.is_authenticated:
-            return request.user.role == core.constants.CLIENT
+            return request.user.role == CLIENT
 
         elif request.user.is_anonymous:
             return True
@@ -30,7 +30,7 @@ class IsClient(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if request.user.is_authenticated:
-            return request.user.role == core.constants.CLIENT
+            return request.user.role == CLIENT
 
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user

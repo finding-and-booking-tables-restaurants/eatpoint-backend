@@ -4,8 +4,14 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
-import core.choices
-import core.constants
+from core.choices import SEND_CONFIRM_CODE_METHOD, ROLE_CHOICES
+from core.constants import (
+    CLIENT,
+    RESTORATEUR,
+    ADMINISTRATOR,
+    MIN_LIMIT_CONFIRM_CODE,
+    MAX_LIMIT_CONFIRM_CODE,
+)
 from .usermanager import UserManager
 
 
@@ -32,7 +38,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     role = models.CharField(
         "User`s role",
         max_length=25,
-        choices=core.choices.ROLE_CHOICES,
+        choices=ROLE_CHOICES,
     )
 
     confirmation_code = models.CharField(
@@ -44,7 +50,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     confirm_code_send_method = models.CharField(
         "Способ отправки кода подтверждения",
         max_length=10,
-        choices=core.choices.SEND_CONFIRM_CODE_METHOD,
+        choices=SEND_CONFIRM_CODE_METHOD,
     )
 
     is_agreement = models.BooleanField("Agreement", default=False)
@@ -75,15 +81,15 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     @property
     def is_client(self):
-        return self.role == core.constants.CLIENT
+        return self.role == CLIENT
 
     @property
     def is_restorateur(self):
-        return self.role == core.constants.RESTORATEUR
+        return self.role == RESTORATEUR
 
     @property
     def is_administrator(self):
-        return self.role == core.constants.ADMINISTRATOR
+        return self.role == ADMINISTRATOR
 
     @property
     def confirm_code(self):
@@ -94,7 +100,7 @@ class User(PermissionsMixin, AbstractBaseUser):
         random.seed()
         return str(
             random.randint(
-                core.constants.MIN_LIMIT_CONFIRM_CODE,
-                core.constants.MAX_LIMIT_CONFIRM_CODE,
+                MIN_LIMIT_CONFIRM_CODE,
+                MAX_LIMIT_CONFIRM_CODE,
             )
         )

@@ -2,7 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-import core.constants
+from core.constants import CLIENT, RESTORATEUR, SMS, EMAIL, TELEGRAM, NOTHING
 from core.validators import string_validator
 from users.models import User
 from phonenumber_field.serializerfields import PhoneNumberField
@@ -44,11 +44,11 @@ class UserSerializer(MyBaseSerializer):
         user_with_email = User.objects.filter(email=email)
         user_with_telephone = User.objects.filter(telephone=telephone)
         if data.get("role") not in (
-            core.constants.CLIENT,
-            core.constants.RESTORATEUR,
+            CLIENT,
+            RESTORATEUR,
         ):
             raise serializers.ValidationError(
-                f"Роль должна быть {core.constants.CLIENT} или {core.constants.RESTORATEUR}"
+                f"Роль должна быть {CLIENT} или {RESTORATEUR}"
             )
         if (user_with_email.exists() or user_with_telephone.exists()) and (
             user_with_email[0].is_active or user_with_telephone[0].is_active
@@ -143,36 +143,35 @@ class SignUpSerializer(MyBaseSerializer):
         email = data.get("email")
         telephone = data.get("telephone")
         if data.get("confirm_code_send_method") not in (
-            core.constants.EMAIL,
-            core.constants.SMS,
-            core.constants.TELEGRAM,
-            core.constants.NOTHING,
+            EMAIL,
+            SMS,
+            TELEGRAM,
+            NOTHING,
         ):
             raise serializers.ValidationError(
-                f"Метод отправки кода может быть {core.constants.EMAIL} "
-                f"или {core.constants.SMS} или {core.constants.TELEGRAM} "
-                f"или {core.constants.NOTHING}"
+                f"Метод отправки кода может быть {EMAIL} "
+                f"или {SMS} или {TELEGRAM} "
+                f"или {NOTHING}"
             )
 
         # =========== Нужно убрать если включим отправку по SMTP и другой способ ======
         if data.get("confirm_code_send_method") in (
-            core.constants.EMAIL,
-            core.constants.SMS,
-            # core.constants.TELEGRAM,
+            EMAIL,
+            SMS,
         ):
             raise serializers.ValidationError(
                 f"Способ отправки кода '{data.get('confirm_code_send_method')}' "
                 f"отключен... "
-                f"укажите метод '{core.constants.NOTHING}'"
+                f"укажите метод '{NOTHING}'"
             )
         # ============================================================================
 
         if data.get("role") not in (
-            core.constants.CLIENT,
-            core.constants.RESTORATEUR,
+            CLIENT,
+            RESTORATEUR,
         ):
             raise serializers.ValidationError(
-                f"Роль может быть {core.constants.CLIENT} или {core.constants.RESTORATEUR}"
+                f"Роль может быть {CLIENT} или {RESTORATEUR}"
             )
         if not User.objects.filter(telephone=telephone, email=email).exists():
             if (

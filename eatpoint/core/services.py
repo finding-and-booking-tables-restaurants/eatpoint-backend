@@ -2,8 +2,14 @@ from datetime import datetime, timedelta
 import random
 import locale
 
-import core
-from core.constants import INTERVAL_MINUTES, START_TIME, END_TIME
+
+from core.constants import (
+    INTERVAL_MINUTES,
+    START_TIME,
+    END_TIME,
+    MIN_LIMIT_RESERVATION_CODE,
+    MAX_LIMIT_RESERVATION_CODE,
+)
 
 
 def time_generator():
@@ -29,8 +35,8 @@ def generate_reservation_code():
     random.seed()
     return str(
         random.randint(
-            core.constants.MIN_LIMIT_RESERVATION_CODE,
-            core.constants.MAX_LIMIT_RESERVATION_CODE,
+            MIN_LIMIT_RESERVATION_CODE,
+            MAX_LIMIT_RESERVATION_CODE,
         )
     )
 
