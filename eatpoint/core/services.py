@@ -45,7 +45,7 @@ def days_available(establishment, zone, work, available):
     """Создает свободные дни"""
     locale.setlocale(locale.LC_ALL, "ru_RU.UTF-8")
     start_date = datetime.now().date()
-    days = 7
+    days = 30
     zones = zone.objects.filter(establishment=establishment)
     for day in range(days):
         current_date = start_date + timedelta(days=day)
