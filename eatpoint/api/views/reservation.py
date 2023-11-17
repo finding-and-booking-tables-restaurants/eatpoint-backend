@@ -101,7 +101,7 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
             except ConfirmationCode.DoesNotExist:
                 return Response(
                     {"detail": "Подтвердите номер телефона!"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_403_FORBIDDEN,
                 )
             serializer.save(user=None, establishment=establishment)
         else:

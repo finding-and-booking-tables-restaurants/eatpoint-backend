@@ -172,3 +172,5 @@ cython_debug/
 /infra/settin22323gs.py
 /infra/settin22323gs.py
 /.env
+/frontend/
+/infra/persistentdata/
