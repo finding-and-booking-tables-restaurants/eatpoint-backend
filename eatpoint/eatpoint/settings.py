@@ -256,26 +256,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Celery Configuration Options
-REDIS_HOST = "localhost"
-REDIS_PORT = "6379"
-
-
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-    }
-}
 
 
 CELERY_TIMEZONE = "Europe/Moscow"
-CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
-CELERY_RESULT_BACKEND = "django-db"
-# CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
-CELERY_CACHE_BACKEND = "default"
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"

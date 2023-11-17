@@ -55,11 +55,14 @@ services:
     restart: unless-stopped
     image: redis:7.0.5-alpine
     container_name: redis
+    hostname: redis
+    ports:
+      - "6379:6379"
 
   worker:
     restart: unless-stopped
     build:
-      context: .
+      context: ../eatpoint
     entrypoint: celery
     command: -A eatpoint worker --loglevel=info
     volumes:
@@ -73,7 +76,7 @@ services:
   beats:
     restart: unless-stopped
     build:
-      context: .
+      context: ../eatpoint
     entrypoint: celery
     command: -A eatpoint beat --loglevel=info
     volumes:
