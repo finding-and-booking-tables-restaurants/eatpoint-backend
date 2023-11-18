@@ -36,6 +36,13 @@ class ZoneAdmin(admin.ModelAdmin):
     list_display = ("zone", "id")
 
 
+@admin.register(ImageEstablishment)
+class ImageEstablishmentAdmin(admin.ModelAdmin):
+    """Админка: отзывы"""
+
+    list_display = ("id", "name")
+
+
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     """Админка: отзывы"""
