@@ -72,7 +72,6 @@ router.register(
     EstablishmentBusinessViewSet,
     basename="establishments-business",
 )
-
 router.register("kitchens", KitchenViewSet, basename="Kitchens")
 router.register("services", ServicesViewSet, basename="service")
 router.register("types", TypeEstViewSet, basename="types")

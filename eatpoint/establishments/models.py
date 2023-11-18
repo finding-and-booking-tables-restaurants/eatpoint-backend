@@ -133,6 +133,18 @@ class Establishment(models.Model):
         verbose_name="Адрес заведения",
         max_length=100,
     )
+    latitude = models.FloatField(
+        verbose_name="Широта",
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+    longitude = models.FloatField(
+        verbose_name="Долгота",
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     kitchens = models.ManyToManyField(
         Kitchen,
         verbose_name="Кухня заведения",
