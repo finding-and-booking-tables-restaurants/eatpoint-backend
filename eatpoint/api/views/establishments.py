@@ -168,6 +168,11 @@ class ImageEstablishmentViewSet(viewsets.ModelViewSet):
         instance = Establishment.objects.get(pk=establishment_id)
 
         images_data = self.request.FILES.getlist("image")
+        if not images_data:
+            return Response(
+                {"detail": "Не было передано ни одного изображения"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         user = self.request.user
         if user == instance.owner:
             current_images_count = ImageEstablishment.objects.filter(
