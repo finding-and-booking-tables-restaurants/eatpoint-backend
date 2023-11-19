@@ -11,6 +11,7 @@ from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
 from core.services import days_available
+from core.validators import validate_uniq
 from establishments.models import (
     Establishment,
     WorkEstablishment,
@@ -282,6 +283,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
+    poster = Base64ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
@@ -312,6 +314,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         model = Establishment
         fields = [
             "id",
+            "poster",
             "owner",
             "name",
             "types",
@@ -328,14 +331,12 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "socials",
         ]
 
-    # def validate(self, data):
-    #     """Проверка на уникальность поля day"""
-    #     poster = data.get("poster")
-    #     worked = data.get("worked")
-    #     field = "day"
-    #     validate_uniq(worked, field)
-    #     file_size(poster)
-    #     return data
+    def validate(self, data):
+        """Проверка на уникальность поля day"""
+        worked = data.get("worked")
+        field = "day"
+        validate_uniq(worked, field)
+        return data
 
     def __create_work(self, worked, establishment):
         """Создание времени работы"""

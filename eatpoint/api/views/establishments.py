@@ -166,8 +166,13 @@ class ImageEstablishmentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         establishment_id = self.kwargs.get("establishment_id")
         instance = Establishment.objects.get(pk=establishment_id)
-
+        print(self.request.FILES)
         images_data = self.request.FILES.getlist("image")
+        if not images_data:
+            return Response(
+                {"detail": "Не было передано ни одного изображения"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         user = self.request.user
         if user == instance.owner:
             current_images_count = ImageEstablishment.objects.filter(
@@ -181,16 +186,12 @@ class ImageEstablishmentViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            for idx, image_data in enumerate(images_data):
-                image, created = ImageEstablishment.objects.get_or_create(
+            for image_data in images_data:
+                ImageEstablishment.objects.get_or_create(
                     establishment=instance,
                     image=image_data,
                     name=image_data.name,
                 )
-
-                if idx == 0:
-                    instance.poster = image.image
-                    instance.save()
 
             return Response(
                 {"detail": "Создано"}, status=status.HTTP_201_CREATED
