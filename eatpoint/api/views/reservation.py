@@ -30,7 +30,9 @@ from api.serializers.reservations import (
     ReservationsUserListSerializer,
     ReservationsRestorateurListSerializer,
     AvailabilitySerializer,
-    UpdateReservationStatusSerializer, DateAvailabilitySerializer, TimeAvailabilitySerializer,
+    UpdateReservationStatusSerializer,
+    DateAvailabilitySerializer,
+    TimeAvailabilitySerializer,
 )
 from reservation.models import (
     Reservation,
@@ -53,13 +55,15 @@ from reservation.models import (
 )
 class DateAvailabilityView(APIView):
     """Список свободных дан зоны(больше текущей даты)"""
+
     def get(self, request, zone_id):
         current_date = date.today()
-        availabilities = Availability.objects.filter(zone_id=zone_id, date__gte=current_date).order_by('date')
+        availabilities = Availability.objects.filter(
+            zone_id=zone_id, date__gte=current_date
+        ).order_by("date")
         serializer = DateAvailabilitySerializer(availabilities, many=True)
         data = serializer.data
         return Response(data)
-
 
 
 @extend_schema(
@@ -75,13 +79,16 @@ class DateAvailabilityView(APIView):
 )
 class TimeAvailabilityView(APIView):
     """Список свободных дан зоны(больше текущей даты)"""
+
     def get(self, request, dates, establishment_id):
         locale.setlocale(locale.LC_ALL, "ru_RU.UTF-8")
         now_time = datetime.now().time().strftime("%H:%M")
         now_date = datetime.now().date()
         date_object = datetime.strptime(dates, "%Y-%m-%d")
         day_of_week = date_object.strftime("%A").lower()
-        worked = WorkEstablishment.objects.get(day=day_of_week, establishment=establishment_id)
+        worked = WorkEstablishment.objects.get(
+            day=day_of_week, establishment=establishment_id
+        )
         start = worked.start
         end = worked.end
         interval = INTERVAL_MINUTES
@@ -89,7 +96,9 @@ class TimeAvailabilityView(APIView):
             times = time_generator(start, end, interval, str(now_time))
         else:
             times = time_generator(start, end, interval)
-        serialized_times = TimeAvailabilitySerializer([{'time': time} for time in times], many=True)
+        serialized_times = TimeAvailabilitySerializer(
+            [{"time": time} for time in times], many=True
+        )
         return Response(serialized_times.data)
 
 

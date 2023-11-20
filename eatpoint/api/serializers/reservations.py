@@ -190,9 +190,7 @@ class DateAvailabilitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Availability
-        fields = (
-            "date",
-        )
+        fields = ("date",)
 
 
 @extend_schema_field(OpenApiTypes.TIME)
