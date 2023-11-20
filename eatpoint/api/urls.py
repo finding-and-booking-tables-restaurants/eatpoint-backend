@@ -17,7 +17,7 @@ from api.views.reservation import (
     ReservationsUserListViewSet,
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
-    AvailabilityViewSet,
+    AvailabilityViewSet, DateAvailabilityView, TimeAvailabilityView,
 )
 from api.views.users import (
     SignUp,
@@ -53,7 +53,6 @@ router.register(
     ReservationsEditViewSet,
     basename="reservations",
 )
-
 router.register(
     "reservations/history",
     ReservationsHistoryListViewSet,
@@ -129,6 +128,8 @@ urlpatterns = [
         AnalyticsListViewSet.as_view(),
         name="establishment-analytics-list",
     ),
+    path('v1/availability/time/<str:dates>/<int:establishment_id>/', TimeAvailabilityView.as_view()),
+    path('v1/availability/date/<int:zone_id>/', DateAvailabilityView.as_view()),
     path(
         "v1/establishments/<int:establishment_id>/favorite/",
         FavoriteViewSet.as_view(),
