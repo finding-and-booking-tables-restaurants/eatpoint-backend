@@ -2,20 +2,24 @@ from datetime import datetime, timedelta
 import random
 import locale
 
-import core
-from core.constants import INTERVAL_MINUTES, START_TIME, END_TIME
+from core.constants import (
+    MIN_LIMIT_RESERVATION_CODE,
+    MAX_LIMIT_RESERVATION_CODE,
+)
 
 
-def time_generator():
+def time_generator(start, end, interval, time="00:00"):
     """Выводит списко времени с заданым интервалом"""
-    start_time = datetime.strptime(START_TIME, "%H:%M")
-    end_time = datetime.strptime(END_TIME, "%H:%M")
+    start_time = datetime.strptime(start, "%H:%M")
+    end_time = datetime.strptime(end, "%H:%M")
+    now_time = datetime.strptime(time, "%H:%M")
     time_list = []
 
     current_time = start_time
     while current_time <= end_time:
-        time_list.append(current_time.strftime("%H:%M"))
-        current_time += timedelta(minutes=INTERVAL_MINUTES)
+        if current_time >= now_time:
+            time_list.append(current_time.strftime("%H:%M"))
+        current_time += timedelta(minutes=interval)
     return time_list
 
 
@@ -29,8 +33,8 @@ def generate_reservation_code():
     random.seed()
     return str(
         random.randint(
-            core.constants.MIN_LIMIT_RESERVATION_CODE,
-            core.constants.MAX_LIMIT_RESERVATION_CODE,
+            MIN_LIMIT_RESERVATION_CODE,
+            MAX_LIMIT_RESERVATION_CODE,
         )
     )
 

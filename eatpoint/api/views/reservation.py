@@ -1,5 +1,6 @@
 import asyncio
-from datetime import datetime
+import locale
+from datetime import datetime, date
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -7,6 +8,7 @@ from drf_spectacular.utils import OpenApiParameter
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, status
+from rest_framework.views import APIView
 
 from api.permissions import (
     IsUserReservationCreate,
@@ -14,20 +16,23 @@ from api.permissions import (
     IsClient,
     IsRestorateurEdit,
 )
+from core.constants import INTERVAL_MINUTES
 from core.pagination import LargeResultsSetPagination
+from core.services import time_generator
 from core.tgbot import send_code
 from core.validators import (
     validate_reserv_anonim,
 )
-from establishments.models import Establishment
+from establishments.models import Establishment, WorkEstablishment
 from api.serializers.reservations import (
     ReservationsEditSerializer,
-    # AuthReservationsEditSerializer,
     ReservationsHistoryEditSerializer,
     ReservationsUserListSerializer,
     ReservationsRestorateurListSerializer,
     AvailabilitySerializer,
     UpdateReservationStatusSerializer,
+    DateAvailabilitySerializer,
+    TimeAvailabilitySerializer,
 )
 from reservation.models import (
     Reservation,
@@ -35,6 +40,66 @@ from reservation.models import (
     ConfirmationCode,
     Availability,
 )
+
+
+@extend_schema(
+    tags=["Дата и время броинрования"],
+    methods=["GET"],
+    description="Клиент",
+)
+@extend_schema_view(
+    get=extend_schema(
+        summary="Получить даты для зоны",
+        responses=DateAvailabilitySerializer(many=True),
+    ),
+)
+class DateAvailabilityView(APIView):
+    """Список свободных дан зоны(больше текущей даты)"""
+
+    def get(self, request, zone_id):
+        current_date = date.today()
+        availabilities = Availability.objects.filter(
+            zone_id=zone_id, date__gte=current_date
+        ).order_by("date")
+        serializer = DateAvailabilitySerializer(availabilities, many=True)
+        data = serializer.data
+        return Response(data)
+
+
+@extend_schema(
+    tags=["Дата и время броинрования"],
+    methods=["GET"],
+    description="Клиент",
+)
+@extend_schema_view(
+    get=extend_schema(
+        summary="Получить время для бронирования на дату для заведения",
+        responses=TimeAvailabilitySerializer(many=True),
+    ),
+)
+class TimeAvailabilityView(APIView):
+    """Список свободных дан зоны(больше текущей даты)"""
+
+    def get(self, request, dates, establishment_id):
+        locale.setlocale(locale.LC_ALL, "ru_RU.UTF-8")
+        now_time = datetime.now().time().strftime("%H:%M")
+        now_date = datetime.now().date()
+        date_object = datetime.strptime(dates, "%Y-%m-%d")
+        day_of_week = date_object.strftime("%A").lower()
+        worked = WorkEstablishment.objects.get(
+            day=day_of_week, establishment=establishment_id
+        )
+        start = worked.start
+        end = worked.end
+        interval = INTERVAL_MINUTES
+        if str(now_date) == dates:
+            times = time_generator(start, end, interval, str(now_time))
+        else:
+            times = time_generator(start, end, interval)
+        serialized_times = TimeAvailabilitySerializer(
+            [{"time": time} for time in times], many=True
+        )
+        return Response(serialized_times.data)
 
 
 @extend_schema(
@@ -61,15 +126,6 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
     pagination_class = LargeResultsSetPagination
     permission_classes = (IsUserReservationCreate,)
     serializer_class = ReservationsEditSerializer
-
-    # def get_serializer_class(self):
-    #     """Выбор serializer_class в зависимости от типа запроса"""
-    #     if (
-    #         self.request.user.is_anonymous
-    #         or self.request.method in SAFE_METHODS
-    #     ):
-    #         return ReservationsEditSerializer
-    #     return AuthReservationsEditSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -285,11 +341,6 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         """Изменяет status бронирования"""
         instance = self.get_object()
         reservation_id = self.kwargs.get("pk")
-        # if self.request.data.get("status") is None:
-        #     return Response(
-        #         {"status": "FFFFFFFFFFFF!"},
-        #         status=status.HTTP_404_NOT_FOUND,
-        #     )
         if Reservation.objects.filter(
             id=reservation_id,
             status=True,
