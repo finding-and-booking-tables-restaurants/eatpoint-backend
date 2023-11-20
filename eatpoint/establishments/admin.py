@@ -6,7 +6,8 @@ from phonenumber_field.widgets import PhoneNumberPrefixWidget
 from .models import (
     Establishment,
     Kitchen,
-    OwnerResponse, Service,
+    OwnerResponse,
+    Service,
     Event,
     Review,
     TypeEst,

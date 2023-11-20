@@ -8,7 +8,11 @@ from drf_spectacular.utils import (
 from rest_framework import generics, viewsets, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, IsAdminUser
+from rest_framework.permissions import (
+    IsAuthenticated,
+    SAFE_METHODS,
+    IsAdminUser,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -25,7 +29,8 @@ from api.permissions import (
 )
 from api.serializers.establishments import (
     EstablishmentSerializer,
-    OwnerResponseSerializer, ReviewSerializer,
+    OwnerResponseSerializer,
+    ReviewSerializer,
     EstablishmentEditSerializer,
     KitchenSerializer,
     TypeEstSerializer,
@@ -499,6 +504,7 @@ class EventUsersViewSet(viewsets.ModelViewSet):
 )
 class OwnerResponseCreateView(generics.CreateAPIView):
     """Вьюсет: Отзывы(владелец заведения)"""
+
     serializer_class = OwnerResponseSerializer
     permission_classes = [IsAuthenticated]
 
@@ -508,7 +514,7 @@ class OwnerResponseCreateView(generics.CreateAPIView):
     )
     def perform_create(self, serializer):
         """Получаем отзыв_id из URL"""
-        review_id = self.kwargs.get('review_id')
+        review_id = self.kwargs.get("review_id")
         review = Review.objects.get(pk=review_id)
         establishment_owner = self.request.user
         if establishment_owner != review.establishment.owner:
