@@ -2,7 +2,10 @@ from datetime import datetime, timedelta
 import random
 import locale
 
-from core.constants import MIN_LIMIT_RESERVATION_CODE, MAX_LIMIT_RESERVATION_CODE
+from core.constants import (
+    MIN_LIMIT_RESERVATION_CODE,
+    MAX_LIMIT_RESERVATION_CODE,
+)
 
 
 def time_generator(start, end, interval, time="00:00"):
