@@ -5,9 +5,10 @@ from drf_spectacular.utils import (
     extend_schema_view,
     OpenApiParameter,
 )
-from rest_framework import viewsets, status
+from rest_framework import generics, viewsets, status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import SAFE_METHODS, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -24,7 +25,7 @@ from api.permissions import (
 )
 from api.serializers.establishments import (
     EstablishmentSerializer,
-    ReviewSerializer,
+    OwnerResponseSerializer, ReviewSerializer,
     EstablishmentEditSerializer,
     KitchenSerializer,
     TypeEstSerializer,
@@ -39,7 +40,7 @@ from establishments.models import (
     Establishment,
     Favorite,
     Kitchen,
-    TypeEst,
+    OwnerResponse, Review, TypeEst,
     Service,
     ZoneEstablishment,
     City,
@@ -488,6 +489,39 @@ class EventUsersViewSet(viewsets.ModelViewSet):
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
         serializer.save(establishment=establishment)
+
+
+@extend_schema(
+    tags=["Ответы владельца заведения"],
+    methods=["POST"],
+    description="Добавление ответа владельца заведения к отзыву",
+)
+class OwnerResponseCreateView(generics.CreateAPIView):
+    """Вьюсет: Отзывы(владелец заведения)"""
+    serializer_class = OwnerResponseSerializer
+    permission_classes = [
+        IsAuthenticated]  # Только аутентифицированные пользователи могут создавать ответы
+
+    @extend_schema(
+        request=OwnerResponseSerializer,
+        responses={201: OwnerResponseSerializer},
+    )
+    def perform_create(self, serializer):
+        # Получаем отзыв_id из URL
+        review_id = self.kwargs.get('review_id')
+
+        # Проверяем, является ли пользователь владельцем ресторана, чтобы ответить на отзыв
+        review = Review.objects.get(pk=review_id)
+        establishment_owner = self.request.user  # Предполагаем, что владелец ресторана хранится в поле "owner" модели Review
+        if establishment_owner != review.establishment.owner:
+            # Если текущий пользователь не является владельцем ресторана отзыва, возвращаем ошибку "403 Forbidden"
+            raise PermissionDenied(
+                "У вас нет прав для ответа на этот отзыв."
+                )
+
+        # Сохраняем ответ владельца ресторана
+        serializer.save()
+
 
 
 @extend_schema(
