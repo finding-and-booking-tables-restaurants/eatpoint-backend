@@ -1,3 +1,5 @@
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -181,3 +183,20 @@ class AvailabilitySerializer(serializers.ModelSerializer):
             "date",
             "available_seats",
         )
+
+
+class DateAvailabilitySerializer(serializers.ModelSerializer):
+    """Сериализатор свободных дат и времени для зоны"""
+
+    class Meta:
+        model = Availability
+        fields = (
+            "date",
+        )
+
+
+@extend_schema_field(OpenApiTypes.TIME)
+class TimeAvailabilitySerializer(serializers.Serializer):
+    """Сериализатор свободных дат и времени для зоны"""
+
+    time = serializers.TimeField(format="%H:%M")
