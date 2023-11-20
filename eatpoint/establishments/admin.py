@@ -46,6 +46,7 @@ class ImageEstablishmentAdmin(admin.ModelAdmin):
 @admin.register(OwnerResponse)
 class OwnerResponseAdmin(admin.ModelAdmin):
     """Админка: ответ владельца заведения"""
+
     list_display = ("id", "establishment_owner", "review", "text", "created")
     list_filter = ("establishment_owner", "created")
     search_fields = ("text",)
@@ -53,8 +54,9 @@ class OwnerResponseAdmin(admin.ModelAdmin):
 
 class OwnerResponseInline(admin.TabularInline):
     """Админка: управление OwnerResponse внутри панели Review"""
+
     model = OwnerResponse
-    extra = 0  # Устанавливает начальное количество пустых форм для заполнения
+    extra = 0
 
 
 @admin.register(Review)

@@ -469,7 +469,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 "establishment_id"
             )
             user = self.context["request"].user
-            # Проверка на подтвержденное бронирование
+
             is_booking_confirmed = user.reservationhistory.filter(
                 establishment=establishment, status=True
             ).exists()
@@ -477,10 +477,10 @@ class ReviewSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Отзыв недоступен из-за отсутствия подтвержденной брони"
                 )
-            # Проверка на повторный отзыв на одно заведение
+
             if Review.objects.filter(
                         author=user, establishment=establishment
-                ).exists():
+                    ).exists():
                 raise serializers.ValidationError(
                     "Нельзя оставить повторный отзыв на одно заведение"
                 )
@@ -489,10 +489,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class OwnerResponseSerializer(serializers.ModelSerializer):
     """
-    Ответ владельца заведения на отзыв.
+    Сериализация данных: Ответ владельца заведения на отзыв.
     Для получения информации о самом отзыве в ответе API при
-    создании ответа владельца на отзыв, добавлен 'review'
-
+    создании ответа владельца на отзыв, добавлен 'review'.
     """
     class Meta:
         model = OwnerResponse

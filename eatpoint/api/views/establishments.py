@@ -40,7 +40,8 @@ from establishments.models import (
     Establishment,
     Favorite,
     Kitchen,
-    OwnerResponse, Review, TypeEst,
+    Review,
+    TypeEst,
     Service,
     ZoneEstablishment,
     City,
@@ -499,29 +500,20 @@ class EventUsersViewSet(viewsets.ModelViewSet):
 class OwnerResponseCreateView(generics.CreateAPIView):
     """Вьюсет: Отзывы(владелец заведения)"""
     serializer_class = OwnerResponseSerializer
-    permission_classes = [
-        IsAuthenticated]  # Только аутентифицированные пользователи могут создавать ответы
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         request=OwnerResponseSerializer,
         responses={201: OwnerResponseSerializer},
     )
     def perform_create(self, serializer):
-        # Получаем отзыв_id из URL
+        """Получаем отзыв_id из URL"""
         review_id = self.kwargs.get('review_id')
-
-        # Проверяем, является ли пользователь владельцем ресторана, чтобы ответить на отзыв
         review = Review.objects.get(pk=review_id)
-        establishment_owner = self.request.user  # Предполагаем, что владелец ресторана хранится в поле "owner" модели Review
+        establishment_owner = self.request.user
         if establishment_owner != review.establishment.owner:
-            # Если текущий пользователь не является владельцем ресторана отзыва, возвращаем ошибку "403 Forbidden"
-            raise PermissionDenied(
-                "У вас нет прав для ответа на этот отзыв."
-                )
-
-        # Сохраняем ответ владельца ресторана
+            raise PermissionDenied("У вас нет прав для ответа на этот отзыв.")
         serializer.save()
-
 
 
 @extend_schema(
