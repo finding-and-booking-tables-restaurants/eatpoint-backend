@@ -14,6 +14,7 @@ from core.services import days_available
 from core.validators import validate_uniq
 from establishments.models import (
     Establishment,
+    OwnerResponse,
     WorkEstablishment,
     Kitchen,
     ZoneEstablishment,
@@ -465,16 +466,36 @@ class ReviewSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """Проверка на уникальность отзыва"""
         if self.context["request"].method == "POST":
+            establishment = self.context["view"].kwargs.get("establishment_id")
+            user = self.context["request"].user
+
+            is_booking_confirmed = user.reservationhistory.filter(
+                establishment=establishment, status=True
+            ).exists()
+            if not is_booking_confirmed:
+                raise serializers.ValidationError(
+                    "Отзыв недоступен из-за отсутствия подтвержденной брони"
+                )
+
             if Review.objects.filter(
-                author=self.context["request"].user,
-                establishment=self.context["view"].kwargs.get(
-                    "establishment_id"
-                ),
+                author=user, establishment=establishment
             ).exists():
                 raise serializers.ValidationError(
                     "Нельзя оставить повторный отзыв на одно заведение"
                 )
         return data
+
+
+class OwnerResponseSerializer(serializers.ModelSerializer):
+    """
+    Сериализация данных: Ответ владельца заведения на отзыв.
+    Для получения информации о самом отзыве в ответе API при
+    создании ответа владельца на отзыв, добавлен 'review'.
+    """
+
+    class Meta:
+        model = OwnerResponse
+        fields = ["id", "establishment_owner", "review", "text", "created"]
 
 
 class EventSerializer(serializers.ModelSerializer):

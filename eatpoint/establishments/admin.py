@@ -6,6 +6,7 @@ from phonenumber_field.widgets import PhoneNumberPrefixWidget
 from .models import (
     Establishment,
     Kitchen,
+    OwnerResponse,
     Service,
     Event,
     Review,
@@ -43,11 +44,28 @@ class ImageEstablishmentAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
 
 
+@admin.register(OwnerResponse)
+class OwnerResponseAdmin(admin.ModelAdmin):
+    """Админка: ответ владельца заведения"""
+
+    list_display = ("id", "establishment_owner", "review", "text", "created")
+    list_filter = ("establishment_owner", "created")
+    search_fields = ("text",)
+
+
+class OwnerResponseInline(admin.TabularInline):
+    """Админка: управление OwnerResponse внутри панели Review"""
+
+    model = OwnerResponse
+    extra = 0
+
+
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     """Админка: отзывы"""
 
     list_display = ("id", "author", "establishment")
+    inlines = [OwnerResponseInline]
 
 
 @admin.register(TypeEvents)
