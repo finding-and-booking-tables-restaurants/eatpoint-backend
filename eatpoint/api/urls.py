@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from api.views.analytics import AnalyticsViewSet, AnalyticsListViewSet
 from api.views.code_generate import SendSMSCode, VerifySMSCode
 from api.views.establishments import (
+    OwnerResponseCreateView,
     ZoneViewSet,
     CityViewSet,
     EstablishmentBusinessViewSet,
@@ -146,6 +147,11 @@ urlpatterns = [
     ),
     path(
         "v1/login/jwt/refresh/", MyTokenRefreshView.as_view(), name="refresh"
+    ),
+    path(
+        "v1/reviews/<int:review_id>/owner-response/",
+        OwnerResponseCreateView.as_view(),
+        name="create_owner_response",
     ),
     path("v1/", include(router.urls)),
 ]

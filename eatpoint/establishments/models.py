@@ -473,3 +473,22 @@ class Favorite(models.Model):
                 fields=["user", "establishment"], name="uniquefavorit"
             ),
         ]
+
+
+class OwnerResponse(models.Model):
+    """Модель для ответа владельца на отзыв о заведении."""
+
+    establishment_owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="owner_responses"
+    )
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name="owner_responses"
+    )
+    text = models.TextField(verbose_name="Текст ответа хозяина")
+    created = models.DateTimeField(
+        verbose_name="Дата публикации", auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = "Ответ хозяина"
+        verbose_name_plural = "Ответы хозяина"
