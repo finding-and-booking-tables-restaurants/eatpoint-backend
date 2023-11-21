@@ -1,9 +1,9 @@
-from core.constants import CHECKS, DAYS
+from core.constants import CHECKS, DAYS, ADMINISTRATOR
 from core.services import choices_generator, time_generator
-from core.constants import CLIENT, RESTORATEUR, SMS, EMAIL, TELEGRAM, NOTHING
+from core.constants import CLIENT, RESTORATEUR, SMS, EMAIL, TELEGRAM, NOTHING, INTERVAL_MINUTES, START_TIME, END_TIME
 
 # Выбор времени с интервалом 30 мин
-TIME_CHOICES = choices_generator(time_generator())
+TIME_CHOICES = choices_generator(time_generator(START_TIME, END_TIME, INTERVAL_MINUTES))
 
 # Выбор среднего чека
 CHECK_CHOICES = choices_generator(CHECKS)
@@ -15,6 +15,7 @@ DAY_CHOICES = choices_generator(DAYS)
 ROLE_CHOICES = (
     (CLIENT, "Клиент"),
     (RESTORATEUR, "Ресторатор"),
+    (ADMINISTRATOR, "Админ_ресторана"),
 )
 
 # Выбор способа отправки кода подтверждения

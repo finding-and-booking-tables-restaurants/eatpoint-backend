@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 
 @extend_schema(
-    tags=["Аналитика(заведение)"],
+    tags=["Бизнес(аналитика заведения)"],
     description="Ресторатор",
     methods=["GET", "POST"],
 )
@@ -75,7 +75,7 @@ class AnalyticsViewSet(APIView):
 
 
 @extend_schema(
-    tags=["Аналитика(полная)"],
+    tags=["Бизнес(аналитика полная)"],
     description="Ресторатор",
     methods=["GET", "POST"],
 )

@@ -133,6 +133,18 @@ class Establishment(models.Model):
         verbose_name="Адрес заведения",
         max_length=100,
     )
+    latitude = models.FloatField(
+        verbose_name="Широта",
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+    longitude = models.FloatField(
+        verbose_name="Долгота",
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     kitchens = models.ManyToManyField(
         Kitchen,
         verbose_name="Кухня заведения",
@@ -151,6 +163,9 @@ class Establishment(models.Model):
     poster = models.ImageField(
         verbose_name="Постер заведения",
         upload_to="establishment/images/poster",
+        blank=True,
+        null=True,
+        default="",
     )
     email = models.EmailField(
         verbose_name="Почта",
@@ -312,24 +327,38 @@ class ZoneEstablishment(models.Model):
             ),
         ],
     )
-    available_seats = models.PositiveIntegerField(
-        verbose_name="Количество свободных мест",
-        blank=True,
-        null=True,
-        help_text="Добавляется автоматически",
-    )
 
     class Meta:
         verbose_name = "Зона заведения"
         verbose_name_plural = "Зоны заведения"
 
-    def save(self, *args, **kwargs):
-        if self.pk is None:
-            self.available_seats = self.seats
-        super(ZoneEstablishment, self).save(*args, **kwargs)
-
     def __str__(self):
         return self.zone
+
+
+class TypeEvents(models.Model):
+    """Тип события"""
+
+    name = models.CharField(
+        verbose_name="Тип события",
+        max_length=200,
+    )
+    description = models.TextField(
+        verbose_name="Описание",
+        max_length=2000,
+    )
+    slug = models.SlugField(
+        verbose_name="Ссылка",
+        max_length=200,
+        unique=True,
+    )
+
+    class Meta:
+        verbose_name = "Тип события"
+        verbose_name_plural = "Типы события"
+
+    def __str__(self):
+        return self.name
 
 
 class Event(models.Model):
@@ -358,17 +387,23 @@ class Event(models.Model):
     date_end = models.DateTimeField(
         verbose_name="Окончание события",
         blank=True,
+        null=True,
+    )
+    type_event = models.ManyToManyField(
+        TypeEvents,
+        verbose_name="Тип события",
+        related_name="establishments",
+        blank=True,
+    )
+    price = models.PositiveSmallIntegerField(
+        verbose_name="Цена события",
+        blank=True,
+        null=True,
     )
 
     class Meta:
         verbose_name = "Событие"
         verbose_name_plural = "События"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["name", "establishment", "date_start"],
-                name="unique_slots",
-            ),
-        ]
 
     def __str__(self):
         return f"{self.name}: {self.date_start} - {self.date_end}"
@@ -437,8 +472,23 @@ class Favorite(models.Model):
             models.UniqueConstraint(
                 fields=["user", "establishment"], name="uniquefavorit"
             ),
-            models.CheckConstraint(
-                check=~models.Q(user=models.F("establishment")),
-                name="favoriteuniq",
-            ),
         ]
+
+
+class OwnerResponse(models.Model):
+    """Модель для ответа владельца на отзыв о заведении."""
+
+    establishment_owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="owner_responses"
+    )
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name="owner_responses"
+    )
+    text = models.TextField(verbose_name="Текст ответа хозяина")
+    created = models.DateTimeField(
+        verbose_name="Дата публикации", auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = "Ответ хозяина"
+        verbose_name_plural = "Ответы хозяина"

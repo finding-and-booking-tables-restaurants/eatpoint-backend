@@ -1,5 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 import core.constants
 from core.validators import string_validator
@@ -13,6 +14,7 @@ class MyBaseSerializer(serializers.ModelSerializer):
     """
 
     telephone = PhoneNumberField()
+    email = serializers.EmailField()
     first_name = serializers.CharField(
         max_length=150, validators=[string_validator]
     )
@@ -27,6 +29,7 @@ class UserSerializer(MyBaseSerializer):
     """
 
     class Meta:
+        model = User
         fields = (
             "telephone",
             "email",
@@ -34,11 +37,12 @@ class UserSerializer(MyBaseSerializer):
             "last_name",
             "role",
         )
-        model = User
 
     def validate(self, data):
         email = data.get("email")
         telephone = data.get("telephone")
+        user_with_email = User.objects.filter(email=email)
+        user_with_telephone = User.objects.filter(telephone=telephone)
         if data.get("role") not in (
             core.constants.CLIENT,
             core.constants.RESTORATEUR,
@@ -46,15 +50,11 @@ class UserSerializer(MyBaseSerializer):
             raise serializers.ValidationError(
                 f"Роль должна быть {core.constants.CLIENT} или {core.constants.RESTORATEUR}"
             )
-        if (
-            User.objects.filter(email=email).exists()
-            or User.objects.filter(telephone=telephone).exists()
-        ) and (
-            User.objects.get(email=email).is_active
-            or User.objects.get(telephone=telephone).is_active
+        if (user_with_email.exists() or user_with_telephone.exists()) and (
+            user_with_email[0].is_active or user_with_telephone[0].is_active
         ):
             raise serializers.ValidationError(
-                "Аккаунт с таким телефоном и/или email активирован"
+                "Аккаунт с таким телефоном и/или email уже активирован"
             )
         if (
             telephone is not None
@@ -71,6 +71,8 @@ class MeSerializer(MyBaseSerializer):
     Сериализатор собственных данных пользователя.
     """
 
+    role = serializers.CharField(read_only=True)
+
     class Meta:
         model = User
         fields = (
@@ -80,6 +82,32 @@ class MeSerializer(MyBaseSerializer):
             "last_name",
             "role",
         )
+        extra_kwargs = {
+            "email": {"required": False},
+            "telephone": {"required": False},
+        }
+
+    def validate_email(self, email):
+        user = self.instance
+        if user and user.email == email:
+            return email
+
+        if User.objects.filter(email=email).exclude(id=user.id).exists():
+            raise ValidationError("Email уже зарезервирован!")
+        return email
+
+    def validate_telephone(self, telephone):
+        user = self.instance
+        if user and user.telephone == telephone:
+            return telephone
+
+        if (
+            User.objects.filter(telephone=telephone)
+            .exclude(id=user.id)
+            .exists()
+        ):
+            raise ValidationError("Email уже зарезервирован!")
+        return telephone
 
 
 class SignUpSerializer(MyBaseSerializer):
@@ -100,7 +128,6 @@ class SignUpSerializer(MyBaseSerializer):
             "is_agreement",
             "confirm_code_send_method",
         )
-        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)
@@ -130,7 +157,7 @@ class SignUpSerializer(MyBaseSerializer):
         if data.get("confirm_code_send_method") in (
             core.constants.EMAIL,
             core.constants.SMS,
-            core.constants.TELEGRAM,
+            # core.constants.TELEGRAM,
         ):
             raise serializers.ValidationError(
                 f"Способ отправки кода '{data.get('confirm_code_send_method')}' "

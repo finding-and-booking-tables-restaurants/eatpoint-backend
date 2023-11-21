@@ -1,30 +1,32 @@
-from rest_framework.validators import ValidationError
-from reservation.models import Reservation, ReservationHistory
-from django.db.models.signals import post_save, pre_delete
+from reservation.models import Reservation, ReservationHistory, Availability
+from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 
 
-@receiver(post_save, sender=Reservation)
-def post_reservations(sender, instance, created, **kwargs):
+@receiver(pre_save, sender=Reservation)
+def post_reservations(sender, instance, **kwargs):
     """Уменьшает количество свободных мест, если появилась запись о бронировании"""
-    zone = instance.zone
 
-    if zone.available_seats == 0:
-        raise ValidationError({"seats": "Мест больше нет"})
-    if zone.available_seats < instance.number_guests:
-        raise ValidationError({"seats": "Кол-во персон больше кол-ва мест"})
-
-    zone.available_seats -= instance.number_guests
-    zone.save()
+    availability = Availability.objects.filter(
+        zone=instance.zone, date=instance.date_reservation
+    ).first()
+    if availability:
+        if instance.number_guests <= availability.available_seats:
+            availability.available_seats -= instance.number_guests
+            availability.save()
 
 
 @receiver(pre_delete, sender=Reservation)
 def delete_reservation(sender, instance, **kwargs):
     """Увеличивает количество свободных мест, если запись о бронировании удалена"""
     zone = instance.zone
-    zone.available_seats += instance.number_guests
-    if zone.available_seats > zone.seats:
-        zone.available_seats = zone.seats
+    availability = Availability.objects.filter(
+        zone=zone, date=instance.date_reservation
+    ).first()
+    availability.available_seats += instance.number_guests
+    if availability.available_seats > zone.seats:
+        availability.available_seats = zone.seats
+    availability.save()
 
 
 @receiver(pre_delete, sender=Reservation)

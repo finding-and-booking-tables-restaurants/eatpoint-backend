@@ -1,14 +1,17 @@
+import asyncio
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from djoser import views
 
 from drf_spectacular.utils import extend_schema_view, extend_schema
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, status, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -17,6 +20,7 @@ from rest_framework_simplejwt.views import (
 import core.choices
 import core.constants
 from core.pagination import LargeResultsSetPagination
+from core.tgbot import send_code
 from users.models import User
 from api.permissions import IsClient, IsRestorateur
 from api.serializers.users import (
@@ -36,7 +40,9 @@ from api.serializers.users import (
         methods=["GET"],
     ),
 )
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(
+    mixins.UpdateModelMixin, mixins.ListModelMixin, GenericViewSet
+):
     """
     Сет для отображения и редактирования профиля пользователя.
     """
@@ -116,42 +122,56 @@ class SignUp(APIView):
                     "confirm_code_send_method"
                 ),
             )
-            user.set_password(request.data.get("password"))
-            msg_code = user.confirm_code
-            user.confirmation_code = msg_code
-            user.save()
-
             message = ""
-            match user.confirm_code_send_method:
-                case core.constants.EMAIL:
-                    send_mail(
-                        "Код подтверждения EatPoint",
-                        f"Код для подтверждения на сайте: {msg_code}",
-                        settings.DEFAULT_FROM_EMAIL,
-                        [user.email],
-                        fail_silently=False,
-                    )
-                    message = "На Ваш email отправлен код подтверждения"
-                case core.constants.SMS:
-                    message = """
-                        На Ваш телефон отправлена СМС с кодом подтверждения
-                    """
-
-                case core.constants.TELEGRAM:
-                    message = "На Ваш Telegram отправлен код подтверждения"
-
-                case core.constants.NOTHING:
-                    user.is_active = True
-                    user.confirmation_code = ""
-                    user.save()
-                    message = "Аккаунт зарегистрирован, авторизуйтесь..."
-
+            if not created and user.is_active:
+                return Response(
+                    "Аккаунт уже подтвержден, авторизуйтесь...",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            elif not created and not user.is_active:
+                return Response(
+                    "Аккаунт не активен, введите код подтверждения...",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             if created:
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(message, status=status.HTTP_200_OK)
+                user.set_password(request.data.get("password"))
+                msg_code = user.confirm_code
+                user.confirmation_code = msg_code
+                user.save()
+
+                match user.confirm_code_send_method:
+                    case core.constants.EMAIL:
+                        send_mail(
+                            "Код подтверждения EatPoint",
+                            f"Код для подтверждения на сайте: {msg_code}",
+                            settings.DEFAULT_FROM_EMAIL,
+                            [user.email],
+                            fail_silently=False,
+                        )
+                        message = "На Ваш email отправлен код подтверждения"
+                    case core.constants.SMS:
+                        message = """
+                            На Ваш телефон отправлена СМС с кодом подтверждения
+                        """
+                    case core.constants.TELEGRAM:
+                        asyncio.run(
+                            send_code(
+                                f"Код для пользователя: {user.telephone} --> {msg_code}"
+                            )
+                        )
+                        message = "В Телеграм отправлен код подтверждения"
+                    case core.constants.NOTHING:
+                        user.is_active = True
+                        user.confirmation_code = ""
+                        user.save()
+                        message = "Аккаунт зарегистрирован, авторизуйтесь..."
+                return Response(
+                    serializer.data | {"message": message},
+                    status=status.HTTP_201_CREATED,
+                )
         except IntegrityError:
             return Response(
-                "Аккаунт уже зарегистрирован, авторизуйтесь...",
+                "Проверьте вводимые данные и попробуйте ещё раз",
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -228,7 +248,25 @@ class ConfirmCodeView(APIView):
             case core.constants.SMS:
                 pass
             case core.constants.TELEGRAM:
-                pass
+                if user.confirmation_code == confirmation_code:
+                    user.is_active = True
+                    user.is_agreement = True
+                    user.confirmation_code = ""
+                    user.save()
+
+                    asyncio.run(
+                        send_code(
+                            f"Аккаунт для пользователя: {user.telephone} активирован"
+                        )
+                    )
+                    return Response(
+                        "Аккаунт зарегистрирован, можете войти в систему",
+                        status=status.HTTP_201_CREATED,
+                    )
+                return Response(
+                    "Вы ввели не правильный код",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
 
 @extend_schema(
@@ -278,6 +316,20 @@ class ConfirmCodeRefreshView(APIView):
                     "Код подтверждения отправлен на email",
                     status=status.HTTP_200_OK,
                 )
+
+            case core.constants.TELEGRAM:
+                asyncio.run(
+                    send_code(
+                        f"Код для пользователя: {user.telephone} --> {message}"
+                    )
+                )
+                return Response(
+                    "Код подтверждения отправлен в Telegram",
+                    status=status.HTTP_200_OK,
+                )
+
+            case core.constants.SMS:
+                pass
 
 
 @extend_schema(

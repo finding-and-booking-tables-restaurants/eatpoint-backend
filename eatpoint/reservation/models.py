@@ -9,6 +9,32 @@ from establishments.models import Establishment, ZoneEstablishment
 from users.models import User
 
 
+class ConfirmationCode(models.Model):
+    """Код подтверждения"""
+
+    phone_number = models.CharField(max_length=15)
+    code = models.CharField(max_length=6)
+    is_verified = models.BooleanField(default=False)
+
+
+class Availability(models.Model):
+    """Свободные слоты"""
+
+    establishment = models.ForeignKey(
+        Establishment,
+        verbose_name="Ресторан",
+        on_delete=models.CASCADE,
+    )
+    zone = models.ForeignKey(ZoneEstablishment, on_delete=models.CASCADE)
+    date = models.DateField()
+    available_seats = models.PositiveIntegerField(
+        verbose_name="Количество свободных мест",
+        blank=True,
+        null=True,
+        help_text="Добавляется автоматически",
+    )
+
+
 class Reservation(models.Model):
     """Форма бронирования"""
 
@@ -90,8 +116,8 @@ class Reservation(models.Model):
         default=False,
     )
     status = models.BooleanField(
-        verbose_name="Статус бронирования Активен/Выполнен",
-        default=True,
+        verbose_name="Статус бронирования Активен/Принят",
+        default=False,
     )
     reservation_date = models.DateTimeField(
         verbose_name="Дата создания",

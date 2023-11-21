@@ -1,12 +1,20 @@
 from django.shortcuts import get_object_or_404
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
+    OpenApiParameter,
 )
-from rest_framework import viewsets, status
-from rest_framework.permissions import SAFE_METHODS, IsAdminUser
+from rest_framework import generics, viewsets, status
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import (
+    IsAuthenticated,
+    SAFE_METHODS,
+    IsAdminUser,
+)
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.views import APIView
 
 from api.filters.establishments import (
     EstablishmentFilter,
@@ -14,31 +22,36 @@ from api.filters.establishments import (
 )
 from api.permissions import (
     ReadOnly,
-    IsOwnerRestaurant,
     IsAuthor,
-    CreateRestaurant,
     IsClient,
+    IsRestorateur,
+    IsRestorateurEdit,
 )
 from api.serializers.establishments import (
     EstablishmentSerializer,
+    OwnerResponseSerializer,
     ReviewSerializer,
     EstablishmentEditSerializer,
-    SpecialEstablishmentSerializer,
     KitchenSerializer,
     TypeEstSerializer,
     ServicesSerializer,
     ZoneEstablishmentSerializer,
     CitySerializer,
+    ImageSerializer,
+    EventSerializer,
 )
 from core.pagination import LargeResultsSetPagination
 from establishments.models import (
     Establishment,
     Favorite,
     Kitchen,
+    Review,
     TypeEst,
     Service,
     ZoneEstablishment,
     City,
+    ImageEstablishment,
+    Event,
 )
 
 
@@ -129,13 +142,73 @@ class ServicesViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=["Заведения"],
-    methods=["GET"],
-    description="Все пользователи",
+    tags=["Изображения"],
+    methods=["POST", "PATCH", "DELETE"],
+    description="Хозяин заведения",
 )
+@extend_schema_view(
+    create=extend_schema(
+        summary="Создать изображения",
+    ),
+    partial_update=extend_schema(
+        summary="Изменить изображения",
+    ),
+    destroy=extend_schema(summary="Удалить изображение"),
+)
+class ImageEstablishmentViewSet(viewsets.ModelViewSet):
+    """Добавление и редактирование изображений"""
+
+    serializer_class = ImageSerializer
+    parser_classes = (MultiPartParser, FormParser)
+    http_method_names = ("patch", "post", "delete")
+    permission_classes = (IsRestorateurEdit,)
+
+    def get_queryset(self):
+        establishment_id = self.kwargs.get("establishment_id")
+        images = ImageEstablishment.objects.filter(
+            establishment=establishment_id
+        )
+        return images
+
+    def create(self, request, *args, **kwargs):
+        establishment_id = self.kwargs.get("establishment_id")
+        instance = Establishment.objects.get(pk=establishment_id)
+        print(self.request.FILES)
+        images_data = self.request.FILES.getlist("image")
+        if not images_data:
+            return Response(
+                {"detail": "Не было передано ни одного изображения"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user = self.request.user
+        if user == instance.owner:
+            current_images_count = ImageEstablishment.objects.filter(
+                establishment=instance
+            ).count()
+            max_images_count = 10
+
+            if current_images_count + len(images_data) > max_images_count:
+                return Response(
+                    {"detail": "Слишком много"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            for image_data in images_data:
+                ImageEstablishment.objects.get_or_create(
+                    establishment=instance,
+                    image=image_data,
+                    name=image_data.name,
+                )
+
+            return Response(
+                {"detail": "Создано"}, status=status.HTTP_201_CREATED
+            )
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+
 @extend_schema(
-    tags=["Бизнес"],
-    methods=["POST", "PATCH", "PUT", "DELETE"],
+    tags=["Бизнес(заведения)"],
+    methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
     description="Ресторатор",
 )
 @extend_schema_view(
@@ -156,15 +229,12 @@ class ServicesViewSet(viewsets.ModelViewSet):
     ),
     update=extend_schema(summary="Изменить заведение [PUT]"),
 )
-class EstablishmentViewSet(viewsets.ModelViewSet):
-    """Вьюсет: Заведение"""
+class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Заведение(для бизнеса)"""
 
-    queryset = Establishment.objects.all()
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
-    permission_classes = (
-        CreateRestaurant | IsOwnerRestaurant | ReadOnly | IsAdminUser,
-    )
+    permission_classes = (IsRestorateur,)
     search_fields = (
         "$name",
         "$address",
@@ -173,10 +243,8 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     )
 
     def get_queryset(self):
-        """Выбор queryset в зависимости от типа запроса"""
-        if self.request.method in SAFE_METHODS:
-            return Establishment.objects.filter(is_verified=True)
-        return Establishment.objects.all()
+        user = self.request.user
+        return Establishment.objects.filter(owner=user)
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -189,24 +257,85 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
             owner=self.request.user,
         )
 
-    def __added(self, model, user, pk, name):
-        """Добавление(шаблон)"""
-        establishment = get_object_or_404(Establishment, id=pk)
-        if model.objects.filter(
+
+@extend_schema(
+    tags=["Заведения"],
+    methods=["GET"],
+    description="Все пользователи",
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список заведений",
+    ),
+    retrieve=extend_schema(
+        summary="Детальная информация о заведении",
+    ),
+)
+class EstablishmentViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Заведение"""
+
+    queryset = Establishment.objects.filter(is_verified=True)
+    filterset_class = EstablishmentFilter
+    pagination_class = LargeResultsSetPagination
+    permission_classes = (ReadOnly | IsAdminUser,)
+    search_fields = (
+        "$name",
+        "$address",
+        "$kitchens__name",
+        "$types__name",
+    )
+    serializer_class = EstablishmentSerializer
+    http_method_names = ["get"]
+
+
+@extend_schema(
+    tags=["Избранное"],
+    methods=["POST", "DELETE"],
+    description="Авторизованный",
+)
+@extend_schema_view(
+    post=extend_schema(
+        summary="Добавить в избранное",
+    ),
+    delete=extend_schema(
+        summary="Удалить из избранного",
+    ),
+)
+class FavoriteViewSet(APIView):
+    """Избранное"""
+
+    permission_classes = [IsClient]
+    http_method_names = ["post", "delete"]
+
+    def post(self, request, establishment_id):
+        name = "избранное"
+        user = request.user
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        if establishment.owner == user:
+            return Response(
+                {
+                    "errors": f"Нельзя добавить своё заведение {establishment.name} в {name}"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if Favorite.objects.filter(
             user=user, establishment=establishment
         ).exists():
             return Response(
                 {"errors": f"Вы уже добавили {establishment.name} в {name}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        model.objects.create(user=user, establishment=establishment)
-        serializer = SpecialEstablishmentSerializer(establishment)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        Favorite.objects.create(user=user, establishment=establishment)
+        return Response(
+            {"errors": f"Вы добавили {establishment.name} в {name}"},
+            status=status.HTTP_201_CREATED,
+        )
 
-    def __deleted(self, model, user, pk, name):
-        """Удаление(шаблон)"""
-        establishment = get_object_or_404(Establishment, id=pk)
-        removable = model.objects.filter(
+    def delete(self, request, establishment_id):
+        name = "избранное"
+        user = request.user
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        removable = Favorite.objects.filter(
             user=user, establishment=establishment
         )
         if not removable.exists():
@@ -215,38 +344,10 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         removable.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @extend_schema(
-        tags=["Избранное"],
-        description="Клиент",
-        methods=["POST"],
-        request=SpecialEstablishmentSerializer,
-        responses=SpecialEstablishmentSerializer,
-        summary="Добавить в избранное",
-    )
-    @extend_schema(
-        tags=["Избранное"],
-        description="Клиент",
-        methods=["DELETE"],
-        summary="Удалить из избранного",
-    )
-    @action(
-        detail=True,
-        methods=["post", "delete"],
-        url_path="favorite",
-        filterset_class=EstablishmentFilter,
-        permission_classes=(IsClient,),
-    )
-    def favorite(self, request, pk=None):
-        """Добавление в избранное"""
-        name = "избранное"
-        user = request.user
-        if request.method == "POST":
-            return self.__added(Favorite, user, pk, name)
-        if request.method == "DELETE":
-            return self.__deleted(Favorite, user, pk, name)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response(
+            {"errors": f"Вы удалили {establishment.name} из {name}"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
 
 @extend_schema(
@@ -261,10 +362,34 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     create=extend_schema(summary="Добавить зону"),
     retrieve=extend_schema(
         summary="Одна зона",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
     partial_update=extend_schema(
         summary="Редактировать зону",
         description="Ресторатор",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
 )
 class ZoneViewSet(viewsets.ModelViewSet):
@@ -281,28 +406,58 @@ class ZoneViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=["Отзывы"], methods=["GET", "POST", "PATCH"], description="Клиент"
+    tags=["Отзывы"],
+    methods=["GET", "POST", "PATCH", "DELETE"],
+    description="Клиент",
 )
 @extend_schema_view(
     list=extend_schema(
         summary="Получить список отзывов к заведению с id=",
         description="Клиент/ресторатор",
     ),
+    destroy=extend_schema(
+        summary="Удалить отзыв",
+        description="Клиент/ресторатор",
+    ),
     create=extend_schema(summary="Оставить отзыв"),
     retrieve=extend_schema(
         summary="Один отзыв",
         description="Клиент/ресторатор",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
     partial_update=extend_schema(
         summary="Редактировать отзыв",
+        parameters=[
+            OpenApiParameter(
+                name="establishment_id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            ),
+        ],
     ),
 )
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет: Отзывы"""
 
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthor | ReadOnly | IsAdminUser,)
-    http_method_names = ["get", "post", "patch"]
+    permission_classes = (IsAuthor | ReadOnly,)
+    http_method_names = ["get", "patch", "delete", "post"]
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
@@ -313,3 +468,102 @@ class ReviewViewSet(viewsets.ModelViewSet):
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
         serializer.save(author=self.request.user, establishment=establishment)
+
+
+@extend_schema(
+    tags=["События"],
+    methods=["GET", "POST", "PATCH", "DELETE"],
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список событий к заведению с id=",
+        description="Клиент/ресторатор",
+    ),
+)
+class EventUsersViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Отзывы(пользователь)"""
+
+    serializer_class = EventSerializer
+    http_method_names = ["get"]
+
+    def get_queryset(self):
+        establishment_id = self.kwargs.get("establishment_id")
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        return establishment.event.all()
+
+    def perform_create(self, serializer):
+        establishment_id = self.kwargs.get("establishment_id")
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        serializer.save(establishment=establishment)
+
+
+@extend_schema(
+    tags=["Ответы владельца заведения"],
+    methods=["POST"],
+    description="Добавление ответа владельца заведения к отзыву",
+)
+class OwnerResponseCreateView(generics.CreateAPIView):
+    """Вьюсет: Отзывы(владелец заведения)"""
+
+    serializer_class = OwnerResponseSerializer
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=OwnerResponseSerializer,
+        responses={201: OwnerResponseSerializer},
+    )
+    def perform_create(self, serializer):
+        """Получаем отзыв_id из URL"""
+        review_id = self.kwargs.get("review_id")
+        review = Review.objects.get(pk=review_id)
+        establishment_owner = self.request.user
+        if establishment_owner != review.establishment.owner:
+            raise PermissionDenied("У вас нет прав для ответа на этот отзыв.")
+        serializer.save()
+
+
+@extend_schema(
+    tags=["Бизнес(события)"],
+    methods=["GET", "POST", "PATCH", "DELETE"],
+)
+@extend_schema_view(
+    list=extend_schema(
+        summary="Получить список событий",
+        description="Клиент/ресторатор",
+    ),
+    destroy=extend_schema(
+        summary="Удалить событие",
+        description="Ресторатор",
+    ),
+    create=extend_schema(summary="Создать событие"),
+    retrieve=extend_schema(
+        summary="Одно событий",
+        description="Клиент/ресторатор",
+    ),
+    partial_update=extend_schema(
+        summary="Редактировать событие",
+    ),
+    upload_image=extend_schema(
+        summary="Загрузить картинку для события",
+    ),
+)
+class EventBusinessViewSet(viewsets.ModelViewSet):
+    """Вьюсет события(бизнес)"""
+
+    serializer_class = EventSerializer
+    http_method_names = ["get", "post", "patch", "delete"]
+    permission_classes = (IsRestorateurEdit,)
+
+    # def get_serializer_class(self):
+    #     if self.request.method in SAFE_METHODS:
+    #         return EventSerializer
+    #     return EventEditSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Event.objects.filter(establishment__owner=user)
+
+    def perform_create(self, serializer):
+        establishment_id = self.kwargs.get("establishment_id")
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        serializer.save(establishment=establishment)

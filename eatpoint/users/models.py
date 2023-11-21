@@ -1,8 +1,5 @@
-from datetime import datetime, timedelta
 import random
 
-import jwt
-from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
@@ -18,7 +15,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     telephone = PhoneNumberField(unique=True)
     email = models.EmailField(
         verbose_name="email address",
-        max_length=254,
+        max_length=50,
         db_index=True,
         unique=True,
     )
@@ -34,7 +31,7 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     role = models.CharField(
         "User`s role",
-        max_length=20,
+        max_length=25,
         choices=core.choices.ROLE_CHOICES,
     )
 
@@ -66,6 +63,7 @@ class User(PermissionsMixin, AbstractBaseUser):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+        ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 fields=("telephone", "email"), name="phone_email_unique"
@@ -75,14 +73,8 @@ class User(PermissionsMixin, AbstractBaseUser):
     def __str__(self):
         return self.email
 
-    def has_perm(self, perm, obj=None):
-        return True
-
-    def has_module_perms(self, app_label):
-        return True
-
     @property
-    def is_user(self):
+    def is_client(self):
         return self.role == core.constants.CLIENT
 
     @property
@@ -90,8 +82,8 @@ class User(PermissionsMixin, AbstractBaseUser):
         return self.role == core.constants.RESTORATEUR
 
     @property
-    def token(self):
-        return self._generate_jwt_token()
+    def is_administrator(self):
+        return self.role == core.constants.ADMINISTRATOR
 
     @property
     def confirm_code(self):
@@ -106,17 +98,3 @@ class User(PermissionsMixin, AbstractBaseUser):
                 core.constants.MAX_LIMIT_CONFIRM_CODE,
             )
         )
-
-    def _generate_jwt_token(self):
-        dt = datetime.now()
-        td = timedelta(days=1)
-        payload = self.pk
-        token = jwt.encode(
-            {
-                "user_id": payload,
-                "exp": int((dt + td).timestamp()),
-            },
-            settings.SECRET_KEY,
-            algorithm="HS256",
-        )
-        return token
