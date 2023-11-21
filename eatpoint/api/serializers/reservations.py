@@ -140,6 +140,7 @@ class ReservationsUserListSerializer(serializers.ModelSerializer):
             "number_guests",
             "date_reservation",
             "start_time_reservation",
+            "status",
             "zone",
         )
 
