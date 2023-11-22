@@ -458,10 +458,18 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     author = SmallUserSerializer(read_only=True)
+    response = serializers.SerializerMethodField()
 
     class Meta:
         fields = "__all__"
         model = Review
+
+    def get_response(self, obj):
+        owner_response = obj.owner_responses.first()
+        if owner_response:
+            return OwnerResponseSerializer(owner_response).data
+        else:
+            return None
 
     def validate(self, data):
         """Проверка на уникальность отзыва"""
