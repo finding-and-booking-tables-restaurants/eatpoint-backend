@@ -495,7 +495,7 @@ class OwnerResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OwnerResponse
-        fields = ["id", "establishment_owner", "review", "text", "created"]
+        fields = ["id", "text", "created"]
 
 
 class EventSerializer(serializers.ModelSerializer):
