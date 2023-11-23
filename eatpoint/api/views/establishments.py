@@ -6,10 +6,8 @@ from drf_spectacular.utils import (
     OpenApiParameter,
 )
 from rest_framework import generics, viewsets, status
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import (
-    IsAuthenticated,
     SAFE_METHODS,
     IsAdminUser,
 )
@@ -21,6 +19,7 @@ from api.filters.establishments import (
     CityFilter,
 )
 from api.permissions import (
+    IsEstablishmentOwner,
     ReadOnly,
     IsAuthor,
     IsClient,
@@ -479,7 +478,7 @@ class OwnerResponseCreateView(generics.CreateAPIView):
     """Вьюсет: Отзывы(владелец заведения)"""
 
     serializer_class = OwnerResponseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsEstablishmentOwner,)
 
     @extend_schema(
         request=OwnerResponseSerializer,
@@ -489,9 +488,6 @@ class OwnerResponseCreateView(generics.CreateAPIView):
         """Получаем отзыв_id из URL"""
         review_id = self.kwargs.get("review_id")
         review = get_object_or_404(Review, pk=review_id)
-        establishment_owner = self.request.user
-        if establishment_owner != review.establishment.owner:
-            raise PermissionDenied("У вас нет прав для ответа на этот отзыв.")
         serializer.save(review=review, establishment_owner=self.request.user)
 
 

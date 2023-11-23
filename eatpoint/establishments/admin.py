@@ -48,7 +48,7 @@ class ImageEstablishmentAdmin(admin.ModelAdmin):
 class OwnerResponseAdmin(admin.ModelAdmin):
     """Админка: ответ владельца заведения"""
 
-    list_display = ("id", "text", "created")
+    list_display = ("review", "id", "created")
     list_filter = ("establishment_owner", "created")
     search_fields = ("text",)
 
