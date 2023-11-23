@@ -1,14 +1,17 @@
-FROM python:3.11-slim
+FROM python:3.11-alpine
+
+RUN apk update && apk add python3-dev gcc libc-dev
+
+RUN pip install --upgrade pip
+RUN pip install gunicorn
 
 WORKDIR /app
-COPY /eatpoint/requirements.txt /app/
-ENV TZ=Europe/Moscow
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN apt update && apt install -y --no-install-recommends locales; rm -rf /var/lib/apt/lists/*; sed -i '/^#.* ru_RU.UTF-8 /s/^#//' /etc/locale.gen; locale-gen
-ENV TZ=Europe/Moscow
-RUN locale -a
-RUN python3 -m pip install --upgrade pip
-RUN pip install -r requirements.txt
-COPY /eatpoint/ /app/
-COPY /eatpoint/entrypoint.sh /app/
-CMD ["gunicorn", "eatpoint.wsgi:application", "--bind", "0:8000"]
+
+ADD ./eatpoint /app/eatpoint
+RUN pip install -r ./eatpoint/requirements.txt
+
+ADD ../infra/backend-entrypoint.sh /app/infra/
+ADD ../infra/flower/flower-entrypoint.sh /app/infra/
+ADD ../infra/celery /app/infra/celery/
+
+RUN chmod +x /app/infra/backend-entrypoint.sh

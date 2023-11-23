@@ -16,4 +16,8 @@ app.conf.beat_schedule = {
         "task": "core.tasks.send_message_for_confirm_booking",
         "schedule": crontab(minute="*/4"),
     },
+    "send-reminder-every-half_on_hour": {
+        "task": "core.tasks.send_reminder_three_hours",
+        "schedule": crontab(minute="*/30"),
+    },
 }
