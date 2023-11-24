@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 import core.constants
-from establishments.models import Review
+from reviews.models import Review
 from django.shortcuts import get_object_or_404
 
 
