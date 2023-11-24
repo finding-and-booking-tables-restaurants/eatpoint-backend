@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 from api.views.analytics import AnalyticsViewSet, AnalyticsListViewSet
 from api.views.code_generate import SendSMSCode, VerifySMSCode
 from api.views.establishments import (
-    OwnerResponseCreateView,
     ZoneViewSet,
     CityViewSet,
     EstablishmentBusinessViewSet,
@@ -22,6 +21,7 @@ from api.views.reservation import (
     DateAvailabilityView,
     TimeAvailabilityView,
 )
+from api.views.reviews import OwnerResponseCreateView, ReviewViewSet
 from api.views.users import (
     SignUp,
     ConfirmCodeView,
@@ -33,7 +33,6 @@ from api.views.users import (
 )
 from api.views.establishments import (
     EstablishmentViewSet,
-    ReviewViewSet,
     KitchenViewSet,
     ServicesViewSet,
     TypeEstViewSet,
