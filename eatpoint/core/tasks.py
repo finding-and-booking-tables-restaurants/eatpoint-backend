@@ -8,7 +8,7 @@ from django.conf import settings as django_settings
 from .tgbot import send_code
 from reservation.models import Reservation
 
-tz_moscow = pytz.timezone(django_settings.TIME_ZONE)
+tz_moscow = pytz.timezone(django_settings.CELERY_TIMEZONE)
 
 
 @shared_task()
