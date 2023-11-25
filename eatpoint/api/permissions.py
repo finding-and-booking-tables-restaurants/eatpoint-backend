@@ -1,6 +1,8 @@
 from rest_framework import permissions
 
-from core.constants import CLIENT
+import core.constants
+from reviews.models import Review
+from django.shortcuts import get_object_or_404
 
 
 class IsAnonymous(permissions.BasePermission):
@@ -15,7 +17,7 @@ class IsUserReservationCreate(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if request.user.is_authenticated:
-            return request.user.role == CLIENT
+            return request.user.role == core.constants.CLIENT
 
         elif request.user.is_anonymous:
             return True
@@ -30,7 +32,7 @@ class IsClient(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if request.user.is_authenticated:
-            return request.user.role == CLIENT
+            return request.user.role == core.constants.CLIENT
 
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user
@@ -60,6 +62,18 @@ class IsRestorateurEdit(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return obj.establishment.owner == request.user
+
+
+class IsEstablishmentOwner(permissions.BasePermission):
+    """
+    Проверяем, что пользователь, отправляющий запрос на создание ответа на
+    отзыв, является владельцем заведения, связанного с этим отзывом.
+    """
+
+    def has_permission(self, request, view):
+        review_id = view.kwargs.get("review_id")
+        review = get_object_or_404(Review, pk=review_id)
+        return request.user == review.establishment.owner
 
 
 class ReadOnly(permissions.BasePermission):

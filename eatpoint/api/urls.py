@@ -18,7 +18,10 @@ from api.views.reservation import (
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
     AvailabilityViewSet,
+    DateAvailabilityView,
+    TimeAvailabilityView,
 )
+from api.views.reviews import OwnerResponseCreateView, ReviewViewSet
 from api.views.users import (
     SignUp,
     ConfirmCodeView,
@@ -30,7 +33,6 @@ from api.views.users import (
 )
 from api.views.establishments import (
     EstablishmentViewSet,
-    ReviewViewSet,
     KitchenViewSet,
     ServicesViewSet,
     TypeEstViewSet,
@@ -53,7 +55,6 @@ router.register(
     ReservationsEditViewSet,
     basename="reservations",
 )
-
 router.register(
     "reservations/history",
     ReservationsHistoryListViewSet,
@@ -72,7 +73,6 @@ router.register(
     EstablishmentBusinessViewSet,
     basename="establishments-business",
 )
-
 router.register("kitchens", KitchenViewSet, basename="Kitchens")
 router.register("services", ServicesViewSet, basename="service")
 router.register("types", TypeEstViewSet, basename="types")
@@ -131,6 +131,13 @@ urlpatterns = [
         name="establishment-analytics-list",
     ),
     path(
+        "v1/availability/time/<str:dates>/<int:establishment_id>/",
+        TimeAvailabilityView.as_view(),
+    ),
+    path(
+        "v1/availability/date/<int:zone_id>/", DateAvailabilityView.as_view()
+    ),
+    path(
         "v1/establishments/<int:establishment_id>/favorite/",
         FavoriteViewSet.as_view(),
     ),
@@ -139,6 +146,11 @@ urlpatterns = [
     ),
     path(
         "v1/login/jwt/refresh/", MyTokenRefreshView.as_view(), name="refresh"
+    ),
+    path(
+        "v1/reviews/<int:review_id>/owner-response/",
+        OwnerResponseCreateView.as_view(),
+        name="create_owner_response",
     ),
     path("v1/", include(router.urls)),
 ]

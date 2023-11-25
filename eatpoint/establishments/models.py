@@ -133,6 +133,18 @@ class Establishment(models.Model):
         verbose_name="Адрес заведения",
         max_length=100,
     )
+    latitude = models.FloatField(
+        verbose_name="Широта",
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+    longitude = models.FloatField(
+        verbose_name="Долгота",
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     kitchens = models.ManyToManyField(
         Kitchen,
         verbose_name="Кухня заведения",
@@ -395,47 +407,6 @@ class Event(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.date_start} - {self.date_end}"
-
-
-class Review(models.Model):
-    """Отзывы"""
-
-    establishment = models.ForeignKey(
-        Establishment,
-        on_delete=models.CASCADE,
-        related_name="review",
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-    )
-    text = models.TextField(
-        verbose_name="Текст отзыва",
-        max_length=500,
-    )
-    created = models.DateTimeField(
-        verbose_name="Дата публикации",
-        auto_now_add=True,
-    )
-    score = models.PositiveSmallIntegerField(
-        validators=[
-            MinValueValidator(1, message="Допустимые значние 1-5"),
-            MaxValueValidator(5, message="Допустимые значние 1-5"),
-        ],
-    )
-
-    class Meta:
-        verbose_name = "Отзыв"
-        verbose_name_plural = "Отзывы"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["establishment", "author"], name="uniquereview"
-            ),
-        ]
-        ordering = ["-created"]
-
-    def __str__(self):
-        return self.text
 
 
 class Favorite(models.Model):

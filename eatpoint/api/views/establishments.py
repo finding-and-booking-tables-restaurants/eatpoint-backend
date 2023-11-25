@@ -7,7 +7,10 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets, status
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import SAFE_METHODS, IsAdminUser
+from rest_framework.permissions import (
+    SAFE_METHODS,
+    IsAdminUser,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -17,14 +20,12 @@ from api.filters.establishments import (
 )
 from api.permissions import (
     ReadOnly,
-    IsAuthor,
     IsClient,
     IsRestorateur,
     IsRestorateurEdit,
 )
 from api.serializers.establishments import (
     EstablishmentSerializer,
-    ReviewSerializer,
     EstablishmentEditSerializer,
     KitchenSerializer,
     TypeEstSerializer,
@@ -166,8 +167,13 @@ class ImageEstablishmentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         establishment_id = self.kwargs.get("establishment_id")
         instance = Establishment.objects.get(pk=establishment_id)
-
+        print(self.request.FILES)
         images_data = self.request.FILES.getlist("image")
+        if not images_data:
+            return Response(
+                {"detail": "Не было передано ни одного изображения"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         user = self.request.user
         if user == instance.owner:
             current_images_count = ImageEstablishment.objects.filter(
@@ -181,16 +187,12 @@ class ImageEstablishmentViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            for idx, image_data in enumerate(images_data):
-                image, created = ImageEstablishment.objects.get_or_create(
+            for image_data in images_data:
+                ImageEstablishment.objects.get_or_create(
                     establishment=instance,
                     image=image_data,
                     name=image_data.name,
                 )
-
-                if idx == 0:
-                    instance.poster = image.image
-                    instance.save()
 
             return Response(
                 {"detail": "Создано"}, status=status.HTTP_201_CREATED
@@ -395,71 +397,6 @@ class ZoneViewSet(viewsets.ModelViewSet):
         return ZoneEstablishment.objects.filter(
             establishment_id=establishment_id
         )
-
-
-@extend_schema(
-    tags=["Отзывы"],
-    methods=["GET", "POST", "PATCH", "DELETE"],
-    description="Клиент",
-)
-@extend_schema_view(
-    list=extend_schema(
-        summary="Получить список отзывов к заведению с id=",
-        description="Клиент/ресторатор",
-    ),
-    destroy=extend_schema(
-        summary="Удалить отзыв",
-        description="Клиент/ресторатор",
-    ),
-    create=extend_schema(summary="Оставить отзыв"),
-    retrieve=extend_schema(
-        summary="Один отзыв",
-        description="Клиент/ресторатор",
-        parameters=[
-            OpenApiParameter(
-                name="establishment_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-        ],
-    ),
-    partial_update=extend_schema(
-        summary="Редактировать отзыв",
-        parameters=[
-            OpenApiParameter(
-                name="establishment_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-        ],
-    ),
-)
-class ReviewViewSet(viewsets.ModelViewSet):
-    """Вьюсет: Отзывы"""
-
-    serializer_class = ReviewSerializer
-    permission_classes = (IsAuthor | ReadOnly,)
-    http_method_names = ["get", "patch", "delete", "post"]
-
-    def get_queryset(self):
-        establishment_id = self.kwargs.get("establishment_id")
-        establishment = get_object_or_404(Establishment, id=establishment_id)
-        return establishment.review.all()
-
-    def perform_create(self, serializer):
-        establishment_id = self.kwargs.get("establishment_id")
-        establishment = get_object_or_404(Establishment, id=establishment_id)
-        serializer.save(author=self.request.user, establishment=establishment)
 
 
 @extend_schema(

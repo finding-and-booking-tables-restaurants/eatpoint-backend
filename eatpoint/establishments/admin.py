@@ -8,7 +8,6 @@ from .models import (
     Kitchen,
     Service,
     Event,
-    Review,
     TypeEst,
     ZoneEstablishment,
     ImageEstablishment,
@@ -36,11 +35,11 @@ class ZoneAdmin(admin.ModelAdmin):
     list_display = ("zone", "id")
 
 
-@admin.register(Review)
-class ReviewAdmin(admin.ModelAdmin):
+@admin.register(ImageEstablishment)
+class ImageEstablishmentAdmin(admin.ModelAdmin):
     """Админка: отзывы"""
 
-    list_display = ("id", "author", "establishment")
+    list_display = ("id", "name")
 
 
 @admin.register(TypeEvents)
@@ -179,6 +178,7 @@ class EstablishmentAdmin(admin.ModelAdmin):
             "Средний чек и описание",
             {"fields": ("average_check", "description")},
         ),
+        ("Координаты", {"fields": ("latitude", "longitude")}),
     )
     list_filter = ("name",)
     empty_value_display = "-пусто-"

@@ -5,19 +5,18 @@ from drf_spectacular.utils import (
     extend_schema_field,
 )
 
-
 from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
 from core.services import days_available
+from core.validators import validate_uniq
 from establishments.models import (
     Establishment,
     WorkEstablishment,
     Kitchen,
     ZoneEstablishment,
     Favorite,
-    Review,
     Service,
     SocialEstablishment,
     ImageEstablishment,
@@ -26,7 +25,7 @@ from establishments.models import (
     Event,
 )
 from reservation.models import Availability
-from users.models import User
+from reviews.models import Review
 
 
 class KitchenSerializer(serializers.ModelSerializer):
@@ -53,6 +52,7 @@ class CitySerializer(serializers.ModelSerializer):
         model = City
         fields = [
             "name",
+            "slug",
         ]
 
 
@@ -281,6 +281,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
+    poster = Base64ImageField()
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
     )
@@ -311,6 +312,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
         model = Establishment
         fields = [
             "id",
+            "poster",
             "owner",
             "name",
             "types",
@@ -327,14 +329,12 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             "socials",
         ]
 
-    # def validate(self, data):
-    #     """Проверка на уникальность поля day"""
-    #     poster = data.get("poster")
-    #     worked = data.get("worked")
-    #     field = "day"
-    #     validate_uniq(worked, field)
-    #     file_size(poster)
-    #     return data
+    def validate(self, data):
+        """Проверка на уникальность поля day"""
+        worked = data.get("worked")
+        field = "day"
+        validate_uniq(worked, field)
+        return data
 
     def __create_work(self, worked, establishment):
         """Создание времени работы"""
@@ -433,46 +433,6 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             instance,
             context={"request": self.context.get("request")},
         ).data
-
-
-class SmallUserSerializer(serializers.ModelSerializer):
-    """Сериализация данных: Данные пользователя для отзывов"""
-
-    class Meta:
-        model = User
-        fields = [
-            "first_name",
-            "last_name",
-            "role",
-        ]
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализация данных: Отзывы"""
-
-    establishment = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
-    author = SmallUserSerializer(read_only=True)
-
-    class Meta:
-        fields = "__all__"
-        model = Review
-
-    def validate(self, data):
-        """Проверка на уникальность отзыва"""
-        if self.context["request"].method == "POST":
-            if Review.objects.filter(
-                author=self.context["request"].user,
-                establishment=self.context["view"].kwargs.get(
-                    "establishment_id"
-                ),
-            ).exists():
-                raise serializers.ValidationError(
-                    "Нельзя оставить повторный отзыв на одно заведение"
-                )
-        return data
 
 
 class EventSerializer(serializers.ModelSerializer):
