@@ -278,3 +278,4 @@ CELERY_BROKER_URL = os.environ.get(
 CELERY_RESULT_BACKEND = os.environ.get(
     "CELERY_RESULT_BACKEND", "redis://localhost:6379/0"
 )
+CELERY_CACHE_BACKEND = os.environ.get("CELERY_CACHE_BACKEND", None)

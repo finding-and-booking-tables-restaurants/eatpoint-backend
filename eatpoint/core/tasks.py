@@ -1,71 +1,128 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from celery import shared_task
+import pytz
+from celery import shared_task, current_app
+from django.conf import settings as django_settings
 
 from .tgbot import send_code
 from reservation.models import Reservation
 
-
-@shared_task
-def bar():
-    return "Hello World!"
+tz_moscow = pytz.timezone(django_settings.TIME_ZONE)
 
 
-@shared_task
-def send_message_for_confirm_booking_by_id(_id):
-    booking = Reservation.objects.get(id=_id)
-    message = (
-        f"Подтвердите бронирование: \n"
-        f"заведение: {booking.establishment}, \n"
-        f"телефон: {booking.telephone}, \n"
-        f"дата: {booking.date_reservation}, \n"
-        f"время: {booking.start_time_reservation}, \n"
-        f"зона: {booking.zone}, \n"
-        f"гостей:{booking.number_guests}, \n"
-    )
-    asyncio.run(send_code(message))
+@shared_task()
+def send_reminder(_id, for_client=False):
+    try:
+        if for_client:
+            booking = Reservation.objects.get(id=_id, status=True)
+            subj = "Напоминание о бронировании"
+            context = f"адрес: {booking.establishment.address}"
+        else:
+            booking = Reservation.objects.get(id=_id, status=False)
+            subj = "Подтвердите бронирование"
+            context = f"телефон: {booking.telephone}"
+
+        message = (
+            f"{subj}: \n"
+            f"заведение: {booking.establishment}, \n"
+            f"{context}, \n"
+            f"дата: {booking.date_reservation}, \n"
+            f"время: {booking.start_time_reservation}, \n"
+            f"зона: {booking.zone}, \n"
+            f"гостей: {booking.number_guests}"
+        )
+
+        asyncio.run(send_code(message))
+
+        return message
+
+    except Reservation.DoesNotExist:
+        return None
 
 
 @shared_task
 def send_message_for_confirm_booking():
-    bookings = Reservation.objects.filter(status=False)
-    for booking in bookings:
-        if not booking.status:
-            send_message_for_confirm_booking_by_id.delay(booking.id)
+    try:
+        bookings = Reservation.objects.filter(status=False)
+        for booking in bookings:
+            if not booking.status:
+                send_reminder.apply_async(
+                    args=[booking.id], kwargs={"for_client": False}
+                )
+    except Reservation.DoesNotExist:
+        return None
 
 
 @shared_task
-def send_reminder_one_day():
-    # reminder_half_on_hour
-    bookings_by_reminder_one_day = Reservation.objects.filter(
-        status=True, reminder_one_day=True
-    )
-    for booking in bookings_by_reminder_one_day:
+def check_bookings():
+    try:
+        bookings = Reservation.objects.filter(status=True)
+    except Reservation.DoesNotExist:
+        return "Подтвержденных броней не найдено"
+
+    for booking in bookings:
         booking_data = booking.date_reservation
-        booking_time = booking.start_time_reservation
-        data_string = booking_data + " " + booking_time
-        date_format = "%d-%m-%Y %H:%M:%S"
-        target_datetime = datetime.strptime(
-            data_string, date_format
-        ) - datetime.timedelta(days=1)
-        send_message_for_confirm_booking_by_id.apply_async(
-            args=[booking.id], eta=target_datetime
+        booking_time = booking.start_time_reservation.split(":")
+        booking_date_time = datetime(
+            year=booking_data.year,
+            month=booking_data.month,
+            day=booking_data.day,
+            hour=int(booking_time[0]),
+            minute=int(booking_time[1]),
         )
 
+        # За 30 минут до начала
+        reminder_time = booking_date_time - timedelta(minutes=30)
+        reminder_time = tz_moscow.localize(reminder_time).isoformat()
+        if (
+            not is_task_scheduled(send_reminder, booking.id, reminder_time)
+            and booking.reminder_half_on_hour is True
+            and reminder_time >= datetime.now().isoformat()
+        ):
+            send_reminder.apply_async(
+                args=[booking.id],
+                kwargs={"for_client": True},
+                eta=reminder_time,
+            )
 
-def send_reminder_three_hours():
-    bookings_by_reminder_three_hours = Reservation.objects.filter(
-        status=True, reminder_three_hours=True
-    )
-    for booking in bookings_by_reminder_three_hours:
-        booking_data = booking.date_reservation
-        booking_time = booking.start_time_reservation
-        data_string = booking_data + " " + booking_time
-        date_format = "%d-%m-%Y %H:%M:%S"
-        target_datetime = datetime.strptime(
-            data_string, date_format
-        ) - datetime.timedelta(hours=3)
-        send_message_for_confirm_booking_by_id.apply_async(
-            args=[booking.id], eta=target_datetime
-        )
+        # За 3 часа до начала
+        reminder_time = booking_date_time - timedelta(hours=3)
+        reminder_time = tz_moscow.localize(reminder_time).isoformat()
+        if (
+            not is_task_scheduled(send_reminder, booking.id, reminder_time)
+            and booking.reminder_three_hours is True
+            and reminder_time >= datetime.now().isoformat()
+        ):
+            send_reminder.apply_async(
+                args=[booking.id],
+                kwargs={"for_client": True},
+                eta=reminder_time,
+            )
+
+        # За 1 день до начала
+        reminder_time = booking_date_time - timedelta(days=1)
+        reminder_time = tz_moscow.localize(reminder_time).isoformat()
+        if (
+            not is_task_scheduled(send_reminder, booking.id, reminder_time)
+            and booking.reminder_one_day is True
+            and reminder_time >= datetime.now().isoformat()
+        ):
+            send_reminder.apply_async(
+                args=[booking.id],
+                kwargs={"for_client": True},
+                eta=reminder_time,
+            )
+
+
+def is_task_scheduled(task, booking_id, reminder_time):
+    scheduled_tasks = current_app.control.inspect().scheduled()
+    for tasks in scheduled_tasks.values():
+        for scheduled_task in tasks:
+            if (
+                scheduled_task["request"]["name"] == task.name
+                and scheduled_task["request"]["args"] == [booking_id]
+                and scheduled_task["eta"] == reminder_time
+            ):
+                return True
+    return False
