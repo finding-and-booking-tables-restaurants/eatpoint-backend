@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
 
 if DEBUG:
     ALLOWED_HOSTS.append("127.0.0.1")
+    ALLOWED_HOSTS.append("localhost")
 
 # SSL and CSRF
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -71,6 +72,8 @@ INSTALLED_APPS = [
     "analytics.apps.AnalyticsConfig",
     "reviews.apps.ReviewsConfig",
     "django.contrib.postgres",
+    "django_celery_results",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -243,21 +246,6 @@ else:
 TIME_INPUT_FORMATS = ("%I:%M",)
 PHONENUMBER_DEFAULT_REGION = "RU"
 
-JAZZMIN_SETTINGS = {
-    "site_title": "Eatpoint Admin",
-    "site_header": "Администрирование Eatpoint",
-    "site_brand": "EatPoint",
-    # "site_icon": "jazzmin/admin/bird_2.jpg",
-    # "site_logo": "/jazzmin/admin/bird_2.jpg",
-    # "site_logo_classes": "img-circle",
-    "welcome_sign": "Добро пожаловать в EatPoint",
-    "copyright": "Яндекс.Акселератор",
-    "dark_mode_theme": "darkly",
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "use_google_fonts_cdn": True,
-}
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -278,3 +266,15 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+# Celery Configuration Options
+
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "CELERY_RESULT_BACKEND", "redis://redis:6379/0"
+)
+CELERY_CACHE_BACKEND = os.environ.get("CELERY_CACHE_BACKEND", None)

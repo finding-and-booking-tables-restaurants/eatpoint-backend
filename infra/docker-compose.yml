@@ -51,6 +51,56 @@ services:
     depends_on:
       - nginx
 
+  redis:
+    restart: unless-stopped
+    image: redis:7.0.5-alpine
+    container_name: redis
+    expose:
+      - 6379
+
+  flower:
+    restart: unless-stopped
+    container_name: flower
+    image: valentaine98/eatpoint-backend:latest
+    entrypoint: /app/flower-entrypoint.sh
+    volumes:
+      - static_value:/app/eatpoint/static
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "5555:5555"
+    depends_on:
+      - backend
+      - redis
+
+  worker:
+    restart: unless-stopped
+    container_name: worker
+    image: valentaine98/eatpoint-backend:latest
+    entrypoint: /app/worker-entrypoint.sh
+    volumes:
+      - static_value:/app/eatpoint/static
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    depends_on:
+      - backend
+      - redis
+
+  beat:
+    restart: unless-stopped
+    container_name: beat
+    image: valentaine98/eatpoint-backend:latest
+    entrypoint: /app/beat-entrypoint.sh
+    volumes:
+      - static_value:/app/eatpoint/static
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    depends_on:
+      - worker
+
 volumes:
   static_value:
   media_value:
