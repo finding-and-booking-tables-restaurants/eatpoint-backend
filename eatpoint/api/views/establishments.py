@@ -5,11 +5,9 @@ from drf_spectacular.utils import (
     extend_schema_view,
     OpenApiParameter,
 )
-from rest_framework import generics, viewsets, status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework import viewsets, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import (
-    IsAuthenticated,
     SAFE_METHODS,
     IsAdminUser,
 )
@@ -22,15 +20,12 @@ from api.filters.establishments import (
 )
 from api.permissions import (
     ReadOnly,
-    IsAuthor,
     IsClient,
     IsRestorateur,
     IsRestorateurEdit,
 )
 from api.serializers.establishments import (
     EstablishmentSerializer,
-    OwnerResponseSerializer,
-    ReviewSerializer,
     EstablishmentEditSerializer,
     KitchenSerializer,
     TypeEstSerializer,
@@ -45,7 +40,6 @@ from establishments.models import (
     Establishment,
     Favorite,
     Kitchen,
-    Review,
     TypeEst,
     Service,
     ZoneEstablishment,
@@ -406,71 +400,6 @@ class ZoneViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=["Отзывы"],
-    methods=["GET", "POST", "PATCH", "DELETE"],
-    description="Клиент",
-)
-@extend_schema_view(
-    list=extend_schema(
-        summary="Получить список отзывов к заведению с id=",
-        description="Клиент/ресторатор",
-    ),
-    destroy=extend_schema(
-        summary="Удалить отзыв",
-        description="Клиент/ресторатор",
-    ),
-    create=extend_schema(summary="Оставить отзыв"),
-    retrieve=extend_schema(
-        summary="Один отзыв",
-        description="Клиент/ресторатор",
-        parameters=[
-            OpenApiParameter(
-                name="establishment_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-        ],
-    ),
-    partial_update=extend_schema(
-        summary="Редактировать отзыв",
-        parameters=[
-            OpenApiParameter(
-                name="establishment_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-        ],
-    ),
-)
-class ReviewViewSet(viewsets.ModelViewSet):
-    """Вьюсет: Отзывы"""
-
-    serializer_class = ReviewSerializer
-    permission_classes = (IsAuthor | ReadOnly,)
-    http_method_names = ["get", "patch", "delete", "post"]
-
-    def get_queryset(self):
-        establishment_id = self.kwargs.get("establishment_id")
-        establishment = get_object_or_404(Establishment, id=establishment_id)
-        return establishment.review.all()
-
-    def perform_create(self, serializer):
-        establishment_id = self.kwargs.get("establishment_id")
-        establishment = get_object_or_404(Establishment, id=establishment_id)
-        serializer.save(author=self.request.user, establishment=establishment)
-
-
-@extend_schema(
     tags=["События"],
     methods=["GET", "POST", "PATCH", "DELETE"],
 )
@@ -495,31 +424,6 @@ class EventUsersViewSet(viewsets.ModelViewSet):
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
         serializer.save(establishment=establishment)
-
-
-@extend_schema(
-    tags=["Ответы владельца заведения"],
-    methods=["POST"],
-    description="Добавление ответа владельца заведения к отзыву",
-)
-class OwnerResponseCreateView(generics.CreateAPIView):
-    """Вьюсет: Отзывы(владелец заведения)"""
-
-    serializer_class = OwnerResponseSerializer
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        request=OwnerResponseSerializer,
-        responses={201: OwnerResponseSerializer},
-    )
-    def perform_create(self, serializer):
-        """Получаем отзыв_id из URL"""
-        review_id = self.kwargs.get("review_id")
-        review = Review.objects.get(pk=review_id)
-        establishment_owner = self.request.user
-        if establishment_owner != review.establishment.owner:
-            raise PermissionDenied("У вас нет прав для ответа на этот отзыв.")
-        serializer.save()
 
 
 @extend_schema(

@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "reservation.apps.ReservationConfig",
     "users.apps.UsersConfig",
     "analytics.apps.AnalyticsConfig",
+    "reviews.apps.ReviewsConfig",
     "django.contrib.postgres",
 ]
 
