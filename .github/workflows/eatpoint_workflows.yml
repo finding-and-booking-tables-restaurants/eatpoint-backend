@@ -61,6 +61,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           stack_file_name: docker-compose.yaml
           script: |
+            cd ..
+            cd home/
             cd infraa/
             sudo docker-compose stop
             docker-compose pull
