@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     "django_filters",
     "phonenumber_field",
-    "jwt",
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
@@ -272,9 +271,9 @@ AUTH_PASSWORD_VALIDATORS = [
         },
     },
     {
-        "NAME": "users.validators.NoRussianLettersValidator",
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "users.validators.OnlyAllowedCharactersValidator",
     },
 ]

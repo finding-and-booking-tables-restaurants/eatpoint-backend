@@ -155,7 +155,7 @@ class SignUpSerializer(MyBaseSerializer):
 
         # =========== Нужно убрать если включим отправку по SMTP и другой способ ======
         if data.get("confirm_code_send_method") in (
-            core.constants.EMAIL,
+            # core.constants.EMAIL,
             core.constants.SMS,
             # core.constants.TELEGRAM,
         ):
