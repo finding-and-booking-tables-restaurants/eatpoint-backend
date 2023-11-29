@@ -27,7 +27,7 @@ jobs:
         python -m flake8 --ignore E501,W503,F401
         # cd eatpoint/
         # python manage.py test
-# сделать запуск тестов из файла tests. создать директорию для тестов
+
   build_and_push:
     name: Push Docker image to DockerHub
     runs-on: ubuntu-latest
@@ -61,6 +61,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           stack_file_name: docker-compose.yaml
           script: |
+            cd ..
+            cd home/
             cd infraa/
             sudo docker-compose stop
             docker-compose pull
