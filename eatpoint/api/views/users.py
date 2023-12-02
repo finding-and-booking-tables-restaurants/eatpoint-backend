@@ -232,7 +232,7 @@ class ConfirmCodeView(APIView):
 
                     send_mail(
                         "Аккаунт зарегистрирован",
-                        "Для перехода в профиль нажмите на ссылку: ...",
+                        "Для перехода в профиль перейдите по ссылке: https://eatpoint.site/signin",
                         settings.DEFAULT_FROM_EMAIL,
                         [user.email],
                         fail_silently=False,
