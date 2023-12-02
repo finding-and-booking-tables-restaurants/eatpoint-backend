@@ -11,12 +11,4 @@ RUN python3 -m pip install --upgrade pip
 RUN pip install -r requirements.txt
 COPY /eatpoint/ /app/
 COPY /eatpoint/entrypoint.sh /app/
-COPY ../infra/flower-entrypoint.sh /app/
-COPY ../infra/worker-entrypoint.sh /app/
-COPY ../infra/beat-entrypoint.sh /app/
-
-RUN chmod +x /app/flower-entrypoint.sh
-RUN chmod +x /app/worker-entrypoint.sh
-RUN chmod +x /app/beat-entrypoint.sh
-
 CMD ["gunicorn", "eatpoint.wsgi:application", "--bind", "0:8000"]
