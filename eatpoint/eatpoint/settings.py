@@ -27,6 +27,7 @@ ALLOWED_HOSTS = [
     "backend",
     "backend:8000",
     "eatpoint.sytes.net",
+    "eatpoint.site",
 ]
 
 if DEBUG:
@@ -39,6 +40,8 @@ SESSION_COOKIE_SECURE = False if DEBUG else True
 CSRF_TRUSTED_ORIGINS = [
     "https://eatpoint.sytes.net",
     "http://eatpoint.sytes.net",
+    "https://eatpoint.site",
+    "http://eatpoint.site",
 ]
 CSRF_COOKIE_SECURE = False if DEBUG else True
 CSRF_COOKIE_DOMAIN = "eatpoint.sytes.net" if not DEBUG else None
@@ -217,45 +220,30 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
 }
 
-# OTHER SETTINGS
+# EMAIL SETTINGS
 
 if DEBUG:
-    DEFAULT_FROM_EMAIL = os.getenv(
-        "DEFAULT_FROM_EMAIL", default="mail@fake.ru"
-    )
-    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-    EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+    # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+    # EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = os.getenv("EMAIL_HOST")
-    EMAIL_PORT = os.getenv("EMAIL_PORT")
-    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
-    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL")
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL")
 
-    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-    SERVER_EMAIL = EMAIL_HOST_USER
-    EMAIL_ADMIN = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
 
+
+# OTHER SETTINGS=============================================================
 TIME_INPUT_FORMATS = ("%I:%M",)
 PHONENUMBER_DEFAULT_REGION = "RU"
-
-JAZZMIN_SETTINGS = {
-    "site_title": "Eatpoint Admin",
-    "site_header": "Администрирование Eatpoint",
-    "site_brand": "EatPoint",
-    # "site_icon": "jazzmin/admin/bird_2.jpg",
-    # "site_logo": "/jazzmin/admin/bird_2.jpg",
-    # "site_logo_classes": "img-circle",
-    "welcome_sign": "Добро пожаловать в EatPoint",
-    "copyright": "Яндекс.Акселератор",
-    "dark_mode_theme": "darkly",
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "use_google_fonts_cdn": True,
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
