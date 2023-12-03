@@ -1,0 +1,103 @@
+version: '3.3'
+services:
+  db:
+    image: postgres:12.4
+    restart: always
+    container_name: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/dat
+    env_file:
+      - .env
+
+  backend:
+    container_name: backend
+    restart: always
+    build:
+      context: ../../
+      dockerfile: ./eatpoint/Dockerfile-local
+    entrypoint: /app/backend-entrypoint.sh
+    expose:
+      - 8000
+    volumes:
+      - static_value:/var/www/static/
+      - media_value:/var/www/media/
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  nginx:
+    image: nginx:1.21.3-alpine
+    restart: always
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_value:/var/www/static
+      - media_value:/var/www/media
+    depends_on:
+      - backend
+
+  redis:
+    restart: unless-stopped
+    image: redis:7.0.5-alpine
+    container_name: redis
+    expose:
+      - 6379
+    depends_on:
+      - backend
+
+  celery:
+    restart: unless-stopped
+    container_name: celery
+    build:
+      context: ../../
+      dockerfile: ./eatpoint/Dockerfile-local
+    entrypoint: /app/celery-entrypoint.sh
+    volumes:
+      - static_value:/var/www/static/
+      - postgres_data:/var/lib/postgresql/dat
+    env_file:
+      - .env
+    depends_on:
+      - backend
+      - redis
+
+#  flower:
+#    restart: unless-stopped
+#    container_name: flower
+#    build:
+#      context: ../../
+#      dockerfile: ./eatpoint/Dockerfile
+#    entrypoint: /app/flower-entrypoint.sh
+#    volumes:
+#      - static_value:/var/www/static/
+#      - postgres_data:/var/lib/postgresql/dat
+#    env_file:
+#      - ../../.env
+#    ports:
+#      - "5555:5555"
+#    depends_on:
+#      - backend
+#      - redis
+#
+#  beat:
+#    restart: unless-stopped
+#    container_name: beat
+#    build:
+#      context: ../../
+#      dockerfile: ./eatpoint/Dockerfile
+#    entrypoint: /app/beat-entrypoint.sh
+#    volumes:
+#      - static_value:/var/www/static/
+#      - postgres_data:/var/lib/postgresql/dat
+#    env_file:
+#      - ../../.env
+#    depends_on:
+#      - worker
+
+volumes:
+  static_value:
+  media_value:
+  postgres_data:
