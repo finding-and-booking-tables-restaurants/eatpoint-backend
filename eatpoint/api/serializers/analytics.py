@@ -10,6 +10,9 @@ class AnalyticsStaticSerializer(serializers.Serializer):
     Предоставляет статистические данные о бронированиях за различные периоды времени.
     """
 
+    total_reservation = serializers.IntegerField(
+        help_text="Бронирования за все время",
+    )
     daily_reservation = serializers.IntegerField(
         help_text="Бронирования за день",
     )
@@ -20,15 +23,12 @@ class AnalyticsStaticSerializer(serializers.Serializer):
         child=serializers.IntegerField(),
         help_text="Бронирования по месяцам",
     )
-    daily_reservations_last_week = serializers.DictField(
-        child=serializers.IntegerField(),
-        help_text="Бронирования по дням",
-    )
     yearly_reservation = serializers.IntegerField(
         help_text="Бронирования за год",
     )
-    total_reservation = serializers.IntegerField(
-        help_text="Бронирования за все время",
+    daily_reservations_by_day = serializers.DictField(
+        child=serializers.IntegerField(),
+        help_text="Бронирования по дням",
     )
 
     def to_representation(self, instance):
@@ -45,11 +45,9 @@ class AnalyticsStaticSerializer(serializers.Serializer):
             "total_reservation": instance["total_reservation"],
             "daily_reservation": instance["daily_reservation"],
             "weekly_reservation": instance["weekly_reservation"],
-            "daily_reservations_last_week": instance[
-                "daily_reservations_last_week"
-            ],
             "monthly_reservation": instance["monthly_reservation"],
             "yearly_reservation": instance["yearly_reservation"],
+            "daily_reservations_by_day": instance["daily_reservations_by_day"],
         }
 
 
@@ -68,24 +66,34 @@ class AnalyticsDynamicSerializer(serializers.Serializer):
         write_only=True,
         help_text="Конец отслеживания",
     )
-    total_reservation = serializers.IntegerField(read_only=True)
-    daily_reservations_last_week = serializers.ListField(
-        child=serializers.DictField(), read_only=True
+
+    total_reservation = serializers.IntegerField(
+        help_text="Бронирования за все время", read_only=True
     )
-    daily_reservations = serializers.ListField(
-        child=serializers.DictField(), read_only=True
+    daily_reservations_by_day = serializers.DictField(
+        child=serializers.IntegerField(),
+        help_text="Бронирования по дням",
+        read_only=True,
     )
-    monthly_reservations = serializers.ListField(
-        child=serializers.DictField(), read_only=True
+    monthly_reservations_by_month = serializers.DictField(
+        read_only=True,
+        child=serializers.IntegerField(),
+        help_text="Бронирования по месяцам",
+    )
+    yearly_reservation = serializers.IntegerField(
+        read_only=True,
+        help_text="Бронирования за год",
     )
 
     def to_representation(self, instance):
         representation = {
             "total_reservation": instance.get("total_reservation"),
-            "daily_reservations_last_week": instance.get(
-                "daily_reservations_last_week"
+            "daily_reservations_by_day": instance.get(
+                "daily_reservations_by_day"
             ),
-            "daily_reservations": instance.get("daily_reservations"),
-            "monthly_reservations": instance.get("monthly_reservations"),
+            "monthly_reservations_by_month": instance.get(
+                "monthly_reservations_by_month"
+            ),
+            "yearly_reservation": instance.get("yearly_reservation"),
         }
         return representation
