@@ -30,5 +30,8 @@ do
     sleep 2
 done
 
+python manage.py createsuperuser \
+    --noinput \
+    --email $DJANGO_SUPERUSER_EMAIL
 
 gunicorn eatpoint.wsgi --bind 0.0.0.0:8000

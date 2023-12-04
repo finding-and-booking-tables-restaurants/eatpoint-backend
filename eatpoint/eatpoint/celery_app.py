@@ -12,10 +12,10 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
 app.conf.beat_schedule = {
-    # "send-message-every-4-minutes": {
-    #     "task": "core.tasks.send_message_for_confirm_booking",
-    #     "schedule": crontab(minute="*/4"),
-    # },
+    "send-reminder-for-confirm-booking": {
+        "task": "core.tasks.send_message_for_confirm_booking",
+        "schedule": crontab(hour="*", minute="1, 3, 5, 8, 13, 21, 34"),
+    },
     "check_bookings_task": {
         "task": "core.tasks.check_bookings",
         "schedule": crontab(minute="*/30"),
