@@ -8,7 +8,7 @@ from establishments.models import WorkEstablishment, ZoneEstablishment
 from reservation.models import Availability
 
 string_validator = RegexValidator(
-    r"^[a-zA-Zа-яА-Я]{2,30}$",
+    r"^[a-zA-Zа-яА-ЯёЁ]{2,30}$",
     "Имя и Фамилия должны содержать только "
     "рус и лат буквы длиной от 2 до 30 символов",
 )
