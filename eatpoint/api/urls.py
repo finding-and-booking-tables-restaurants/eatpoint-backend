@@ -1,7 +1,12 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views.analytics import AnalyticsViewSet, AnalyticsListViewSet
+from api.views.analytics import (
+    AnalyticsHistoryListViewSet,
+    AnalyticsHistoryViewSet,
+    AnalyticsViewSet,
+    AnalyticsListViewSet,
+)
 from api.views.code_generate import SendSMSCode, VerifySMSCode
 from api.views.establishments import (
     ZoneViewSet,
@@ -129,6 +134,16 @@ urlpatterns = [
         "v1/business/analytics/all/",
         AnalyticsListViewSet.as_view(),
         name="establishment-analytics-list",
+    ),
+    path(
+        "v1/business/analytics/history/<int:establishment_id>/",
+        AnalyticsHistoryViewSet.as_view(),
+        name="establishment-analytics-history",
+    ),
+    path(
+        "v1/business/analytics/history/all/",
+        AnalyticsHistoryListViewSet.as_view(),
+        name="establishment-analytics-list-history",
     ),
     path(
         "v1/availability/time/<str:dates>/<int:establishment_id>/",
