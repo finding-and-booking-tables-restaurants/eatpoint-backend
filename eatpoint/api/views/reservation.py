@@ -250,7 +250,7 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
         removable.delete()
         return Response(
             {"message": "Бронирование удалено"},
-            status=status.HTTP_404_NOT_FOUND,
+            status=status.HTTP_200_OK,
         )
 
 
@@ -334,7 +334,7 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         removable.delete()
         return Response(
             {"message": "Бронирование удалено"},
-            status=status.HTTP_404_NOT_FOUND,
+            status=status.HTTP_200_OK,
         )
 
     def partial_update(self, request, *args, **kwargs):
