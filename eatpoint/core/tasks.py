@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 
 import pytz
@@ -5,6 +6,7 @@ from celery import shared_task, current_app
 from django.conf import settings as django_settings
 from django.core.mail import send_mail
 
+from core.tgbot import send_code
 from reservation.models import Reservation
 
 tz_moscow = pytz.timezone(django_settings.CELERY_TIMEZONE)
@@ -32,14 +34,13 @@ def send_reminder(_id, for_client=False):
             f"гостей: {booking.number_guests}"
         )
 
-        # asyncio.run(send_code(message))
+        asyncio.run(send_code(message))
+
         send_mail(
             subject=subj,
             message=message,
             from_email=django_settings.EMAIL_HOST_USER,
-            recipient_list=[
-                booking.email or booking.user.email,
-            ],
+            recipient_list=[booking.email],
         )
         return message
 
@@ -48,14 +49,17 @@ def send_reminder(_id, for_client=False):
 
 
 @shared_task
-def send_message_for_confirm_booking():
+def check_unconfirmed_booking():
     try:
         bookings = Reservation.objects.filter(status=False)
         for booking in bookings:
-            if not booking.status:
+            if not booking.status and not is_task_scheduled(
+                send_reminder, booking.id, None
+            ):
                 send_reminder.apply_async(
                     args=[booking.id], kwargs={"for_client": False}
                 )
+
     except Reservation.DoesNotExist:
         return None
 
