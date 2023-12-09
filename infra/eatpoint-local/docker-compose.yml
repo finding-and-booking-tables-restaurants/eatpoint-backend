@@ -5,7 +5,7 @@ services:
     restart: always
     container_name: db
     volumes:
-      - postgres_data:/var/lib/postgresql/dat
+      - db_bas:/var/lib/postgresql/data
     env_file:
       - .env
 
@@ -19,8 +19,8 @@ services:
     expose:
       - 8000
     volumes:
-      - static_value:/var/www/static/
-      - media_value:/var/www/media/
+      - static_value:/app/static/
+      - media_value:/app/media/
     depends_on:
       - db
     env_file:
@@ -34,8 +34,8 @@ services:
       - "80:80"
     volumes:
       - ../nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - static_value:/var/www/static
-      - media_value:/var/www/media
+      - static_value:/app/static/
+      - media_value:/app/media/
     depends_on:
       - backend
 
@@ -56,32 +56,30 @@ services:
       dockerfile: ./eatpoint/Dockerfile-local
     entrypoint: /app/celery-entrypoint.sh
     volumes:
-      - static_value:/var/www/static/
-      - postgres_data:/var/lib/postgresql/dat
+      - static_value:/app/static/
+      - db_bas:/var/lib/postgresql/data
     env_file:
       - .env
     depends_on:
-      - backend
       - redis
 
-#  flower:
-#    restart: unless-stopped
-#    container_name: flower
-#    build:
-#      context: ../../
-#      dockerfile: ./eatpoint/Dockerfile
-#    entrypoint: /app/flower-entrypoint.sh
-#    volumes:
-#      - static_value:/var/www/static/
-#      - postgres_data:/var/lib/postgresql/dat
-#    env_file:
-#      - ../../.env
-#    ports:
-#      - "5555:5555"
-#    depends_on:
-#      - backend
-#      - redis
-#
+  flower:
+    restart: unless-stopped
+    container_name: flower
+    build:
+      context: ../../
+      dockerfile: ./eatpoint/Dockerfile-local
+    entrypoint: /app/flower-entrypoint.sh
+    volumes:
+      - static_value:/var/www/static/
+      - db_bas:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+
 #  beat:
 #    restart: unless-stopped
 #    container_name: beat
@@ -100,4 +98,4 @@ services:
 volumes:
   static_value:
   media_value:
-  postgres_data:
+  db_bas:
