@@ -11,4 +11,6 @@ RUN python3 -m pip install --upgrade pip
 RUN pip install -r requirements.txt
 COPY /eatpoint/ /app/
 COPY /eatpoint/entrypoint.sh /app/
+COPY /eatpoint/celery-entrypoint.sh /app/
+COPY /eatpoint/flower-entrypoint.sh /app/
 CMD ["gunicorn", "eatpoint.wsgi:application", "--bind", "0:8000"]

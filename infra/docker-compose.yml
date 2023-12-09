@@ -64,8 +64,8 @@ services:
     image: valentaine98/eatpoint-backend:latest
     entrypoint: /app/flower-entrypoint.sh
     volumes:
-      - static_value:/app/eatpoint/static
-      - postgres_data:/var/lib/postgresql/data
+      - static_value:/app/static
+      - db_bas:/var/lib/postgresql/data
     env_file:
       - .env
     ports:
@@ -74,32 +74,19 @@ services:
       - backend
       - redis
 
-  worker:
+  celery:
     restart: unless-stopped
-    container_name: worker
+    container_name: celery
     image: valentaine98/eatpoint-backend:latest
-    entrypoint: /app/worker-entrypoint.sh
+    entrypoint: /app/celery-entrypoint.sh
     volumes:
-      - static_value:/app/eatpoint/static
-      - postgres_data:/var/lib/postgresql/data
+      - static_value:/app/static
+      - db_bas:/var/lib/postgresql/data
     env_file:
       - .env
     depends_on:
       - backend
       - redis
-
-  beat:
-    restart: unless-stopped
-    container_name: beat
-    image: valentaine98/eatpoint-backend:latest
-    entrypoint: /app/beat-entrypoint.sh
-    volumes:
-      - static_value:/app/eatpoint/static
-      - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - .env
-    depends_on:
-      - worker
 
 volumes:
   static_value:
