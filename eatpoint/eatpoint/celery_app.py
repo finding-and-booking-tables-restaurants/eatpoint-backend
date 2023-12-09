@@ -18,6 +18,6 @@ app.conf.beat_schedule = {
     },
     "check_bookings_task": {
         "task": "core.tasks.check_bookings",
-        "schedule": crontab(minute="*/30"),
+        "schedule": crontab(minute="*/15"),
     },
 }

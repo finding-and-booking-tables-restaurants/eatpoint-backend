@@ -88,7 +88,8 @@ def check_bookings():
         if (
             not is_task_scheduled(send_reminder, booking.id, reminder_time)
             and booking.reminder_half_on_hour is True
-            and reminder_time >= datetime.now().isoformat()
+            and reminder_time
+            > (datetime.now() - timedelta(minutes=1)).isoformat()
         ):
             send_reminder.apply_async(
                 args=[booking.id],
@@ -102,7 +103,8 @@ def check_bookings():
         if (
             not is_task_scheduled(send_reminder, booking.id, reminder_time)
             and booking.reminder_three_hours is True
-            and reminder_time >= datetime.now().isoformat()
+            and reminder_time
+            > (datetime.now() - timedelta(minutes=1)).isoformat()
         ):
             send_reminder.apply_async(
                 args=[booking.id],
@@ -116,7 +118,8 @@ def check_bookings():
         if (
             not is_task_scheduled(send_reminder, booking.id, reminder_time)
             and booking.reminder_one_day is True
-            and reminder_time >= datetime.now().isoformat()
+            and reminder_time
+            > (datetime.now() - timedelta(minutes=1)).isoformat()
         ):
             send_reminder.apply_async(
                 args=[booking.id],
