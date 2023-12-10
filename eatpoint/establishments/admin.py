@@ -3,12 +3,14 @@ from django import forms
 from django.utils.safestring import mark_safe
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
+from reservation.models import Slot
 from .models import (
     Establishment,
     Kitchen,
     Service,
     Event,
     TypeEst,
+    Table,
     ZoneEstablishment,
     ImageEstablishment,
     WorkEstablishment,
@@ -28,11 +30,55 @@ class ContactForm(forms.ModelForm):
         }
 
 
+@admin.register(Table)
+class TableAdmin(admin.ModelAdmin):
+    """Админка: столик"""
+
+    list_display = (
+        "id",
+        "establishment",
+        "zone",
+        "seats",
+        "is_active",
+        "is_reserved",
+    )
+    fieldsets = (
+        (
+            "Столы в зоне",
+            {"fields": ("zone", "is_active", "is_reserved", "seats")},
+        ),
+    )
+
+
+class TableInLine(admin.TabularInline):
+    """Админка: добавление столиков"""
+
+    model = Table
+
+
+@admin.register(Slot)
+class SlotAdmin(admin.ModelAdmin):
+    """Админка: слот"""
+
+    list_display = (
+        "id",
+        "establishment",
+        "zone",
+        "date",
+        "time",
+        "available_tables",
+    )
+
+
 @admin.register(ZoneEstablishment)
 class ZoneAdmin(admin.ModelAdmin):
     """Админка: зона заведения"""
 
-    list_display = ("zone", "id")
+    list_display = ("establishment", "zone", "id")
+    ordering = ("establishment", "-zone")
+    inlines = [
+        TableInLine,
+    ]
 
 
 @admin.register(ImageEstablishment)
@@ -182,7 +228,7 @@ class EstablishmentAdmin(admin.ModelAdmin):
     )
     list_filter = ("name",)
     empty_value_display = "-пусто-"
-    inlines = (ZonesInLine, WorkInLine, ImageInLine, SocialInLine)
+    inlines = (WorkInLine, ZonesInLine, ImageInLine, SocialInLine)
     autocomplete_fields = ["cities"]
 
     def preview(self, obj):

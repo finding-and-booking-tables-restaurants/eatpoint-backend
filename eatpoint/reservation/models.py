@@ -1,10 +1,13 @@
+from datetime import datetime
+
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
 from core.choices import TIME_CHOICES
-from core.constants import MIN_SEATS, MAX_SEATS
-from establishments.models import Establishment, ZoneEstablishment
+from core.constants import MIN_SEATS, MAX_SEATS, INTERVAL_MINUTES
+from core.services import choices_generator, time_generator
+from establishments.models import Establishment, ZoneEstablishment, Table
 
 from users.models import User
 
@@ -33,6 +36,61 @@ class Availability(models.Model):
         null=True,
         help_text="Добавляется автоматически",
     )
+
+
+class Slot(models.Model):
+    """Свободные слоты"""
+
+    @staticmethod
+    def get_available_time_choices(instance):
+        working_hours = instance.worked.all()
+
+        current_day = datetime.now().strftime("%A")
+        current_day_work_hours = working_hours.filter(day=current_day)
+
+        # Если для текущего дня нет рабочих часов, вернуть пустой список выборов
+        if not current_day_work_hours.exists():
+            return []
+
+        start_time = current_day_work_hours.first().start
+        end_time = current_day_work_hours.first().end
+
+        # Сгенерировать выбор времени на основе рабочих часов
+        time_choices = choices_generator(
+            time_generator(start_time, end_time, INTERVAL_MINUTES)
+        )
+
+        return time_choices
+
+    establishment = models.ForeignKey(
+        Establishment,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="slots",
+    )
+    zone = models.ForeignKey(
+        ZoneEstablishment,
+        verbose_name="Зона заведения",
+        on_delete=models.CASCADE,
+        related_name="slots",
+    )
+    date = models.DateField()
+    time = models.CharField(
+        max_length=5,
+        choices=get_available_time_choices(establishment),
+        verbose_name="Время бронирования",
+    )
+    available_tables = models.ForeignKey(
+        Table,
+        verbose_name="Свободные столики",
+        on_delete=models.CASCADE,
+        blank=True,
+        related_name="slots",
+    )
+
+    class Meta:
+        verbose_name = "Свободный слот"
+        verbose_name_plural = "Свободные слоты"
 
 
 class Reservation(models.Model):
