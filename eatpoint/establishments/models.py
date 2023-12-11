@@ -385,7 +385,7 @@ class Table(models.Model):
         verbose_name_plural = "Столики"
 
     def __str__(self):
-        return f"{self.zone}: {self.number}, {self.seats}"
+        return f"номер: {self.number}, мест: {self.seats}, зона: {self.zone}"
 
 
 class TypeEvents(models.Model):

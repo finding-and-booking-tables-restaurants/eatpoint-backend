@@ -66,7 +66,8 @@ class SlotAdmin(admin.ModelAdmin):
         "zone",
         "date",
         "time",
-        "available_tables",
+        "available_table",
+        "seats",
     )
 
 
