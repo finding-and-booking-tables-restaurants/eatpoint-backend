@@ -126,12 +126,12 @@ class SignUp(APIView):
             if not created and user.is_active:
                 return Response(
                     "Аккаунт уже подтвержден, авторизуйтесь...",
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_409_CONFLICT,
                 )
             elif not created and not user.is_active:
                 return Response(
                     "Аккаунт не активен, введите код подтверждения...",
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_409_CONFLICT,
                 )
             if created:
                 user.set_password(request.data.get("password"))
