@@ -53,18 +53,6 @@ class YourModelAdminForm(forms.ModelForm):
         model = Reservation
         fields = "__all__"
 
-    def clean(self):
-        cleaned_data = super().clean()
-        zone = cleaned_data.get("zone")
-        date = cleaned_data.get("date_reservation")
-        availability = Availability.objects.get(zone=zone, date=date)
-        print(availability.available_seats)
-        if availability == 0:
-            raise forms.ValidationError(
-                "Количество мест не может быть равно 0."
-            )
-        return cleaned_data
-
 
 @admin.register(Reservation)
 class EstablishmentReservAdmin(admin.ModelAdmin):
@@ -73,37 +61,44 @@ class EstablishmentReservAdmin(admin.ModelAdmin):
     form = YourModelAdminForm
     list_display = (
         "reservation_date",
-        "id",
+        "user",
         "email",
         "telephone",
-        "establishment",
-        "zone",
-        "number_guests",
-        "date_reservation",
-        "start_time_reservation",
+        "last_name",
+        "first_name",
         "status",
+        "reminder_one_day",
+        "reminder_three_hours",
+        "reminder_half_on_hour",
     )
     list_filter = (
-        "establishment",
+        "reservation_date",
+        "status",
+    )
+    search_fields = (
+        "last_name",
+        "first_name",
+        "telephone",
+        "email",
         "date_reservation",
+        "user",
     )
     empty_value_display = "-пусто-"
     fieldsets = (
         ("Статус бронирования", {"fields": ("status",)}),
         (
             "Основная информация о клиенте",
-            {"fields": ("user", "first_name", "last_name")},
+            {"fields": ("user",)},
         ),
-        ("Контакты клиента", {"fields": ("telephone", "email")}),
+        (
+            "Контакты клиента",
+            {"fields": ("first_name", "last_name", "telephone", "email")},
+        ),
         (
             "Бронирование",
             {
                 "fields": (
-                    "establishment",
-                    "zone",
-                    "number_guests",
-                    "date_reservation",
-                    "start_time_reservation",
+                    "slots",
                     "comment",
                 )
             },

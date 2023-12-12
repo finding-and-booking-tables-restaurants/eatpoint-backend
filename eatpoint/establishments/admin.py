@@ -36,17 +36,12 @@ class TableAdmin(admin.ModelAdmin):
 
     list_display = (
         "id",
+        "number",
         "establishment",
         "zone",
         "seats",
         "is_active",
         "is_reserved",
-    )
-    fieldsets = (
-        (
-            "Столы в зоне",
-            {"fields": ("zone", "is_active", "is_reserved", "seats")},
-        ),
     )
 
 
@@ -54,6 +49,7 @@ class TableInLine(admin.TabularInline):
     """Админка: добавление столиков"""
 
     model = Table
+    extra = 0
 
 
 @admin.register(Slot)
@@ -66,8 +62,9 @@ class SlotAdmin(admin.ModelAdmin):
         "zone",
         "date",
         "time",
-        "available_table",
+        "table",
         "seats",
+        "is_active",
     )
 
 

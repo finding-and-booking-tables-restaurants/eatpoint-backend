@@ -3,47 +3,15 @@ from datetime import datetime, timedelta
 from geopy import Nominatim
 
 from core.constants import AVAILABLE_DAYS, INTERVAL_MINUTES, DAYS
-from core.services import days_available, time_generator
+from core.services import time_generator
 from establishments.models import (
-    WorkEstablishment,
-    ZoneEstablishment,
     Establishment,
     Table,
 )
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from reservation.models import Availability, Slot
-
-
-@receiver(post_save, sender=WorkEstablishment)
-def create_availability_work(sender, instance, created, **kwargs):
-    """Создает свободные слоты при создании времени работы"""
-    establishment = instance.establishment
-    zone = ZoneEstablishment
-    work = WorkEstablishment
-    available = Availability
-    days_available(establishment, zone, work, available)
-
-
-@receiver(post_save, sender=ZoneEstablishment)
-def create_availability_zone(sender, instance, created, **kwargs):
-    """Создает свободные слоты при создании зоны"""
-    establishment = instance.establishment
-    zone = ZoneEstablishment
-    work = WorkEstablishment
-    available = Availability
-    days_available(establishment, zone, work, available)
-
-
-@receiver(post_save, sender=Establishment)
-def create_availability_est(sender, instance, created, **kwargs):
-    """Создает свободные слоты при создании заведения"""
-    establishment = instance
-    zone = ZoneEstablishment
-    work = WorkEstablishment
-    available = Availability
-    days_available(establishment, zone, work, available)
+from reservation.models import Slot
 
 
 @receiver(pre_save, sender=Establishment)
