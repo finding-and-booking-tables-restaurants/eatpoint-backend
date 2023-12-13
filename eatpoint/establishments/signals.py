@@ -30,7 +30,8 @@ def create_coordinates_by_address(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Table)
 def create_slots(sender, instance, **kwargs):
-    zone = instance.zone
+    table = instance
+    zone = table.zone
     establishment = zone.establishment
     start_date = datetime.now().date()
     days = AVAILABLE_DAYS
@@ -53,12 +54,12 @@ def create_slots(sender, instance, **kwargs):
 
             # Создаем слоты для каждой половины часа в рабочие часы
             for time in worked_time:
-                if instance.is_active:
+                if table.is_active:
                     Slot.objects.get_or_create(
                         establishment=establishment,
                         zone=zone,
                         date=current_date,
                         time=time,
-                        available_table=instance,
-                        seats=instance.seats,
+                        table=table,
+                        seats=table.seats,
                     )

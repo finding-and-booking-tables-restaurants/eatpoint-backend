@@ -110,7 +110,7 @@ class Reservation(models.Model):
     slots = models.ManyToManyField(
         Slot,
         verbose_name="Забронированные слоты",
-        related_name="reservation",
+        related_name="reservations",
     )
 
     comment = models.CharField(

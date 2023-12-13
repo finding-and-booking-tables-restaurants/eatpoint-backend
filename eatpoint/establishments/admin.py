@@ -66,6 +66,7 @@ class SlotAdmin(admin.ModelAdmin):
         "seats",
         "is_active",
     )
+    list_filter = ("establishment", "zone", "table", "date", "time")
 
 
 @admin.register(ZoneEstablishment)
