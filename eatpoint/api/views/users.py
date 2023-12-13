@@ -194,13 +194,13 @@ class ConfirmCodeView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        telephone = request.data.get("telephone")
+        email = request.data.get("email")
         confirmation_code = request.data.get("confirmation_code")
 
-        if not User.objects.filter(telephone=telephone).exists():
+        if not User.objects.filter(email=email).exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        user = User.objects.get(telephone=telephone)
+        user = User.objects.get(email=email)
 
         if str(user.is_agreement).lower() not in ("true", "1", 1, True):
             return Response(
@@ -288,12 +288,12 @@ class ConfirmCodeRefreshView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        telephone = request.data.get("telephone")
+        email = request.data.get("email")
 
-        if not User.objects.filter(telephone=telephone).exists():
+        if not User.objects.filter(email=email).exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        user = User.objects.get(telephone=telephone)
+        user = User.objects.get(email=email)
         if user.is_active:
             return Response(
                 "Аккаунт уже активирован, можете войти в систему",

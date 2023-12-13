@@ -195,13 +195,13 @@ class ConfirmCodeSerializer(MyBaseSerializer):
 
     class Meta:
         model = User
-        fields = ("telephone", "confirmation_code")
+        fields = ("email", "confirmation_code")
 
     def validate(self, data):
-        telephone = data.get("telephone")
+        email = data.get("email")
         confirmation_code = data.get("confirmation_code")
-        if telephone is None:
-            raise serializers.ValidationError("Необходимо ввести телефон")
+        if email is None:
+            raise serializers.ValidationError("Необходимо ввести email")
         if confirmation_code is None:
             raise serializers.ValidationError(
                 "Необходимо ввести 6-ти значный код из эл.почты"
@@ -216,10 +216,10 @@ class ConfirmCodeRefreshSerializer(MyBaseSerializer):
 
     class Meta:
         model = User
-        fields = ("telephone",)
+        fields = ("email",)
 
     def validate(self, data):
-        telephone = data.get("telephone")
-        if telephone is None:
-            raise serializers.ValidationError("Необходимо ввести телефон")
+        email = data.get("email")
+        if email is None:
+            raise serializers.ValidationError("Необходимо ввести email")
         return data
