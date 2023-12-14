@@ -22,9 +22,9 @@ from api.views.reservation import (
     ReservationsUserListViewSet,
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
-    AvailabilityViewSet,
     DateAvailabilityView,
     TimeAvailabilityView,
+    AvailableSlotsViewSet,
 )
 from api.views.reviews import OwnerResponseCreateView, ReviewViewSet
 from api.views.users import (
@@ -90,7 +90,7 @@ router.register(
 router.register("users", UserViewSet, basename="users"),
 router.register(
     r"establishments/(?P<establishment_id>\d+)/availability",
-    AvailabilityViewSet,
+    AvailableSlotsViewSet,
     basename="availability",
 )
 router.register(

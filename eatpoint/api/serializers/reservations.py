@@ -1,71 +1,41 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
-from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from core.validators import (
-    string_validator,
-    validate_seats,
-    validate_reservation_time_zone,
-    validated_available_seats,
-)
 from establishments.models import ZoneEstablishment, Establishment
-from reservation.models import Reservation, ReservationHistory, Availability
+from reservation.models import (
+    Reservation,
+    ReservationHistory,
+    Availability,
+    Slot,
+)
 
 
 class ReservationsEditSerializer(serializers.ModelSerializer):
     """Сериализация данных: форма бронирования для не авторизованного пользователя"""
 
-    establishment = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
-    user = serializers.SlugRelatedField(
-        slug_field="id",
-        read_only=True,
-    )
-    telephone = PhoneNumberField(
-        help_text="Номер телефона",
-        required=False,
-    )
-    first_name = serializers.CharField(
-        required=False, help_text="Имя", validators=[string_validator]
-    )
-    email = serializers.EmailField(
-        help_text="Почта",
-        required=False,
-    )
-
     class Meta:
         model = Reservation
         fields = (
             "id",
-            "establishment",
+            "user",
             "first_name",
+            "last_name",
             "email",
             "telephone",
-            "number_guests",
-            "date_reservation",
-            "start_time_reservation",
+            "slots",
             "comment",
             "reminder_one_day",
             "reminder_three_hours",
             "reminder_half_on_hour",
-            "user",
-            "zone",
         )
 
     def validate(self, validated_data):
-        establishment = self.context["request"].parser_context["kwargs"][
-            "establishment_id"
-        ]
-        number_guests = validated_data.get("number_guests")
-        zone = validated_data.get("zone")
-        date = validated_data.get("date_reservation")
-        available_seats = validated_available_seats(zone, date)
-        validate_seats(available_seats.available_seats, number_guests)
-        validate_reservation_time_zone(validated_data, establishment)
+        # establishment = self.context["request"].parser_context["kwargs"][
+        #     "establishment_id"
+        # ]
+        # date = validated_data.get("date_reservation")
         return validated_data
 
     def to_representation(self, instance):
@@ -96,11 +66,8 @@ class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
         model = ReservationHistory
         fields = (
             "establishment",
-            "number_guests",
-            "date_reservation",
-            "start_time_reservation",
             "comment",
-            "zone",
+            # "zone",
         )
 
 
@@ -129,7 +96,7 @@ class SpecialEstablishmentSerializer(serializers.ModelSerializer):
 class ReservationsUserListSerializer(serializers.ModelSerializer):
     """Пользователь"""
 
-    zone = serializers.StringRelatedField()
+    # zone = serializers.StringRelatedField()
     establishment = SpecialEstablishmentSerializer()
 
     class Meta:
@@ -137,11 +104,8 @@ class ReservationsUserListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "establishment",
-            "number_guests",
-            "date_reservation",
-            "start_time_reservation",
             "status",
-            "zone",
+            # "zone",
         )
 
 
@@ -149,7 +113,7 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
     """Ресторатор"""
 
     establishment = serializers.CharField(source="establishment.name")
-    zone = serializers.CharField(source="zone.zone")
+    # zone = serializers.CharField(source="zone.zone")
 
     class Meta:
         model = Reservation
@@ -159,15 +123,27 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
             "first_name",
             "email",
             "telephone",
-            "number_guests",
-            "date_reservation",
-            "start_time_reservation",
             "comment",
             "reminder_one_day",
             "reminder_three_hours",
             "reminder_half_on_hour",
-            "zone",
+            # "zone",
             "status",
+        )
+
+
+class AvailableSlotsSerializer(serializers.ModelSerializer):
+    """Свободные слоты"""
+
+    class Meta:
+        model = Slot
+        fields = (
+            "id",
+            "date",
+            "time",
+            "establishment",
+            "zone",
+            "table",
         )
 
 
@@ -187,10 +163,10 @@ class AvailabilitySerializer(serializers.ModelSerializer):
 
 
 class DateAvailabilitySerializer(serializers.ModelSerializer):
-    """Сериализатор свободных дат и времени для зоны"""
+    """Сериализатор свободных слотов"""
 
     class Meta:
-        model = Availability
+        model = Slot
         fields = ("date",)
 
 

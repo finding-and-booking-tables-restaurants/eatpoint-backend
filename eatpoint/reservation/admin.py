@@ -36,9 +36,6 @@ class ReservationHistory(admin.ModelAdmin):
         "telephone",
         "establishment",
         "zone",
-        "number_guests",
-        "date_reservation",
-        "start_time_reservation",
         "status",
     )
     list_filter = (

@@ -2,12 +2,13 @@ import asyncio
 import locale
 from datetime import datetime, date
 
+from django.db.models import Q
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from drf_spectacular.utils import OpenApiParameter
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework.views import APIView
 
 from api.permissions import (
@@ -29,21 +30,21 @@ from api.serializers.reservations import (
     ReservationsHistoryEditSerializer,
     ReservationsUserListSerializer,
     ReservationsRestorateurListSerializer,
-    AvailabilitySerializer,
     UpdateReservationStatusSerializer,
     DateAvailabilitySerializer,
     TimeAvailabilitySerializer,
+    AvailableSlotsSerializer,
 )
 from reservation.models import (
     Reservation,
     ReservationHistory,
     ConfirmationCode,
-    Availability,
+    Slot,
 )
 
 
 @extend_schema(
-    tags=["Дата и время броинрования"],
+    tags=["Дата и время бронирования"],
     methods=["GET"],
     description="Клиент",
 )
@@ -56,14 +57,16 @@ from reservation.models import (
 class DateAvailabilityView(APIView):
     """Список свободных дан зоны(больше текущей даты)"""
 
-    def get(self, request, zone_id):
-        current_date = date.today()
-        availabilities = Availability.objects.filter(
-            zone_id=zone_id, date__gte=current_date
-        ).order_by("date")
-        serializer = DateAvailabilitySerializer(availabilities, many=True)
-        data = serializer.data
-        return Response(data)
+
+#
+#     def get(self, request, zone_id):
+#         current_date = date.today()
+#         availabilities = Availability.objects.filter(
+#             zone_id=zone_id, date__gte=current_date
+#         ).order_by("date")
+#         serializer = DateAvailabilitySerializer(availabilities, many=True)
+#         data = serializer.data
+#         return Response(data)
 
 
 @extend_schema(
@@ -142,7 +145,7 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
         user = self.request.user
         telephone = request.data.get("telephone")
 
-        quests = request.data.get("number_guests")
+        # quests = request.data.get("number_guests")
         serializer = self.get_serializer(data=request.data)
 
         serializer.is_valid(raise_exception=True)
@@ -169,12 +172,12 @@ class ReservationsEditViewSet(viewsets.ModelViewSet):
                 first_name=user.first_name,
                 last_name=user.last_name,
             )
-        zone = serializer.data.get("zone")
-        asyncio.run(
-            send_code(
-                f"Подтвердите бронирование в {establishment}. Зона - {zone}, гостей - {quests}"
-            )
-        )
+        # zone = serializer.data.get("zone")
+        # asyncio.run(
+        #     send_code(
+        #         f"Подтвердите бронирование в {establishment}. Зона - {zone}, гостей - {quests}"
+        #     )
+        # )
         return Response(serializer.data)
 
 
@@ -427,14 +430,40 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
         summary="Детальная информация о слоте",
     ),
 )
-class AvailabilityViewSet(viewsets.ModelViewSet):
-    """Вьюсет: Слоты"""
+class AvailableSlotsViewSet(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+):
+    """Список свободных слотов"""
 
-    queryset = Availability.objects.all()
-    serializer_class = AvailabilitySerializer
+    serializer_class = AvailableSlotsSerializer
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
-        return Availability.objects.filter(establishment=establishment_id)
+        current_date = date.today()
+        current_time = datetime.now().time()
+        slots = Slot.objects.filter(
+            Q(establishment=establishment_id, date__gt=current_date)
+            or Q(
+                establishment=establishment_id,
+                date=current_date,
+                time__gte=current_time,
+            ),
+        ).order_by("date", "time")
+        return slots
+
+
+class AvailabilityViewSet(viewsets.ModelViewSet):
+    """Вьюсет: Слоты"""
+
+
+#
+#     queryset = Availability.objects.all()
+#     serializer_class = AvailabilitySerializer
+#     http_method_names = ["get"]
+#     pagination_class = LargeResultsSetPagination
+#
+#     def get_queryset(self):
+#         establishment_id = self.kwargs.get("establishment_id")
+#         return Availability.objects.filter(establishment=establishment_id)
