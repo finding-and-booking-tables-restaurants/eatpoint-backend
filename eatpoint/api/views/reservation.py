@@ -1,6 +1,6 @@
 import asyncio
 import locale
-from datetime import datetime, date
+from datetime import datetime
 
 from django.db.models import Q
 from drf_spectacular.types import OpenApiTypes
@@ -441,16 +441,17 @@ class AvailableSlotsViewSet(
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
-        current_date = date.today()
-        current_time = datetime.now().time()
-        slots = Slot.objects.filter(
-            Q(establishment=establishment_id, date__gt=current_date)
-            or Q(
-                establishment=establishment_id,
-                date=current_date,
-                time__gte=current_time,
-            ),
-        ).order_by("date", "time")
+        current_date = datetime.today().date()
+        current_time = datetime.now().time().strftime("%H:%M")
+        slots = (
+            Slot.objects.filter(establishment=establishment_id)
+            .filter(
+                Q(date=current_date, time__gte=current_time)
+                | Q(date__gt=current_date)
+            )
+            .order_by("date", "time")
+        )
+
         return slots
 
 
