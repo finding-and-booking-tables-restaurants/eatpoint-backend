@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime, timedelta
 
 import pytz
@@ -6,7 +5,6 @@ from celery import shared_task, current_app
 from django.conf import settings as django_settings
 from django.core.mail import send_mail
 
-from core.tgbot import send_code
 from reservation.models import Reservation
 
 tz_moscow = pytz.timezone(django_settings.CELERY_TIMEZONE)
@@ -33,8 +31,6 @@ def send_reminder(_id, for_client=False):
             f"зона: {booking.zone}, \n"
             f"гостей: {booking.number_guests}"
         )
-
-        asyncio.run(send_code(message))
 
         send_mail(
             subject=subj,
