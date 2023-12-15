@@ -82,7 +82,7 @@ services:
     image: valentaine98/eatpoint-backend:latest
     hostname: celery
     entrypoint: celery
-    command: -A eatpoint worker -l info && celery -A eatpoint beat -l info
+    command: -A eatpoint worker --loglevel=INFO --beat
     volumes:
       - static_value:/app/static
       - db_bas:/var/lib/postgresql/data
