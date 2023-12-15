@@ -58,24 +58,6 @@ services:
     expose:
       - 6379
 
-  flower:
-    restart: unless-stopped
-    container_name: flower
-    image: valentaine98/eatpoint-backend:latest
-    hostname: flower
-    entrypoint: celery
-    command: -A eatpoint flower --port=5555
-    volumes:
-      - static_value:/app/static
-      - db_bas:/var/lib/postgresql/data
-    env_file:
-      - .env
-    ports:
-      - "5555:5555"
-    depends_on:
-      - backend
-      - redis
-
   celery:
     restart: unless-stopped
     container_name: celery
