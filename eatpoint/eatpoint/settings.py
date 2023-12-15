@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "analytics.apps.AnalyticsConfig",
     "reviews.apps.ReviewsConfig",
+    "events.apps.EventsConfig",
     "django.contrib.postgres",
 ]
 
