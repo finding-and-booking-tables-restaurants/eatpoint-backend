@@ -62,7 +62,9 @@ services:
     restart: unless-stopped
     container_name: flower
     image: valentaine98/eatpoint-backend:latest
-    entrypoint: /app/flower-entrypoint.sh
+    hostname: flower
+    entrypoint: celery
+    command: -A eatpoint flower --port=5555
     volumes:
       - static_value:/app/static
       - db_bas:/var/lib/postgresql/data
@@ -78,7 +80,9 @@ services:
     restart: unless-stopped
     container_name: celery
     image: valentaine98/eatpoint-backend:latest
-    entrypoint: /app/celery-entrypoint.sh
+    hostname: celery
+    entrypoint: celery
+    command: -A eatpoint worker -l info && celery -A eatpoint beat -l info
     volumes:
       - static_value:/app/static
       - db_bas:/var/lib/postgresql/data
