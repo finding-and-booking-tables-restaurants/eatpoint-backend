@@ -5,7 +5,6 @@ from datetime import datetime
 
 from core.constants import IMAGE_SIZE, IMAGE_COUNT
 from establishments.models import WorkEstablishment, ZoneEstablishment
-from reservation.models import Availability
 
 string_validator = RegexValidator(
     r"^[a-zA-Zа-яА-ЯёЁ]{2,30}$",
@@ -36,17 +35,6 @@ def file_size(value):
         raise ValidationError(
             {"image": "Размер изображения не должен превышать 1 mb."},
         )
-
-
-def validated_available_seats(zone, date):
-    """Проверка свободных мест на день"""
-    if not Availability.objects.filter(zone=zone, date=date).exists():
-        raise ValidationError(
-            {"date": f"Нет информации о свободных местах на {date} в {zone}"},
-        )
-
-    available_seats = Availability.objects.filter(zone=zone, date=date).first()
-    return available_seats
 
 
 def validate_count(images):

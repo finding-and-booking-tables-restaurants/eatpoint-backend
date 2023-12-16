@@ -42,7 +42,6 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
             "telephone",
-            "status",
             "comment",
             "reminder_one_day",
             "reminder_three_hours",

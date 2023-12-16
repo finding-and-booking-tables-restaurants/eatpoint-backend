@@ -24,7 +24,6 @@ from establishments.models import (
     City,
     Event,
 )
-from reservation.models import Availability
 from reviews.models import Review
 
 
@@ -365,9 +364,7 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             )
 
     def __create_availavle(self, establishment):
-        days_available(
-            establishment, ZoneEstablishment, WorkEstablishment, Availability
-        )
+        days_available(establishment, ZoneEstablishment, WorkEstablishment)
 
     def __create_social(self, socials, establishment):
         """Создание соц.сетей"""

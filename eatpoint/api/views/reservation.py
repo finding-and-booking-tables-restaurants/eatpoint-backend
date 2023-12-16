@@ -100,18 +100,22 @@ class ReservationsEditViewSet(
                 comment=self.request.data.get("comment"),
             )
 
-        slots = Slot.objects.filter(
-            establishment=establishment_id, id__in=slots_ids
-        )
+        try:
+            slots = Slot.objects.filter(
+                establishment=establishment_id, id__in=slots_ids
+            )
+            reservation.slots.set(slots)
+            reservation.date_reservation = slots[0].date
+            reservation.start_time_reservation = slots[0].time
+            reservation.save()
+            slots.update(is_active=False)
 
-        reservation.slots.set(slots)
-        reservation.date_reservation = slots[0].date
-        reservation.start_time_reservation = slots[0].time
-        reservation.save()
-        slots.update(is_active=False)
+        except IndexError:
+            return Response(
+                {"detail": "Слотов с данными id нет!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        # сюда можно добавить отправку сообщения для подтверждения бронирования
-        # администратору ресторана (эта проверка есть в celery)
         message = f"""
             Подтвердите бронирование:
             заведение: {establishment.name},\n

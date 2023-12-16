@@ -1,10 +1,8 @@
 from django.contrib import admin
-from django import forms
 
 from .models import (
     Reservation,
     ReservationHistory,
-    Availability,
     ConfirmationCode,
 )
 
@@ -20,29 +18,20 @@ class ConfirmationCode(admin.ModelAdmin):
     )
 
 
-@admin.register(Availability)
-class AvailabilityHistory(admin.ModelAdmin):
-    """Админка: свободные места"""
-
-    list_display = (
-        "id",
-        "date",
-        "zone",
-        "available_seats",
-    )
-
-
 @admin.register(ReservationHistory)
 class ReservationHistory(admin.ModelAdmin):
     """Админка: история бронирования"""
 
     list_display = (
         "id",
+        "establishment",
+        "date_reservation",
+        "start_time_reservation",
+        "is_visited",
         "email",
         "telephone",
-        "establishment",
-        "zone",
-        "status",
+        "last_name",
+        "first_name",
     )
     list_filter = (
         "establishment",
@@ -51,17 +40,10 @@ class ReservationHistory(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
-class YourModelAdminForm(forms.ModelForm):
-    class Meta:
-        model = Reservation
-        fields = "__all__"
-
-
 @admin.register(Reservation)
 class EstablishmentReservAdmin(admin.ModelAdmin):
     """Админка: бронирования"""
 
-    form = YourModelAdminForm
     list_display = (
         "reservation_date",
         "establishment",
@@ -72,14 +54,16 @@ class EstablishmentReservAdmin(admin.ModelAdmin):
         "telephone",
         "last_name",
         "first_name",
-        "status",
+        "is_accepted",
+        "is_visited",
         "reminder_one_day",
         "reminder_three_hours",
         "reminder_half_on_hour",
     )
     list_filter = (
         "reservation_date",
-        "status",
+        "is_accepted",
+        "is_visited",
     )
     search_fields = (
         "last_name",
@@ -91,7 +75,7 @@ class EstablishmentReservAdmin(admin.ModelAdmin):
     )
     empty_value_display = "-пусто-"
     fieldsets = (
-        ("Статус бронирования", {"fields": ("status",)}),
+        ("Статус бронирования", {"fields": ("is_accepted", "is_visited")}),
         ("Ресторан", {"fields": ("establishment",)}),
         (
             "Основная информация о клиенте",

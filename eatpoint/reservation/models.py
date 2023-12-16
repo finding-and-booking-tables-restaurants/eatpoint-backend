@@ -16,24 +16,6 @@ class ConfirmationCode(models.Model):
     is_verified = models.BooleanField(default=False)
 
 
-class Availability(models.Model):
-    """Свободные слоты"""
-
-    establishment = models.ForeignKey(
-        Establishment,
-        verbose_name="Ресторан",
-        on_delete=models.CASCADE,
-    )
-    zone = models.ForeignKey(ZoneEstablishment, on_delete=models.CASCADE)
-    date = models.DateField()
-    available_seats = models.PositiveIntegerField(
-        verbose_name="Количество свободных мест",
-        blank=True,
-        null=True,
-        help_text="Добавляется автоматически",
-    )
-
-
 class Slot(models.Model):
     """Свободные слоты"""
 
@@ -87,9 +69,9 @@ class Reservation(models.Model):
     """Форма бронирования"""
 
     reservation_date = models.DateTimeField(
-        auto_now=True,
+        verbose_name="Дата создания",
+        auto_now_add=True,
     )
-
     establishment = models.ForeignKey(
         Establishment,
         verbose_name="Ресторан",
@@ -97,7 +79,6 @@ class Reservation(models.Model):
         related_name="reservation",
         null=True,
     )
-
     date_reservation = models.DateField(
         verbose_name="Дата бронирования",
         blank=True,
@@ -109,7 +90,14 @@ class Reservation(models.Model):
         verbose_name="Время начала бронирования",
         null=True,
     )
-
+    is_accepted = models.BooleanField(
+        verbose_name="Бронь подтверждена",
+        default=False,
+    )
+    is_visited = models.BooleanField(
+        verbose_name="Заведение посещено",
+        default=False,
+    )
     user = models.ForeignKey(
         User,
         related_name="reservation",
@@ -131,13 +119,11 @@ class Reservation(models.Model):
         blank=True,
     )
     telephone = PhoneNumberField(null=True, default=None)
-
     slots = models.ManyToManyField(
         Slot,
         verbose_name="Забронированные слоты",
         related_name="reservations",
     )
-
     comment = models.CharField(
         verbose_name="Пожелания к заказу",
         max_length=200,
@@ -154,14 +140,6 @@ class Reservation(models.Model):
     reminder_half_on_hour = models.BooleanField(
         verbose_name="Напоминание за 30 минут",
         default=False,
-    )
-    status = models.BooleanField(
-        verbose_name="Статус бронирования Активен/Принят",
-        default=False,
-    )
-    reservation_date = models.DateTimeField(
-        verbose_name="Дата создания",
-        auto_now_add=True,
     )
 
     class Meta:
@@ -186,15 +164,40 @@ class Reservation(models.Model):
 class ReservationHistory(models.Model):
     """История бронирований"""
 
-    user = models.ForeignKey(
-        User,
-        related_name="reservationhistory",
-        on_delete=models.CASCADE,
+    reservation_date = models.DateTimeField(
+        verbose_name="Дата создания",
+        auto_now_add=True,
+    )
+    establishment = models.CharField(
+        verbose_name="Ресторан",
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+    date_reservation = models.DateField(
+        verbose_name="Дата бронирования",
+        blank=True,
+        null=True,
+    )
+    start_time_reservation = models.CharField(
+        max_length=5,
+        choices=TIME_CHOICES,
+        verbose_name="Время начала бронирования",
+        null=True,
+    )
+    is_accepted = models.BooleanField(
+        verbose_name="Бронь подтверждена",
+        null=True,
+    )
+    is_visited = models.BooleanField(
+        verbose_name="Ресторан посещен",
         null=True,
     )
     first_name = models.CharField(
         verbose_name="Имя",
         max_length=150,
+        blank=True,
+        null=True,
     )
     last_name = models.CharField(
         verbose_name="Фамилия",
@@ -204,55 +207,36 @@ class ReservationHistory(models.Model):
     )
     email = models.EmailField(
         verbose_name="Электронная почта",
+        blank=True,
     )
     telephone = PhoneNumberField(null=True, default=None)
-    establishment = models.ForeignKey(
-        Establishment,
-        related_name="reservationhistory",
-        verbose_name="Ресторан",
-        on_delete=models.CASCADE,
-    )
-    zone = models.ForeignKey(
-        ZoneEstablishment,
-        related_name="reservationhistory",
-        verbose_name="Выбранная зона в ресторане",
-        on_delete=models.CASCADE,
-    )
-    number_guests = models.IntegerField(
-        verbose_name="Количество гостей",
-    )
-    date_reservation = models.DateField(
-        verbose_name="Дата бронирования",
-    )
-    start_time_reservation = models.CharField(
-        verbose_name="Время начала бронирования",
-        choices=TIME_CHOICES,
-        max_length=145,
-    )
-    end_time_reservation = models.CharField(
-        verbose_name="Время окончания бронирования",
-        choices=TIME_CHOICES,
-        max_length=145,
+    slots = models.TextField(
+        verbose_name="Забронированные слоты",
+        max_length=1500,
         blank=True,
-        null=True,
     )
     comment = models.CharField(
         verbose_name="Пожелания к заказу",
         max_length=200,
         blank=True,
     )
-    status = models.BooleanField(
-        verbose_name="Статус бронирования Активен/Выполнен",
-        default=False,
+    reminder_one_day = models.BooleanField(
+        verbose_name="Напоминание о бронировании за 1 день",
+        null=True,
     )
-    reservation_date = models.DateTimeField(
-        verbose_name="Дата создания",
+    reminder_three_hours = models.BooleanField(
+        verbose_name="Напоминание за 3 часа",
+        null=True,
+    )
+    reminder_half_on_hour = models.BooleanField(
+        verbose_name="Напоминание за 30 минут",
+        null=True,
     )
 
     class Meta:
-        verbose_name = "Бронирование(история)"
-        verbose_name_plural = "Бронирования(истори)"
+        verbose_name = "Бронирование(архив)"
+        verbose_name_plural = "Бронирования(архив)"
         ordering = ["-date_reservation"]
 
     def __str__(self):
-        return self.establishment.name
+        return self.establishment
