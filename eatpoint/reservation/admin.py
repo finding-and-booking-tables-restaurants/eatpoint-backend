@@ -11,7 +11,13 @@ from .models import (
 
 @admin.register(ConfirmationCode)
 class ConfirmationCode(admin.ModelAdmin):
-    """Админка: история бронирования"""
+    """Админка: код подтверждения для анонинов"""
+
+    list_display = (
+        "email",
+        "code",
+        "is_verified",
+    )
 
 
 @admin.register(Availability)
@@ -58,6 +64,9 @@ class EstablishmentReservAdmin(admin.ModelAdmin):
     form = YourModelAdminForm
     list_display = (
         "reservation_date",
+        "establishment",
+        "date_reservation",
+        "start_time_reservation",
         "user",
         "email",
         "telephone",
@@ -83,6 +92,7 @@ class EstablishmentReservAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
     fieldsets = (
         ("Статус бронирования", {"fields": ("status",)}),
+        ("Ресторан", {"fields": ("establishment",)}),
         (
             "Основная информация о клиенте",
             {"fields": ("user",)},
@@ -93,13 +103,9 @@ class EstablishmentReservAdmin(admin.ModelAdmin):
         ),
         (
             "Бронирование",
-            {
-                "fields": (
-                    "slots",
-                    "comment",
-                )
-            },
+            {"fields": ("slots",)},
         ),
+        ("Комментарии к бронированию", {"fields": ("comment",)}),
         (
             "Напоминания",
             {

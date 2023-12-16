@@ -1,5 +1,5 @@
-import asyncio
-
+from django.conf import settings as django_settings
+from django.core.mail import send_mail
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
@@ -11,12 +11,11 @@ from api.serializers.code_generate import (
     SMSVerifySerializer,
 )
 from core.services import generate_reservation_code
-from core.tgbot import send_code
 from reservation.models import ConfirmationCode
 
 
 @extend_schema(
-    tags=["Подтверждение номер телефона(бронирование)"],
+    tags=["Подтверждение email (бронирование)"],
     methods=["POST"],
     description="Не авторизованный пользователь",
 )
@@ -26,7 +25,7 @@ from reservation.models import ConfirmationCode
         request=SMSSendSerializer(),
     ),
 )
-class SendSMSCode(APIView):
+class SendCodeForAnonymous(APIView):
     """Отправка кода"""
 
     permission_classes = [IsAnonymous]
@@ -34,20 +33,19 @@ class SendSMSCode(APIView):
     def post(self, request):
         serializer = SMSSendSerializer(data=request.data)
         if serializer.is_valid():
-            telephone = serializer.validated_data["telephone"]
-            if ConfirmationCode.objects.filter(
-                phone_number=telephone
-            ).exists():
-                ConfirmationCode.objects.filter(
-                    phone_number=telephone
-                ).delete()
+            email = serializer.validated_data["email"]
+            if ConfirmationCode.objects.filter(email=email).exists():
+                ConfirmationCode.objects.filter(email=email).delete()
             code = generate_reservation_code()
-            asyncio.run(send_code(f"Ваш код подтверждения {code}"))
-            ConfirmationCode.objects.create(phone_number=telephone, code=code)
+            send_mail(
+                "Код подтверждения",
+                f"Ваш код подтверждения {code}",
+                django_settings.EMAIL_HOST_USER,
+                [email],
+            )
+            ConfirmationCode.objects.create(email=email, code=code)
             return Response(
-                {
-                    "detail": f"Смс с кодом подтверждения отправлено на номер {telephone}"
-                },
+                {"detail": f"Код подтверждения отправлен на {email}"},
                 status=status.HTTP_200_OK,
             )
         else:
@@ -57,45 +55,45 @@ class SendSMSCode(APIView):
 
 
 @extend_schema(
-    tags=["Подтверждение номер телефона(бронирование)"],
+    tags=["Подтверждение email (бронирование)"],
     methods=["POST"],
     description="Не авторизованный пользователь",
 )
 @extend_schema_view(
     post=extend_schema(
-        summary="Подтвердить номер",
+        summary="Подтвердить код",
         request=SMSVerifySerializer(),
     ),
 )
-class VerifySMSCode(APIView):
+class VerifyCodeForAnonymous(APIView):
     """Подтверждение кода"""
 
     permission_classes = [IsAnonymous]
 
     def post(self, request):
         serializer = SMSVerifySerializer(data=request.data)
-        if serializer.is_valid():
-            telephone = serializer.validated_data["telephone"]
-            code = serializer.validated_data["code"]
-            try:
-                confirmation_code = ConfirmationCode.objects.get(
-                    phone_number=telephone,
-                    code=code,
-                    is_verified=False,
-                )
-            except ConfirmationCode.DoesNotExist:
-                return Response(
-                    {"detail": "Неверный код подтверждения"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            confirmation_code.is_verified = True
-            confirmation_code.save()
-            return Response(
-                {"detail": "Номер телефона подтвержден!"},
-                status=status.HTTP_200_OK,
-            )
-        else:
+        if not serializer.is_valid():
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
+
+        email = serializer.validated_data["email"]
+        code = serializer.validated_data["code"]
+        try:
+            confirmation_code = ConfirmationCode.objects.get(
+                email=email,
+                code=code,
+                is_verified=False,
+            )
+        except ConfirmationCode.DoesNotExist:
+            return Response(
+                {"detail": "Неверный код подтверждения"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        confirmation_code.is_verified = True
+        confirmation_code.save()
+        return Response(
+            {"detail": "email подтвержден!"},
+            status=status.HTTP_200_OK,
+        )

@@ -1,5 +1,3 @@
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -7,41 +5,49 @@ from establishments.models import ZoneEstablishment, Establishment
 from reservation.models import (
     Reservation,
     ReservationHistory,
-    Availability,
     Slot,
 )
 
 
+class SlotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Slot
+        fields = (
+            "id",
+            "date",
+            "time",
+            "establishment",
+            "zone",
+            "table",
+        )
+
+
 class ReservationsEditSerializer(serializers.ModelSerializer):
-    """Сериализация данных: форма бронирования для не авторизованного пользователя"""
+    """Сериализация данных:
+    форма бронирования для не авторизованного пользователя"""
+
+    slots = SlotSerializer(many=True, read_only=True)
 
     class Meta:
         model = Reservation
         fields = (
             "id",
+            "reservation_date",
+            "establishment",
+            "date_reservation",
+            "start_time_reservation",
+            "slots",
             "user",
             "first_name",
             "last_name",
             "email",
             "telephone",
-            "slots",
+            "status",
             "comment",
             "reminder_one_day",
             "reminder_three_hours",
             "reminder_half_on_hour",
         )
-
-    def validate(self, validated_data):
-        # establishment = self.context["request"].parser_context["kwargs"][
-        #     "establishment_id"
-        # ]
-        # date = validated_data.get("date_reservation")
-        return validated_data
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["zone"] = str(instance.zone)
-        return representation
 
 
 class UpdateReservationStatusSerializer(serializers.ModelSerializer):
@@ -54,7 +60,7 @@ class UpdateReservationStatusSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         if validated_data.get("status") is None:
             raise ValidationError(
-                {"status": "Введите ture для подтверждения бронирования!"}
+                {"status": "Введите код для подтверждения бронирования!"}
             )
         return validated_data
 
@@ -67,7 +73,7 @@ class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
         fields = (
             "establishment",
             "comment",
-            # "zone",
+            "email",
         )
 
 
@@ -135,6 +141,18 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
 class AvailableSlotsSerializer(serializers.ModelSerializer):
     """Свободные слоты"""
 
+    establishment = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+    zone = serializers.SlugRelatedField(
+        slug_field="zone",
+        read_only=True,
+    )
+    table = serializers.StringRelatedField(
+        read_only=True,
+    )
+
     class Meta:
         model = Slot
         fields = (
@@ -145,33 +163,3 @@ class AvailableSlotsSerializer(serializers.ModelSerializer):
             "zone",
             "table",
         )
-
-
-class AvailabilitySerializer(serializers.ModelSerializer):
-    """Свободные места на день"""
-
-    zone = serializers.CharField(source="zone.zone")
-
-    class Meta:
-        model = Availability
-        fields = (
-            "id",
-            "zone",
-            "date",
-            "available_seats",
-        )
-
-
-class DateAvailabilitySerializer(serializers.ModelSerializer):
-    """Сериализатор свободных слотов"""
-
-    class Meta:
-        model = Slot
-        fields = ("date",)
-
-
-@extend_schema_field(OpenApiTypes.TIME)
-class TimeAvailabilitySerializer(serializers.Serializer):
-    """Сериализатор свободных дат и времени для зоны"""
-
-    time = serializers.TimeField(format="%H:%M")

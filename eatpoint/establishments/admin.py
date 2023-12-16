@@ -54,7 +54,7 @@ class TableInLine(admin.TabularInline):
 
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin):
-    """Админка: слот"""
+    """Админка: слоты"""
 
     list_display = (
         "id",
@@ -66,7 +66,14 @@ class SlotAdmin(admin.ModelAdmin):
         "seats",
         "is_active",
     )
+
     list_filter = ("establishment", "zone", "table", "date", "time")
+
+    actions = ["set_active"]
+
+    @admin.action(description='Установить статус "Активный"')
+    def set_active(self, request, queryset):
+        queryset.update(is_active=True)
 
 
 @admin.register(ZoneEstablishment)

@@ -1,5 +1,4 @@
 # Время жизни JWT токенов
-from datetime import time
 
 ACCESS_TOKEN_LIFETIME_MINUTES = 1440
 REFRESH_TOKEN_LIFETIME_DAYS = 30
@@ -38,14 +37,8 @@ DAYS = [
     "воскресенье",
 ]
 
-AVAILABLE_DAYS = 1
-
-HOUR_CHOICES = [(None, "------")] + [
-    (time(hour, minute).isoformat()[0:5], time(hour, minute).isoformat()[0:5])
-    for hour in range(0, 24)
-    for minute in (0, 30)
-]
-
+# Количество дней для формирования слотов
+AVAILABLE_DAYS = 2
 
 # Средний чек
 CHECKS = ["до 1000", "1000 - 2000", "2000 - 3000", "от 3000"]

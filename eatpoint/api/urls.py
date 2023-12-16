@@ -7,7 +7,10 @@ from api.views.analytics import (
     AnalyticsViewSet,
     AnalyticsListViewSet,
 )
-from api.views.code_generate import SendSMSCode, VerifySMSCode
+from api.views.code_generate import (
+    SendCodeForAnonymous,
+    VerifyCodeForAnonymous,
+)
 from api.views.establishments import (
     ZoneViewSet,
     CityViewSet,
@@ -22,8 +25,6 @@ from api.views.reservation import (
     ReservationsUserListViewSet,
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
-    DateAvailabilityView,
-    TimeAvailabilityView,
     AvailableSlotsViewSet,
 )
 from api.views.reviews import OwnerResponseCreateView, ReviewViewSet
@@ -113,8 +114,10 @@ urlpatterns = [
     path("v1/auth/signup/", SignUp.as_view()),
     path("v1/auth/confirm-code/", ConfirmCodeView.as_view()),
     path("v1/auth/confirm-code-refresh/", ConfirmCodeRefreshView.as_view()),
-    path("v1/auth/send-reservations-code/", SendSMSCode.as_view()),
-    path("v1/auth/verify-reservations-code/", VerifySMSCode.as_view()),
+    path("v1/auth/send-reservations-code/", SendCodeForAnonymous.as_view()),
+    path(
+        "v1/auth/verify-reservations-code/", VerifyCodeForAnonymous.as_view()
+    ),
     path(
         "v1/reset-password/",
         DjoserUserViewSet.as_view({"post": "reset_password"}),
@@ -144,13 +147,6 @@ urlpatterns = [
         "v1/business/analytics/history/all/",
         AnalyticsHistoryListViewSet.as_view(),
         name="establishment-analytics-list-history",
-    ),
-    path(
-        "v1/availability/time/<str:dates>/<int:establishment_id>/",
-        TimeAvailabilityView.as_view(),
-    ),
-    path(
-        "v1/availability/date/<int:zone_id>/", DateAvailabilityView.as_view()
     ),
     path(
         "v1/establishments/<int:establishment_id>/favorite/",

@@ -9,10 +9,10 @@ from users.models import User
 
 
 class ConfirmationCode(models.Model):
-    """Код подтверждения"""
+    """Код подтверждения для бронирования анонима"""
 
-    phone_number = models.CharField(max_length=15)
-    code = models.CharField(max_length=6)
+    email = models.EmailField(max_length=50)
+    code = models.CharField(max_length=4)
     is_verified = models.BooleanField(default=False)
 
 
@@ -39,6 +39,7 @@ class Slot(models.Model):
 
     establishment = models.ForeignKey(
         Establishment,
+        verbose_name="Ресторан",
         on_delete=models.CASCADE,
         null=True,
         related_name="slots",
@@ -84,6 +85,30 @@ class Slot(models.Model):
 
 class Reservation(models.Model):
     """Форма бронирования"""
+
+    reservation_date = models.DateTimeField(
+        auto_now=True,
+    )
+
+    establishment = models.ForeignKey(
+        Establishment,
+        verbose_name="Ресторан",
+        on_delete=models.CASCADE,
+        related_name="reservation",
+        null=True,
+    )
+
+    date_reservation = models.DateField(
+        verbose_name="Дата бронирования",
+        blank=True,
+        null=True,
+    )
+    start_time_reservation = models.CharField(
+        max_length=5,
+        choices=TIME_CHOICES,
+        verbose_name="Время начала бронирования",
+        null=True,
+    )
 
     user = models.ForeignKey(
         User,

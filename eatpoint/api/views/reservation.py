@@ -1,7 +1,8 @@
 import asyncio
-import locale
 from datetime import datetime
 
+from django.conf import settings as django_settings
+from django.core.mail import send_mail
 from django.db.models import Q
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -9,7 +10,6 @@ from drf_spectacular.utils import OpenApiParameter
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, status, mixins
-from rest_framework.views import APIView
 
 from api.permissions import (
     IsUserReservationCreate,
@@ -17,22 +17,24 @@ from api.permissions import (
     IsClient,
     IsRestorateurEdit,
 )
-from core.constants import INTERVAL_MINUTES
+from api.views.schema import (
+    reservations_edit_schema,
+    reservations_edit_schema_view,
+    ReservationsUserListViewSet_schema,
+    ReservationsUserListViewSet_schema_view,
+)
 from core.pagination import LargeResultsSetPagination
-from core.services import time_generator
 from core.tgbot import send_code
 from core.validators import (
     validate_reserv_anonim,
 )
-from establishments.models import Establishment, WorkEstablishment
+from establishments.models import Establishment
 from api.serializers.reservations import (
     ReservationsEditSerializer,
     ReservationsHistoryEditSerializer,
     ReservationsUserListSerializer,
     ReservationsRestorateurListSerializer,
     UpdateReservationStatusSerializer,
-    DateAvailabilitySerializer,
-    TimeAvailabilitySerializer,
     AvailableSlotsSerializer,
 )
 from reservation.models import (
@@ -43,189 +45,97 @@ from reservation.models import (
 )
 
 
-@extend_schema(
-    tags=["Дата и время бронирования"],
-    methods=["GET"],
-    description="Клиент",
-)
-@extend_schema_view(
-    get=extend_schema(
-        summary="Получить даты для зоны",
-        responses=DateAvailabilitySerializer(many=True),
-    ),
-)
-class DateAvailabilityView(APIView):
-    """Список свободных дан зоны(больше текущей даты)"""
-
-
-#
-#     def get(self, request, zone_id):
-#         current_date = date.today()
-#         availabilities = Availability.objects.filter(
-#             zone_id=zone_id, date__gte=current_date
-#         ).order_by("date")
-#         serializer = DateAvailabilitySerializer(availabilities, many=True)
-#         data = serializer.data
-#         return Response(data)
-
-
-@extend_schema(
-    tags=["Дата и время броинрования"],
-    methods=["GET"],
-    description="Клиент",
-)
-@extend_schema_view(
-    get=extend_schema(
-        summary="Получить время для бронирования на дату для заведения",
-        responses=TimeAvailabilitySerializer(many=True),
-    ),
-)
-class TimeAvailabilityView(APIView):
-    """Список свободных дан зоны(больше текущей даты)"""
-
-    def get(self, request, dates, establishment_id):
-        locale.setlocale(locale.LC_ALL, "ru_RU.UTF-8")
-        now_time = datetime.now().time().strftime("%H:%M")
-        now_date = datetime.now().date()
-        date_object = datetime.strptime(dates, "%Y-%m-%d")
-        day_of_week = date_object.strftime("%A").lower()
-        worked = WorkEstablishment.objects.get(
-            day=day_of_week, establishment=establishment_id
-        )
-        start = worked.start
-        end = worked.end
-        interval = INTERVAL_MINUTES
-        if str(now_date) == dates:
-            times = time_generator(start, end, interval, str(now_time))
-        else:
-            times = time_generator(start, end, interval)
-        serialized_times = TimeAvailabilitySerializer(
-            [{"time": time} for time in times], many=True
-        )
-        return Response(serialized_times.data)
-
-
-@extend_schema(
-    tags=["Бронирование"],
-    methods=["POST"],
-    description="Клиент",
-)
-@extend_schema_view(
-    create=extend_schema(
-        summary="Добавить бронирование",
-        parameters=[
-            OpenApiParameter(
-                name="establishment_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            )
-        ],
-    ),
-)
-class ReservationsEditViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обработки бронирования"""
+@extend_schema(**reservations_edit_schema)
+@extend_schema_view(**reservations_edit_schema_view)
+class ReservationsEditViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """Вьюсет для создания бронирования"""
 
     http_method_names = ["post"]
     pagination_class = LargeResultsSetPagination
     permission_classes = (IsUserReservationCreate,)
     serializer_class = ReservationsEditSerializer
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated:
-            establishment = self.kwargs.get("establishment_id")
-            reservation = Reservation.objects.filter(
-                user=user, establishment=establishment
-            )
-            return reservation
-
-    def create(self, request, *args, **kwargs):
-        establishment_id = self.kwargs.get("establishment_id")
-        establishment = get_object_or_404(Establishment, id=establishment_id)
-        user = self.request.user
-        telephone = request.data.get("telephone")
-
-        # quests = request.data.get("number_guests")
-        serializer = self.get_serializer(data=request.data)
-
+    def create(self, *args, **kwargs):
+        serializer = self.serializer_class(data=self.request.data)
         serializer.is_valid(raise_exception=True)
 
-        if self.request.user.is_anonymous:
-            validate_reserv_anonim(user, request.data)
+        establishment_id = self.kwargs.get("establishment_id")
+        establishment = get_object_or_404(Establishment, id=establishment_id)
+        slots_ids = list(self.request.data.get("slots", []))
+        user = self.request.user
+
+        if user.is_anonymous:
+            validate_reserv_anonim(user, self.request.data)
+            telephone = self.request.data.get("telephone")
+            email = self.request.data.get("email")
+            first_name = self.request.data.get("first_name")
+            last_name = self.request.data.get("last_name")
 
             try:
-                ConfirmationCode.objects.get(
-                    phone_number=telephone, is_verified=True
-                )
+                ConfirmationCode.objects.get(email=email, is_verified=True)
             except ConfirmationCode.DoesNotExist:
                 return Response(
                     {"detail": "Подтвердите номер телефона!"},
                     status=status.HTTP_403_FORBIDDEN,
                 )
-            serializer.save(user=None, establishment=establishment)
-        else:
-            serializer.save(
-                user=user,
+            reservation = Reservation.objects.create(
+                user=None,
+                telephone=telephone,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
                 establishment=establishment,
+                comment=self.request.data.get("comment"),
+            )
+        else:
+            reservation = Reservation.objects.create(
+                user=user,
                 telephone=user.telephone,
                 email=user.email,
                 first_name=user.first_name,
                 last_name=user.last_name,
+                establishment=establishment,
+                comment=self.request.data.get("comment"),
             )
-        # zone = serializer.data.get("zone")
-        # asyncio.run(
-        #     send_code(
-        #         f"Подтвердите бронирование в {establishment}. Зона - {zone}, гостей - {quests}"
-        #     )
-        # )
-        return Response(serializer.data)
+
+        slots = Slot.objects.filter(
+            establishment=establishment_id, id__in=slots_ids
+        )
+
+        reservation.slots.set(slots)
+        reservation.date_reservation = slots[0].date
+        reservation.start_time_reservation = slots[0].time
+        reservation.save()
+        slots.update(is_active=False)
+
+        # сюда можно добавить отправку сообщения для подтверждения бронирования
+        # администратору ресторана (эта проверка есть в celery)
+        message = f"""
+            Подтвердите бронирование:
+            заведение: {establishment.name},\n
+            зона: {slots[0].zone},\n
+            дата: {slots[0].date} {slots[0].time},\n
+            стол No{slots[0].table.number},\n
+            мест: {slots[0].table.seats},\n
+            для пользователя:\n
+            {reservation.first_name} {reservation.last_name},\n
+            {reservation.email},\n
+            {reservation.telephone}\n
+        """
+
+        send_mail(
+            "Подтвердите бронирование",
+            message=message,
+            from_email=django_settings.EMAIL_HOST_USER,
+            recipient_list=[reservation.establishment.owner.email],
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@extend_schema(
-    tags=["Мои бронирования"],
-    methods=["GET", "DELETE", "PATCH"],
-    description="Клиент/ресторатор",
-)
-@extend_schema_view(
-    list=extend_schema(
-        summary="Получить список бронирований",
-    ),
-    retrieve=extend_schema(
-        summary="Детальная информация о бронировании заведения",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            )
-        ],
-    ),
-    destroy=extend_schema(
-        summary="Удалить бронирование",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            )
-        ],
-    ),
-    partial_update=extend_schema(
-        summary="Изменить данные бронирования",
-        parameters=[
-            OpenApiParameter(
-                name="establishment_id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            ),
-        ],
-    ),
-)
+@extend_schema(**ReservationsUserListViewSet_schema)
+@extend_schema_view(**ReservationsUserListViewSet_schema_view)
 class ReservationsUserListViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования"""
 
@@ -445,11 +355,12 @@ class AvailableSlotsViewSet(
         current_time = datetime.now().time().strftime("%H:%M")
         slots = (
             Slot.objects.filter(establishment=establishment_id)
+            .filter(is_active=True)
             .filter(
                 Q(date=current_date, time__gte=current_time)
                 | Q(date__gt=current_date)
             )
-            .order_by("date", "time")
+            .order_by("date", "time", "zone")
         )
 
         return slots
