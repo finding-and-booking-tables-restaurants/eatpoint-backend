@@ -14,22 +14,22 @@ tz_moscow = pytz.timezone(django_settings.CELERY_TIMEZONE)
 def send_reminder(_id, for_client=False):
     try:
         if for_client:
-            booking = Reservation.objects.get(id=_id, status=True)
+            booking = Reservation.objects.get(id=_id, is_accepted=True)
             subj = "Напоминание о бронировании"
             context = f"адрес: {booking.establishment.address}"
         else:
-            booking = Reservation.objects.get(id=_id, status=False)
+            booking = Reservation.objects.get(id=_id, is_accepted=False)
             subj = "Подтвердите бронирование"
             context = f"телефон: {booking.telephone}"
-
+        slot = booking.slots.first()
         message = (
             f"{subj}: \n"
             f"заведение: {booking.establishment}, \n"
             f"{context}, \n"
             f"дата: {booking.date_reservation}, \n"
             f"время: {booking.start_time_reservation}, \n"
-            f"зона: {booking.zone}, \n"
-            f"гостей: {booking.number_guests}"
+            f"зона: {slot.table.zone}, \n"
+            f"гостей: {slot.table.seats}\n"
         )
 
         send_mail(
@@ -49,7 +49,7 @@ def check_unconfirmed_booking():
     try:
         bookings = Reservation.objects.filter(status=False)
         for booking in bookings:
-            if not booking.status and not is_task_scheduled(
+            if not booking.is_accepted and not is_task_scheduled(
                 send_reminder, booking.id, None
             ):
                 send_reminder.apply_async(
@@ -63,7 +63,7 @@ def check_unconfirmed_booking():
 @shared_task
 def check_bookings():
     try:
-        bookings = Reservation.objects.filter(status=True)
+        bookings = Reservation.objects.filter(is_accepted=True)
     except Reservation.DoesNotExist:
         return "Подтвержденных броней не найдено"
 
