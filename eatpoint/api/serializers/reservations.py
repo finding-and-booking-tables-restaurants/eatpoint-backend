@@ -50,14 +50,14 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
 
 
 class UpdateReservationStatusSerializer(serializers.ModelSerializer):
-    status = serializers.BooleanField(required=True)
+    is_accepted = serializers.BooleanField(required=True)
 
     class Meta:
         model = Reservation
-        fields = ["status"]
+        fields = ["is_accepted"]
 
     def validate(self, validated_data):
-        if validated_data.get("status") is None:
+        if validated_data.get("is_accepted") is None:
             raise ValidationError(
                 {"status": "Введите код для подтверждения бронирования!"}
             )
@@ -101,7 +101,7 @@ class SpecialEstablishmentSerializer(serializers.ModelSerializer):
 class ReservationsUserListSerializer(serializers.ModelSerializer):
     """Пользователь"""
 
-    # zone = serializers.StringRelatedField()
+    slots = serializers.StringRelatedField()
     establishment = SpecialEstablishmentSerializer()
 
     class Meta:
@@ -109,8 +109,9 @@ class ReservationsUserListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "establishment",
-            "status",
-            # "zone",
+            "is_accepted",
+            "is_visited",
+            "slots",
         )
 
 
@@ -128,12 +129,13 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
             "first_name",
             "email",
             "telephone",
+            "slots",
             "comment",
             "reminder_one_day",
             "reminder_three_hours",
             "reminder_half_on_hour",
-            # "zone",
-            "status",
+            "is_accepted",
+            "is_visited",
         )
 
 

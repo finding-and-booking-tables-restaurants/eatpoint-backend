@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 
 from django.conf import settings as django_settings
@@ -22,9 +21,10 @@ from api.views.schema import (
     reservations_edit_schema_view,
     ReservationsUserListViewSet_schema,
     ReservationsUserListViewSet_schema_view,
+    ReservationsRestorateurListViewSet_schema,
+    ReservationsRestorateurListViewSet_schema_view,
 )
 from core.pagination import LargeResultsSetPagination
-from core.tgbot import send_code
 from core.validators import (
     validate_reserv_anonim,
 )
@@ -141,7 +141,7 @@ class ReservationsEditViewSet(
 @extend_schema(**ReservationsUserListViewSet_schema)
 @extend_schema_view(**ReservationsUserListViewSet_schema_view)
 class ReservationsUserListViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обработки бронирования"""
+    """Вьюсет для обработки бронирования для клиента"""
 
     http_method_names = ["get", "patch", "delete"]
     pagination_class = LargeResultsSetPagination
@@ -171,41 +171,10 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
         )
 
 
-@extend_schema(
-    tags=["Бизнес(бронирования)"],
-    methods=["GET", "DELETE", "PATCH"],
-    description="Ресторатор",
-)
-@extend_schema_view(
-    list=extend_schema(
-        summary="Получить список бронирований",
-    ),
-    retrieve=extend_schema(
-        summary="Детальная информация о бронировании заведения",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            )
-        ],
-    ),
-    destroy=extend_schema(
-        summary="Удалить бронирование",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            )
-        ],
-    ),
-    partial_update=extend_schema(
-        summary="Принять бронирование",
-    ),
-)
+@extend_schema(**ReservationsRestorateurListViewSet_schema)
+@extend_schema_view(**ReservationsRestorateurListViewSet_schema_view)
 class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обработки бронирования"""
+    """Вьюсет для обработки бронирования для ресторатора"""
 
     http_method_names = ["get", "delete", "patch"]
     pagination_class = LargeResultsSetPagination
@@ -215,7 +184,9 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Reservation.objects.filter(establishment__owner=user)
+        return Reservation.objects.filter(
+            establishment__owner=user,
+        )
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -240,12 +211,12 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         new_removable = Reservation.objects.filter(
             establishment__owner=user,
             id=reservation_id,
-            status=True,
+            is_accepted=True,
             date_reservation__gte=current_datetime,
         )
         if new_removable.exists():
             return Response(
-                {"errors": "Нельзя удалить активное бронирование."},
+                {"errors": "Нельзя удалить подтвержденное бронирование."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         removable.delete()
@@ -255,29 +226,36 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         )
 
     def partial_update(self, request, *args, **kwargs):
-        """Изменяет status бронирования"""
+        """Изменяет статус бронирования"""
         instance = self.get_object()
         reservation_id = self.kwargs.get("pk")
         if Reservation.objects.filter(
-            id=reservation_id,
-            status=True,
+            id=reservation_id, is_accepted=True
         ).exists():
             return Response(
                 {"message": "Бронирование уже подтверждено!"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        email = Reservation.objects.get(
-            id=reservation_id,
-        ).email
+        email = Reservation.objects.get(id=reservation_id).email
         serializer = UpdateReservationStatusSerializer(
             instance, data=request.data, partial=True
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        asyncio.run(
-            send_code(
-                f"Бронирование для пользователя {email} в {instance} подтверждено!"
-            )
+        slot = instance.slots.first()
+        message = f"""
+            Бронирование подтверждено!\n
+            заведение: {instance},\n
+            дата: {instance.date_reservation} {instance.start_time_reservation}\n
+            стол No {slot.table.number},\n
+            мест: {slot.table.seats}\n
+        """
+
+        send_mail(
+            "Подтверждение бронирования",
+            message,
+            django_settings.EMAIL_HOST_USER,
+            [email],
         )
         return Response(
             {"message": "Бронирование подтверждено!"},

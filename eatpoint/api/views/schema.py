@@ -64,3 +64,37 @@ ReservationsUserListViewSet_schema_view = {
         ],
     ),
 }
+
+ReservationsRestorateurListViewSet_schema = {
+    "tags": ["Бизнес(бронирования)"],
+    "methods": ["GET", "DELETE", "PATCH"],
+    "description": "Ресторатор",
+}
+ReservationsRestorateurListViewSet_schema_view = {
+    "list": extend_schema(
+        summary="Получить список бронирований",
+    ),
+    "retrieve": extend_schema(
+        summary="Детальная информация о бронировании заведения",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
+    ),
+    "destroy": extend_schema(
+        summary="Удалить бронирование",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
+    ),
+    "partial_update": extend_schema(
+        summary="Принять бронирование",
+    ),
+}
