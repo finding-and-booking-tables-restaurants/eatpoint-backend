@@ -98,3 +98,24 @@ ReservationsRestorateurListViewSet_schema_view = {
         summary="Принять бронирование",
     ),
 }
+
+ReservationsHistoryListViewSet_schema = {
+    "tags": ["История бронирования"],
+    "methods": ["GET"],
+    "description": "Клиент/ресторатор",
+}
+ReservationsHistoryListViewSet_schema_view = {
+    "list": extend_schema(
+        summary="Получить список истории броней заведения",
+    ),
+    "retrieve": extend_schema(
+        summary="Детальная информация о броне заведения",
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+            )
+        ],
+    ),
+}

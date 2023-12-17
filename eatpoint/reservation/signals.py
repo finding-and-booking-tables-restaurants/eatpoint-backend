@@ -12,8 +12,12 @@ def reservation_status_changed(sender, instance, **kwargs):
         return None
 
     old_reservation = Reservation.objects.get(id=instance.id)
+    slots = ",\n".join([str(slot) for slot in instance.slots.all()])
 
-    if old_reservation.is_visited != instance.is_visited:
+    if (
+        old_reservation.is_visited != instance.is_visited
+        and instance.is_visited is True
+    ):
         ReservationHistory.objects.create(
             reservation_date=instance.reservation_date,
             establishment=instance.establishment,
@@ -25,7 +29,7 @@ def reservation_status_changed(sender, instance, **kwargs):
             last_name=instance.last_name,
             email=instance.email,
             telephone=instance.telephone,
-            slots=instance.slots,
+            slots=slots,
             comment=instance.comment,
             reminder_one_day=instance.reminder_one_day,
             reminder_three_hours=instance.reminder_three_hours,

@@ -45,6 +45,7 @@ class EstablishmentReservAdmin(admin.ModelAdmin):
     """Админка: бронирования"""
 
     list_display = (
+        "id",
         "reservation_date",
         "establishment",
         "date_reservation",

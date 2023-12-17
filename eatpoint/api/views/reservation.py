@@ -3,9 +3,7 @@ from datetime import datetime
 from django.conf import settings as django_settings
 from django.core.mail import send_mail
 from django.db.models import Q
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from drf_spectacular.utils import OpenApiParameter
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, status, mixins
@@ -23,6 +21,8 @@ from api.views.schema import (
     ReservationsUserListViewSet_schema_view,
     ReservationsRestorateurListViewSet_schema,
     ReservationsRestorateurListViewSet_schema_view,
+    ReservationsHistoryListViewSet_schema,
+    ReservationsHistoryListViewSet_schema_view,
 )
 from core.pagination import LargeResultsSetPagination
 from core.validators import (
@@ -263,26 +263,8 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         )
 
 
-@extend_schema(
-    tags=["История бронирования"],
-    methods=["GET"],
-    description="Клиент/ресторатор",
-)
-@extend_schema_view(
-    list=extend_schema(
-        summary="Получить список истории броней заведения",
-    ),
-    retrieve=extend_schema(
-        summary="Детальная информация о броне заведения",
-        parameters=[
-            OpenApiParameter(
-                name="id",
-                location=OpenApiParameter.PATH,
-                type=OpenApiTypes.INT,
-            )
-        ],
-    ),
-)
+@extend_schema(**ReservationsHistoryListViewSet_schema)
+@extend_schema_view(**ReservationsHistoryListViewSet_schema_view)
 class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования"""
 
