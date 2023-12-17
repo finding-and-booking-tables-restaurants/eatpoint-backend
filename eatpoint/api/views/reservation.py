@@ -50,12 +50,13 @@ from reservation.models import (
 class ReservationsEditViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    """Вьюсет для создания бронирования"""
+    """Вьюсет для создания бронирования для не авторизованного пользователя"""
 
     http_method_names = ["post"]
     pagination_class = LargeResultsSetPagination
     permission_classes = (IsUserReservationCreate,)
     serializer_class = ReservationsEditSerializer
+    queryset = Reservation.objects.all()
 
     def create(self, *args, **kwargs):
         serializer = self.serializer_class(data=self.request.data)

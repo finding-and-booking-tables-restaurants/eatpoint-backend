@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 
 from api.permissions import IsAnonymous
 from api.serializers.code_generate import (
@@ -25,13 +25,14 @@ from reservation.models import ConfirmationCode
         request=SMSSendSerializer(),
     ),
 )
-class SendCodeForAnonymous(APIView):
+class SendCodeForAnonymous(GenericAPIView):
     """Отправка кода"""
 
     permission_classes = [IsAnonymous]
+    serializer_class = SMSSendSerializer
 
     def post(self, request):
-        serializer = SMSSendSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data["email"]
             if ConfirmationCode.objects.filter(email=email).exists():
@@ -65,13 +66,14 @@ class SendCodeForAnonymous(APIView):
         request=SMSVerifySerializer(),
     ),
 )
-class VerifyCodeForAnonymous(APIView):
+class VerifyCodeForAnonymous(GenericAPIView):
     """Подтверждение кода"""
 
     permission_classes = [IsAnonymous]
+    serializer_class = SMSVerifySerializer
 
     def post(self, request):
-        serializer = SMSVerifySerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
             return Response(
                 serializer.errors, status=status.HTTP_400_BAD_REQUEST

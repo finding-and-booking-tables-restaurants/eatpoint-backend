@@ -1,10 +1,14 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 
+from api.serializers.reservations import ReservationsEditSerializer
+
 reservations_edit_schema = {
     "tags": ["Бронирование"],
     "methods": ["POST"],
     "description": "Клиент",
+    "request": ReservationsEditSerializer,
+    "responses": ReservationsEditSerializer,
 }
 reservations_edit_schema_view = {
     "create": extend_schema(

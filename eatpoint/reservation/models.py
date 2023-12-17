@@ -80,14 +80,14 @@ class Reservation(models.Model):
         null=True,
     )
     date_reservation = models.DateField(
-        verbose_name="Дата бронирования",
+        verbose_name="Дата брони",
         blank=True,
         null=True,
     )
     start_time_reservation = models.CharField(
         max_length=5,
         choices=TIME_CHOICES,
-        verbose_name="Время начала бронирования",
+        verbose_name="Время начала брони",
         null=True,
     )
     is_accepted = models.BooleanField(

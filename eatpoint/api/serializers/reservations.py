@@ -12,21 +12,16 @@ from reservation.models import (
 class SlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = Slot
-        fields = (
-            "id",
-            "date",
-            "time",
-            "establishment",
-            "zone",
-            "table",
-        )
+        fields = ("id",)
 
 
 class ReservationsEditSerializer(serializers.ModelSerializer):
     """Сериализация данных:
     форма бронирования для не авторизованного пользователя"""
 
-    slots = SlotSerializer(many=True, read_only=True)
+    slots = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Slot.objects.all()
+    )
 
     class Meta:
         model = Reservation
