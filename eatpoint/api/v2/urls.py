@@ -46,7 +46,7 @@ from api.v2.views.establishments import (
     TypeEstViewSet,
 )
 
-app_name = "api_v2"
+app_name = "api"
 
 router_v2 = DefaultRouter()
 

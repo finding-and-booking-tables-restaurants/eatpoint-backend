@@ -330,6 +330,19 @@ class AvailableSlotsViewSet(
 
         return slots
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            slot = self.get_object()
+            serializer = self.get_serializer(slot)
+            return Response(serializer.data)
+        except Slot.DoesNotExist:
+            return Response(
+                {
+                    "errors": f"слота с id {self.kwargs.get('pk')} "
+                    f"не существует или он занят"
+                },
+            )
+
 
 class AvailabilityViewSet(viewsets.ModelViewSet):
     """Вьюсет: Слоты"""
