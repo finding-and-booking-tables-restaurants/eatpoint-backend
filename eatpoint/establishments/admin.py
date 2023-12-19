@@ -3,12 +3,14 @@ from django import forms
 from django.utils.safestring import mark_safe
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
+from reservation.models import Slot
 from .models import (
     Establishment,
     Kitchen,
     Service,
     Event,
     TypeEst,
+    Table,
     ZoneEstablishment,
     ImageEstablishment,
     WorkEstablishment,
@@ -28,11 +30,61 @@ class ContactForm(forms.ModelForm):
         }
 
 
+@admin.register(Table)
+class TableAdmin(admin.ModelAdmin):
+    """Админка: столик"""
+
+    list_display = (
+        "id",
+        "number",
+        "establishment",
+        "zone",
+        "seats",
+        "is_active",
+        "is_reserved",
+    )
+
+
+class TableInLine(admin.TabularInline):
+    """Админка: добавление столиков"""
+
+    model = Table
+    extra = 0
+
+
+@admin.register(Slot)
+class SlotAdmin(admin.ModelAdmin):
+    """Админка: слоты"""
+
+    list_display = (
+        "id",
+        "establishment",
+        "zone",
+        "date",
+        "time",
+        "table",
+        "seats",
+        "is_active",
+    )
+
+    list_filter = ("establishment", "zone", "table", "date", "time")
+
+    actions = ["set_active"]
+
+    @admin.action(description='Установить статус "Активный"')
+    def set_active(self, request, queryset):
+        queryset.update(is_active=True)
+
+
 @admin.register(ZoneEstablishment)
 class ZoneAdmin(admin.ModelAdmin):
     """Админка: зона заведения"""
 
-    list_display = ("zone", "id")
+    list_display = ("establishment", "zone", "id")
+    ordering = ("establishment", "-zone")
+    inlines = [
+        TableInLine,
+    ]
 
 
 @admin.register(ImageEstablishment)
