@@ -148,13 +148,6 @@ urlpatterns = [
         AnalyticsHistoryListViewSet.as_view(),
         name="establishment-analytics-list-history",
     ),
-    # path(
-    #     "availability/time/<str:dates>/<int:establishment_id>/",
-    #     TimeAvailabilityView.as_view(),
-    # ),
-    # path(
-    #     "availability/date/<int:zone_id>/", DateAvailabilityView.as_view()
-    # ),
     path(
         "establishments/<int:establishment_id>/favorite/",
         FavoriteViewSet.as_view(),
