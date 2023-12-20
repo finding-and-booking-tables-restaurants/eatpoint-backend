@@ -2,7 +2,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from establishments.models import Establishment
-from events.models import Event, TypeEvent
+from events.models import Event, TypeEvent, EventPhoto
 
 
 class TypeEventSerializer(serializers.ModelSerializer):
@@ -45,17 +45,27 @@ class ListEventSerializer(BaseEventSerializer):
 
 
 class RetrieveEventSrializer(BaseEventSerializer):
-    """Сериализато Событий для 1 экземпляра."""
+    """Сериализатор Событий для 1 экземпляра."""
 
     class Meta(BaseEventSerializer.Meta):
         fields = BaseEventSerializer.Meta.fields + ("description", "date_end")
 
 
-class EditCreateEventSerializer(BaseEventSerializer):
+class CreateEditEventSerializer(BaseEventSerializer):
     """Сериализатор полей для создания/изменения События."""
 
     class Meta(BaseEventSerializer.Meta):
         fields = BaseEventSerializer.Meta.fields + ("description", "date_end")
+
+
+class EventPhotoSerializer(serializers.ModelSerializer):
+    """Сериализатор для полей объектов Фото события."""
+
+    image = Base64ImageField()
+
+    class Meta:
+        model = EventPhoto
+        fields = ("id", "image")
 
 
 # class EventSerializer(serializers.ModelSerializer):

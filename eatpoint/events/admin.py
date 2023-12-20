@@ -10,7 +10,7 @@ class TypeEventAdmin(admin.ModelAdmin):
 
     list_display = ("name", "id")
     empty_value_display = "-пусто-"
-    prepopulated_fields = {"slug": ("name",)}
+    # prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Event)

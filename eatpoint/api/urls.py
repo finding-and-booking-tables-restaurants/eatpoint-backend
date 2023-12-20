@@ -8,14 +8,13 @@ from api.views.analytics import (
     AnalyticsListViewSet,
 )
 from api.views.code_generate import SendSMSCode, VerifySMSCode
+from api.views.events import EventBusinessViewSet, EventUsersViewSet
 from api.views.establishments import (
     ZoneViewSet,
     CityViewSet,
     EstablishmentBusinessViewSet,
     FavoriteViewSet,
     ImageEstablishmentViewSet,
-    EventUsersViewSet,
-    EventBusinessViewSet,
 )
 from api.views.reservation import (
     ReservationsEditViewSet,

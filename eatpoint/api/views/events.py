@@ -31,7 +31,7 @@ class BaseEventViewset(viewsets.ModelViewSet):
 
 
 @extend_schema(tags=["События"])
-@extend_schema_view(**schema.business_events_schema)
+@extend_schema_view(**schema.users_events_schema)
 class EventUsersViewSet(BaseEventViewset):
     """Вьюсет для обработки Событий для пользователей."""
 
@@ -48,6 +48,7 @@ class EventUsersViewSet(BaseEventViewset):
 class EventBusinessViewSet(BaseEventViewset):
     """Вьюсет для обработки Событий для ресторатора."""
 
+    # не покрывает кейс при создании события другим владельцем - обсудить
     permission_classes = (IsRestorateurEdit,)
     http_method_names = ["get", "post", "delete", "patch"]
 
@@ -68,50 +69,17 @@ class EventBusinessViewSet(BaseEventViewset):
         )
 
 
-# @extend_schema(
-#     tags=["События"],
-#     methods=["GET", "POST", "PATCH", "DELETE"],
-# )
-# @extend_schema_view(
-#     list=extend_schema(
-#         summary="Получить список событий к заведению с id=",
-#         description="Клиент/ресторатор",
-#     ),
-# )
-# class EventUsersViewSet(viewsets.ModelViewSet):
-#     """Вьюсет: Отзывы(пользователь)"""
+class EventPhotoViewset(viewsets.ModelViewSet):
+    """Вьюсет для обработки Фото событий."""
 
-#     serializer_class = EventSerializer
-#     http_method_names = ["get"]
+    http_method_names = ["get", "post", "delete"]
+    serializer_class = ser.EventPhotoSerializer
 
-#     def get_queryset(self):
-#         establishment_id = self.kwargs.get("establishment_id")
-#         establishment = get_object_or_404(Establishment, id=establishment_id)
-#         return establishment.event.all()
+    def _get_event_id(self) -> None:
+        event_id = self.kwargs.get("event_id")
+        if crud.event_exists(event_id=event_id):
+            return event_id
+        return Http404("Событие не найдено.")
 
-#     def perform_create(self, serializer):
-#         establishment_id = self.kwargs.get("establishment_id")
-#         establishment = get_object_or_404(Establishment, id=establishment_id)
-#         serializer.save(establishment=establishment)
-
-
-# class EventBusinessViewSet(viewsets.ModelViewSet):
-#     """Вьюсет события(бизнес)"""
-
-#     serializer_class = EventSerializer
-#     http_method_names = ["get", "post", "patch", "delete"]
-#     permission_classes = (IsRestorateurEdit,)
-
-#     # def get_serializer_class(self):
-#     #     if self.request.method in SAFE_METHODS:
-#     #         return EventSerializer
-#     #     return EventEditSerializer
-
-#     def get_queryset(self):
-#         user = self.request.user
-#         return Event.objects.filter(establishment__owner=user)
-
-#     def perform_create(self, serializer):
-#         establishment_id = self.kwargs.get("establishment_id")
-#         establishment = get_object_or_404(Establishment, id=establishment_id)
-#         serializer.save(establishment=establishment)
+    def get_queryset(self):
+        return crud.list_event_photos(event_id=self._get_event_id())

@@ -40,8 +40,7 @@ class Event(models.Model):
         on_delete=models.CASCADE,
     )
     description = models.TextField(
-        verbose_name="Описание события",
-        max_length=5000,
+        verbose_name="Описание события", max_length=5000, blank=True
     )
     image = models.ImageField(
         verbose_name="Постер события",
