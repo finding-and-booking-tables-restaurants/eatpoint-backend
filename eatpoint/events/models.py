@@ -10,15 +10,15 @@ class TypeEvent(models.Model):
         verbose_name="Тип события",
         max_length=200,
     )
-    description = models.TextField(
-        verbose_name="Описание",
-        max_length=2000,
-    )
-    slug = models.SlugField(
-        verbose_name="Ссылка",
-        max_length=200,
-        unique=True,
-    )
+    # description = models.TextField(
+    #     verbose_name="Описание",
+    #     max_length=2000,
+    # )
+    # slug = models.SlugField(
+    #     verbose_name="Ссылка",
+    #     max_length=200,
+    #     unique=True,
+    # )
 
     class Meta:
         verbose_name = "Тип события"
@@ -38,7 +38,6 @@ class Event(models.Model):
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
-        related_name="events",
     )
     description = models.TextField(
         verbose_name="Описание события",
@@ -46,7 +45,8 @@ class Event(models.Model):
     )
     image = models.ImageField(
         verbose_name="Постер события",
-        upload_to="establishment/images/event",
+        upload_to="establishment/images/event_posters/%Y-%m-%d",
+        # upload_to="establishment/images/event",
     )
     date_start = models.DateTimeField(
         verbose_name="Начало события",
@@ -59,7 +59,6 @@ class Event(models.Model):
     type_event = models.ManyToManyField(
         TypeEvent,
         verbose_name="Тип события",
-        related_name="events",
         blank=True,
     )
     price = models.PositiveSmallIntegerField(
@@ -71,6 +70,29 @@ class Event(models.Model):
     class Meta:
         verbose_name = "Событие"
         verbose_name_plural = "События"
+        default_related_name = "events"
 
     def __str__(self):
         return f"{self.name}: {self.date_start} - {self.date_end}"
+
+
+class EventPhoto(models.Model):
+    """Фото события."""
+
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="photos",
+        verbose_name="Событие",
+    )
+    image = models.ImageField(
+        verbose_name="Файл фото",
+        upload_to="establishment/images/event_photos/%Y-%m-%d",
+    )
+
+    class Meta:
+        verbose_name = "Фотография события"
+        verbose_name_plural = "Фотографии событий"
+
+    def __str__(self):
+        return f"Фото {self.id} - событие {self.event}"
