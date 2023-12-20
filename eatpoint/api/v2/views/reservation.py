@@ -243,17 +243,15 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        slot = instance.slots.first()
         message = f"""
             Бронирование подтверждено!\n
-            заведение: {instance},\n
-            дата: {instance.date_reservation} {instance.start_time_reservation}\n
-            стол No {slot.table.number},\n
-            мест: {slot.table.seats}\n
-        """
+            {instance},\n
+            адрес: {instance.establishment.cities} \
+            {instance.establishment.address}
+            """
 
         send_mail(
-            "Подтверждение бронирования",
+            "Бронирование подтверждено!",
             message,
             django_settings.EMAIL_HOST_USER,
             [email],
