@@ -13,6 +13,12 @@ from .models import (
 class ConfirmationCode(admin.ModelAdmin):
     """Админка: история бронирования"""
 
+    list_display = (
+        "email",
+        "code",
+        "is_verified",
+    )
+
 
 @admin.register(Availability)
 class AvailabilityHistory(admin.ModelAdmin):
@@ -32,14 +38,14 @@ class ReservationHistory(admin.ModelAdmin):
 
     list_display = (
         "id",
-        "email",
-        "telephone",
         "establishment",
-        "zone",
-        "number_guests",
         "date_reservation",
         "start_time_reservation",
-        "status",
+        "is_visited",
+        "email",
+        "telephone",
+        "last_name",
+        "first_name",
     )
     list_filter = (
         "establishment",
@@ -70,44 +76,53 @@ class YourModelAdminForm(forms.ModelForm):
 class EstablishmentReservAdmin(admin.ModelAdmin):
     """Админка: бронирования"""
 
-    form = YourModelAdminForm
     list_display = (
-        "reservation_date",
         "id",
-        "email",
-        "telephone",
+        "reservation_date",
         "establishment",
-        "zone",
-        "number_guests",
         "date_reservation",
         "start_time_reservation",
-        "status",
+        "user",
+        "email",
+        "telephone",
+        "last_name",
+        "first_name",
+        "is_accepted",
+        "is_visited",
+        "reminder_one_day",
+        "reminder_three_hours",
+        "reminder_half_on_hour",
     )
     list_filter = (
-        "establishment",
+        "reservation_date",
+        "is_accepted",
+        "is_visited",
+    )
+    search_fields = (
+        "last_name",
+        "first_name",
+        "telephone",
+        "email",
         "date_reservation",
+        "user",
     )
     empty_value_display = "-пусто-"
     fieldsets = (
-        ("Статус бронирования", {"fields": ("status",)}),
+        ("Статус бронирования", {"fields": ("is_accepted", "is_visited")}),
+        ("Ресторан", {"fields": ("establishment",)}),
         (
             "Основная информация о клиенте",
-            {"fields": ("user", "first_name", "last_name")},
+            {"fields": ("user",)},
         ),
-        ("Контакты клиента", {"fields": ("telephone", "email")}),
+        (
+            "Контакты клиента",
+            {"fields": ("first_name", "last_name", "telephone", "email")},
+        ),
         (
             "Бронирование",
-            {
-                "fields": (
-                    "establishment",
-                    "zone",
-                    "number_guests",
-                    "date_reservation",
-                    "start_time_reservation",
-                    "comment",
-                )
-            },
+            {"fields": ("slots",)},
         ),
+        ("Комментарии к бронированию", {"fields": ("comment",)}),
         (
             "Напоминания",
             {
