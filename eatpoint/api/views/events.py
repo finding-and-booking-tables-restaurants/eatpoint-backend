@@ -2,14 +2,14 @@ from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 
-from api.permissions import IsRestorateurEdit
+from api.permissions import IsEstOwner
 from api.serializers import events as ser
 from events import crud
 
 from . import schema
 
 
-@extend_schema(tags=["События"])
+@extend_schema(tags=["Типы событий"])
 class TypeEventViewset(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для обработки Типов событий."""
 
@@ -49,7 +49,7 @@ class EventBusinessViewSet(BaseEventViewset):
     """Вьюсет для обработки Событий для ресторатора."""
 
     # не покрывает кейс при создании события другим владельцем - обсудить
-    permission_classes = (IsRestorateurEdit,)
+    permission_classes = (IsEstOwner,)
     http_method_names = ["get", "post", "delete", "patch"]
 
     def get_serializer_class(self):
@@ -61,19 +61,25 @@ class EventBusinessViewSet(BaseEventViewset):
 
     def perform_create(self, serializer):
         est_id = self._get_establishment_id()
-        crud.add_event(est_id=est_id, data=serializer.validated_data)
+        crud.create_event(est_id=est_id, data=serializer.validated_data)
+
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
     def perform_update(self, serializer):
-        crud.edit_event(
+        crud.update_event(
             event=serializer.instance, data=serializer.validated_data
         )
 
 
+@extend_schema(tags=["Бизнес (события)"])
+@extend_schema_view(**schema.events_photo_schema)
 class EventPhotoViewset(viewsets.ModelViewSet):
     """Вьюсет для обработки Фото событий."""
 
     http_method_names = ["get", "post", "delete"]
     serializer_class = ser.EventPhotoSerializer
+    permission_classes = (IsEstOwner,)
 
     def _get_event_id(self) -> None:
         event_id = self.kwargs.get("event_id")
@@ -83,3 +89,6 @@ class EventPhotoViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return crud.list_event_photos(event_id=self._get_event_id())
+
+    def perform_create(self, serializer):
+        return serializer.save(event_id=self._get_event_id())

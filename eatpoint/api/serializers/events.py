@@ -3,6 +3,17 @@ from rest_framework import serializers
 
 from establishments.models import Establishment
 from events.models import Event, TypeEvent, EventPhoto
+from events.crud import list_event_types
+
+
+class EventPhotoSerializer(serializers.ModelSerializer):
+    """Сериализатор полей объектов Фото события."""
+
+    image = Base64ImageField()
+
+    class Meta:
+        model = EventPhoto
+        fields = ("id", "image")
 
 
 class TypeEventSerializer(serializers.ModelSerializer):
@@ -23,7 +34,6 @@ class BaseEventSerializer(serializers.ModelSerializer):
     """Базовый сериализатор для Событий."""
 
     establishment = EstInEventSerializer(read_only=True)
-    image = Base64ImageField()
 
     class Meta:
         model = Event
@@ -41,99 +51,33 @@ class BaseEventSerializer(serializers.ModelSerializer):
 class ListEventSerializer(BaseEventSerializer):
     """Сериализатор для списков Событий."""
 
-    pass
+    type_event = TypeEventSerializer(many=True)
 
 
 class RetrieveEventSrializer(BaseEventSerializer):
     """Сериализатор Событий для 1 экземпляра."""
 
+    type_event = TypeEventSerializer(many=True)
+    photos = EventPhotoSerializer(many=True)
+
     class Meta(BaseEventSerializer.Meta):
-        fields = BaseEventSerializer.Meta.fields + ("description", "date_end")
+        fields = BaseEventSerializer.Meta.fields + (
+            "description",
+            "date_end",
+            "photos",
+        )
 
 
 class CreateEditEventSerializer(BaseEventSerializer):
     """Сериализатор полей для создания/изменения События."""
 
-    class Meta(BaseEventSerializer.Meta):
-        fields = BaseEventSerializer.Meta.fields + ("description", "date_end")
-
-
-class EventPhotoSerializer(serializers.ModelSerializer):
-    """Сериализатор для полей объектов Фото события."""
-
     image = Base64ImageField()
 
-    class Meta:
-        model = EventPhoto
-        fields = ("id", "image")
+    class Meta(BaseEventSerializer.Meta):
+        fields = BaseEventSerializer.Meta.fields + (
+            "description",
+            "date_end",
+        )
 
-
-# class EventSerializer(serializers.ModelSerializer):
-#     """Сериализатор событий"""
-
-#     establishment = serializers.SlugRelatedField(
-#         slug_field="name",
-#         read_only=True,
-#     )
-#     image = Base64ImageField()
-
-#     class Meta:
-#         model = Event
-#         fields = (
-#             "name",
-#             "establishment",
-#             "description",
-#             "date_start",
-#             "date_end",
-#             "type_event",
-#             "price",
-#             "image",
-#         )
-
-
-# class EventEditSerializer(serializers.ModelSerializer):
-#     """Сериализатор событий"""
-
-#     establishment = serializers.SlugRelatedField(
-#         slug_field="name",
-#         read_only=True,
-#     )
-
-#     class Meta:
-#         model = Event
-#         fields = (
-#             "name",
-#             "establishment",
-#             "description",
-#             "date_start",
-#             "date_end",
-#             "type_event",
-#             "price",
-#         )
-
-#     def to_representation(self, instance):
-#         return EventSerializer(
-#             instance,
-#             context={"request": self.context.get("request")},
-#         ).data
-
-#     def validate(self, data):
-#         name = data.get("name")
-#         date_start = data.get("date_start")
-#         if Event.objects.filter(name=name, date_start=date_start).exists():
-#             raise ValueError()
-
-#     def create(self, validated_data):
-#         type_event = validated_data.pop("type_event")
-#         event = Event.objects.create(**validated_data)
-#         event.kitchens.set(type_event)
-#         return event
-
-#     def update(self, instance, validated_data):
-#         if "type_event" in validated_data:
-#             instance.type_event.set(validated_data.pop("type_event"))
-
-#         return super().update(
-#             instance,
-#             validated_data,
-#         )
+    def to_representation(self, instance):
+        return RetrieveEventSrializer(instance=instance)

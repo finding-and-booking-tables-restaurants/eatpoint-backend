@@ -7,12 +7,12 @@ from .models import Event, TypeEvent, EventPhoto
 
 def establishment_exists(est_id: int) -> bool:
     """Проверка существования Заведения в базе данных."""
-    return Establishment.objects.filter(establishment_id=est_id).exists()
+    return Establishment.objects.filter(id=est_id).exists()
 
 
 def event_exists(event_id: int) -> bool:
     """Проверка существования События в базе данных."""
-    return Event.objects.filter(event_id=event_id).exists()
+    return Event.objects.filter(id=event_id).exists()
 
 
 def list_event_types() -> QuerySet[TypeEvent]:
@@ -29,7 +29,7 @@ def list_events(establishment_id: int) -> QuerySet[Event]:
     )
 
 
-def add_event(est_id: int, data: dict) -> Event:
+def create_event(est_id: int, data: dict) -> Event:
     """Создание экземпляра События."""
     event_types = data.pop("type_event")
     event = Event.objects.create(establishment_id=est_id, **data)
@@ -37,7 +37,7 @@ def add_event(est_id: int, data: dict) -> Event:
     return event
 
 
-def edit_event(event: Event, data: dict) -> Event:
+def update_event(event: Event, data: dict) -> Event:
     """Изменение экземпляра События."""
     if "type_event" in data:
         event.type_event.clear()

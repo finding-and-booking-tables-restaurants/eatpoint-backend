@@ -8,7 +8,12 @@ from api.views.analytics import (
     AnalyticsListViewSet,
 )
 from api.views.code_generate import SendSMSCode, VerifySMSCode
-from api.views.events import EventBusinessViewSet, EventUsersViewSet
+from api.views.events import (
+    TypeEventViewset,
+    EventBusinessViewSet,
+    EventPhotoViewset,
+    EventUsersViewSet,
+)
 from api.views.establishments import (
     ZoneViewSet,
     CityViewSet,
@@ -81,6 +86,7 @@ router.register("kitchens", KitchenViewSet, basename="Kitchens")
 router.register("services", ServicesViewSet, basename="service")
 router.register("types", TypeEstViewSet, basename="types")
 router.register("cities", CityViewSet, basename="cities")
+router.register("event_types", TypeEventViewset, basename="event-types")
 router.register(
     r"establishments/(?P<establishment_id>\d+)/reviews",
     ReviewViewSet,
@@ -106,6 +112,11 @@ router.register(
     r"business/(?P<establishment_id>\d+)/events",
     EventBusinessViewSet,
     basename="events-business",
+)
+router.register(
+    r"business/(?P<establishment_id>\d+)/events/(?P<event_id>\d+)/photos",
+    EventPhotoViewset,
+    basename="events-photos",
 )
 
 urlpatterns = [
