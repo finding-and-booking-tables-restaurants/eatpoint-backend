@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "analytics.apps.AnalyticsConfig",
     "reviews.apps.ReviewsConfig",
+    "events.apps.EventsConfig",
     "django.contrib.postgres",
 ]
 
@@ -194,6 +195,8 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ),
+    "DATETIME_FORMAT": "%d.%m.%Y %H:%M",
+    "DATETIME_INPUT_FORMATS": ["%d.%m.%Y %H:%M"],
 }
 
 DJOSER = {
