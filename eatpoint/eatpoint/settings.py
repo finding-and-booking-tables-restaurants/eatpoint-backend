@@ -26,7 +26,6 @@ DEBUG = os.getenv("DEBUG", default=False)
 ALLOWED_HOSTS = [
     "backend",
     "backend:8000",
-    "eatpoint.sytes.net",
     "eatpoint.site",
 ]
 
@@ -38,13 +37,11 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = False if DEBUG else True
 SESSION_COOKIE_SECURE = False if DEBUG else True
 CSRF_TRUSTED_ORIGINS = [
-    "https://eatpoint.sytes.net",
-    "http://eatpoint.sytes.net",
     "https://eatpoint.site",
     "http://eatpoint.site",
 ]
 CSRF_COOKIE_SECURE = False if DEBUG else True
-CSRF_COOKIE_DOMAIN = "eatpoint.sytes.net" if not DEBUG else None
+CSRF_COOKIE_DOMAIN = "eatpoint.site" if not DEBUG else None
 CORS_URLS_REGEX = r"^/api/.*$"
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -111,7 +108,6 @@ WSGI_APPLICATION = "eatpoint.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 
 DATABASES = {
     "default": {
