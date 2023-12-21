@@ -1,37 +1,36 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views.analytics import (
+from api.v2.views.analytics import (
     AnalyticsHistoryListViewSet,
     AnalyticsHistoryViewSet,
     AnalyticsViewSet,
     AnalyticsListViewSet,
 )
-from api.views.code_generate import SendSMSCode, VerifySMSCode
-from api.views.events import (
-    TypeEventViewset,
-    EventBusinessViewSet,
-    EventPhotoViewset,
-    EventUsersViewSet,
+from api.v2.views.code_generate import (
+    SendCodeForAnonymous,
+    VerifyCodeForAnonymous,
 )
-from api.views.establishments import (
+from api.v2.views.establishments import (
     ZoneViewSet,
     CityViewSet,
     EstablishmentBusinessViewSet,
     FavoriteViewSet,
     ImageEstablishmentViewSet,
+    EventUsersViewSet,
+    EventBusinessViewSet,
 )
-from api.views.reservation import (
+from api.v2.views.reservation import (
     ReservationsEditViewSet,
     ReservationsUserListViewSet,
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
-    AvailabilityViewSet,
-    DateAvailabilityView,
-    TimeAvailabilityView,
+    AvailableSlotsViewSet,
+    # DateAvailabilityView,
+    # TimeAvailabilityView,
 )
-from api.views.reviews import OwnerResponseCreateView, ReviewViewSet
-from api.views.users import (
+from api.v2.views.reviews import OwnerResponseCreateView, ReviewViewSet
+from api.v2.views.users import (
     SignUp,
     ConfirmCodeView,
     UserViewSet,
@@ -40,7 +39,7 @@ from api.views.users import (
     MyTokenObtainPairView,
     MyTokenRefreshView,
 )
-from api.views.establishments import (
+from api.v2.views.establishments import (
     EstablishmentViewSet,
     KitchenViewSet,
     ServicesViewSet,
@@ -49,82 +48,76 @@ from api.views.establishments import (
 
 app_name = "api"
 
-router = DefaultRouter()
+router_v2 = DefaultRouter()
 
-router.register(
+router_v2.register(
     "establishments", EstablishmentViewSet, basename="establishments"
 )
-router.register(
+router_v2.register(
     r"establishments/(?P<establishment_id>\d+)/zones",
     ZoneViewSet,
     basename="zones",
 )
-router.register(
+router_v2.register(
     r"establishments/(?P<establishment_id>\d+)/reservations",
     ReservationsEditViewSet,
     basename="reservations",
 )
-router.register(
+router_v2.register(
     "reservations/history",
     ReservationsHistoryListViewSet,
     basename="reservationslisthistory",
 )
-router.register(
+router_v2.register(
     "reservations", ReservationsUserListViewSet, basename="reservationslist"
 )
-router.register(
+router_v2.register(
     "business/reservations",
     ReservationsRestorateurListViewSet,
     basename="reservations-business",
 )
-router.register(
+router_v2.register(
     "business/establishments",
     EstablishmentBusinessViewSet,
     basename="establishments-business",
 )
-router.register("kitchens", KitchenViewSet, basename="Kitchens")
-router.register("services", ServicesViewSet, basename="service")
-router.register("types", TypeEstViewSet, basename="types")
-router.register("cities", CityViewSet, basename="cities")
-router.register("event_types", TypeEventViewset, basename="event-types")
-router.register(
+router_v2.register("kitchens", KitchenViewSet, basename="Kitchens")
+router_v2.register("services", ServicesViewSet, basename="service")
+router_v2.register("types", TypeEstViewSet, basename="types")
+router_v2.register("cities", CityViewSet, basename="cities")
+router_v2.register(
     r"establishments/(?P<establishment_id>\d+)/reviews",
     ReviewViewSet,
     basename="reviews",
 )
-router.register("users", UserViewSet, basename="users"),
-router.register(
+router_v2.register("users", UserViewSet, basename="users"),
+router_v2.register(
     r"establishments/(?P<establishment_id>\d+)/availability",
-    AvailabilityViewSet,
+    AvailableSlotsViewSet,
     basename="availability",
 )
-router.register(
+router_v2.register(
     r"images/(?P<establishment_id>\d+)",
     ImageEstablishmentViewSet,
     basename="image",
 )
-router.register(
+router_v2.register(
     r"establishments/(?P<establishment_id>\d+)/events",
     EventUsersViewSet,
     basename="events",
 ),
-router.register(
+router_v2.register(
     r"business/(?P<establishment_id>\d+)/events",
     EventBusinessViewSet,
     basename="events-business",
-)
-router.register(
-    r"business/(?P<establishment_id>\d+)/events/(?P<event_id>\d+)/photos",
-    EventPhotoViewset,
-    basename="events-photos",
 )
 
 urlpatterns = [
     path("auth/signup/", SignUp.as_view()),
     path("auth/confirm-code/", ConfirmCodeView.as_view()),
     path("auth/confirm-code-refresh/", ConfirmCodeRefreshView.as_view()),
-    path("auth/send-reservations-code/", SendSMSCode.as_view()),
-    path("auth/verify-reservations-code/", VerifySMSCode.as_view()),
+    path("auth/send-reservations-code/", SendCodeForAnonymous.as_view()),
+    path("auth/verify-reservations-code/", VerifyCodeForAnonymous.as_view()),
     path(
         "reset-password/",
         DjoserUserViewSet.as_view({"post": "reset_password"}),
@@ -156,11 +149,6 @@ urlpatterns = [
         name="establishment-analytics-list-history",
     ),
     path(
-        "availability/time/<str:dates>/<int:establishment_id>/",
-        TimeAvailabilityView.as_view(),
-    ),
-    path("availability/date/<int:zone_id>/", DateAvailabilityView.as_view()),
-    path(
         "establishments/<int:establishment_id>/favorite/",
         FavoriteViewSet.as_view(),
     ),
@@ -171,5 +159,5 @@ urlpatterns = [
         OwnerResponseCreateView.as_view(),
         name="create_owner_response",
     ),
-    path("", include(router.urls)),
+    path("", include(router_v2.urls)),
 ]
