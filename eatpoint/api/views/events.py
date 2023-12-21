@@ -10,6 +10,7 @@ from . import schema
 
 
 @extend_schema(tags=["Типы событий"])
+@extend_schema_view(**schema.events_types_schema)
 class TypeEventViewset(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для обработки Типов событий."""
 
@@ -22,9 +23,9 @@ class BaseEventViewset(viewsets.ModelViewSet):
 
     def _get_establishment_id(self) -> None:
         est_id = self.kwargs.get("establishment_id")
-        if crud.establishment_exists(est_id=est_id):
+        if crud.establishment_exists(id=est_id):
             return est_id
-        return Http404("Заведение не найдено.")
+        raise Http404("Заведение не найдено.")
 
     def get_queryset(self):
         return crud.list_events(establishment_id=self._get_establishment_id())
@@ -48,7 +49,6 @@ class EventUsersViewSet(BaseEventViewset):
 class EventBusinessViewSet(BaseEventViewset):
     """Вьюсет для обработки Событий для ресторатора."""
 
-    # не покрывает кейс при создании события другим владельцем - обсудить
     permission_classes = (IsEstOwner,)
     http_method_names = ["get", "post", "delete", "patch"]
 
@@ -83,7 +83,7 @@ class EventPhotoViewset(viewsets.ModelViewSet):
 
     def _get_event_id(self) -> None:
         event_id = self.kwargs.get("event_id")
-        if crud.event_exists(event_id=event_id):
+        if crud.event_exists(id=event_id):
             return event_id
         return Http404("Событие не найдено.")
 

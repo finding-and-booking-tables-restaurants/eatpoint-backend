@@ -154,3 +154,15 @@ events_photo_schema = {
         description="Ресторатор",
     ),
 }
+
+
+events_types_schema = {
+    "list": extend_schema(
+        summary="Получить список типов событий",
+        description="Любой пользователь",
+    ),
+    "retrieve": extend_schema(
+        summary="Просмотр одного типа события события",
+        description="Любой пользователь",
+    ),
+}

@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from establishments.models import Establishment
 from events.models import Event, TypeEvent, EventPhoto
-from events.crud import list_event_types
+from events.crud import event_exists
 
 
 class EventPhotoSerializer(serializers.ModelSerializer):
@@ -79,5 +79,14 @@ class CreateEditEventSerializer(BaseEventSerializer):
             "date_end",
         )
 
+    def validate(self, attrs):
+        name, date_start = attrs.get("name"), attrs.get("date_start")
+        est_id = self.context.get("view").kwargs.get("establishment_id")
+        if not self.instance and event_exists(
+            establishment_id=est_id, name=name, date_start=date_start
+        ):
+            raise serializers.ValidationError("Событие уже создано")
+        return attrs
+
     def to_representation(self, instance):
-        return RetrieveEventSrializer(instance=instance)
+        return RetrieveEventSrializer(instance=instance).data

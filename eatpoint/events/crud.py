@@ -5,14 +5,14 @@ from establishments.models import Establishment
 from .models import Event, TypeEvent, EventPhoto
 
 
-def establishment_exists(est_id: int) -> bool:
+def establishment_exists(**fields) -> bool:
     """Проверка существования Заведения в базе данных."""
-    return Establishment.objects.filter(id=est_id).exists()
+    return Establishment.objects.filter(**fields).exists()
 
 
-def event_exists(event_id: int) -> bool:
+def event_exists(**fields) -> bool:
     """Проверка существования События в базе данных."""
-    return Event.objects.filter(id=event_id).exists()
+    return Event.objects.filter(**fields).exists()
 
 
 def list_event_types() -> QuerySet[TypeEvent]:
@@ -43,7 +43,7 @@ def update_event(event: Event, data: dict) -> Event:
         event.type_event.clear()
         event.type_event.set(data.pop("type_event"))
 
-    for field, value in data:
+    for field, value in data.items():
         if getattr(event, field):
             setattr(event, field, value)
     event.save()

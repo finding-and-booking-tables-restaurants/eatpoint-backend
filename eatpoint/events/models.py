@@ -70,6 +70,12 @@ class Event(models.Model):
         verbose_name = "Событие"
         verbose_name_plural = "События"
         default_related_name = "events"
+        constraints = (
+            models.UniqueConstraint(
+                fields=("establishment_id", "name", "date_start"),
+                name="unique_event_in_establishment_per_day",
+            ),
+        )
 
     def __str__(self):
         return f"{self.name}: {self.date_start} - {self.date_end}"
