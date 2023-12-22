@@ -135,3 +135,19 @@ class IsAdministrator(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.is_administrator
+
+
+# Кажется, надо пересмотреть IsOwnerRestaurant и IsEstablishmentOwner:
+# либо не отражают содержание,
+# либо не покрывают все кейсы, где пользователь админ/владелец другого ресторана
+class IsEstOwner(permissions.BasePermission):
+    """
+    Возвращает True, если пользователь является владельцем указанного ресторана.
+    """
+
+    def has_permission(self, request, view):
+        est_id = view.kwargs.get("establishment_id")
+        return (
+            request.user.is_authenticated
+            and request.user.establishment.filter(id=est_id)
+        )

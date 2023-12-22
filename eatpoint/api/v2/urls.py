@@ -17,8 +17,6 @@ from api.v2.views.establishments import (
     EstablishmentBusinessViewSet,
     FavoriteViewSet,
     ImageEstablishmentViewSet,
-    EventUsersViewSet,
-    EventBusinessViewSet,
 )
 from api.v2.views.reservation import (
     ReservationsEditViewSet,
@@ -26,8 +24,6 @@ from api.v2.views.reservation import (
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
     AvailableSlotsViewSet,
-    # DateAvailabilityView,
-    # TimeAvailabilityView,
 )
 from api.v2.views.reviews import OwnerResponseCreateView, ReviewViewSet
 from api.v2.views.users import (
@@ -100,16 +96,6 @@ router_v2.register(
     r"images/(?P<establishment_id>\d+)",
     ImageEstablishmentViewSet,
     basename="image",
-)
-router_v2.register(
-    r"establishments/(?P<establishment_id>\d+)/events",
-    EventUsersViewSet,
-    basename="events",
-),
-router_v2.register(
-    r"business/(?P<establishment_id>\d+)/events",
-    EventBusinessViewSet,
-    basename="events-business",
 )
 
 urlpatterns = [
