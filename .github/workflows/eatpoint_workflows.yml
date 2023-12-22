@@ -64,7 +64,7 @@ jobs:
             cd ..
             cd home/
             cd infraa/
-            sudo docker-compose stop
+            sudo docker stop $(sudo docker ps -a -q)
             docker-compose pull
             sudo docker-compose up -d
             sudo docker rmi $(docker images -f dangling=true -q)
