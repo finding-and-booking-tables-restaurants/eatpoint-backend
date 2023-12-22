@@ -8,7 +8,7 @@ from establishments.models import WorkEstablishment, ZoneEstablishment
 from reservation.models import Availability
 
 string_validator = RegexValidator(
-    r"^[a-zA-Zа-яА-Я]{2,30}$",
+    r"^[a-zA-Zа-яА-ЯёЁ]{2,30}$",
     "Имя и Фамилия должны содержать только "
     "рус и лат буквы длиной от 2 до 30 символов",
 )
@@ -75,19 +75,15 @@ def validate_reserv_anonim(user, validated_data):
     if not user.is_authenticated:
         if "first_name" not in validated_data:
             raise ValidationError(
-                {"first_name": "Заполните имя или зарегистрируйтесь"}
+                {"first_name": "Укажите имя или зарегистрируйтесь"}
             )
         if "telephone" not in validated_data:
             raise ValidationError(
-                {
-                    "first_name": "Заполните номер телефона или зарегистрируйтесь"
-                }
+                {"telephone": "Укажите телефон или зарегистрируйтесь"}
             )
         if "email" not in validated_data:
             raise ValidationError(
-                {
-                    "first_name": "Заполните email телефона или зарегистрируйтесь"
-                }
+                {"email": "Укажите email или зарегистрируйтесь"}
             )
 
 

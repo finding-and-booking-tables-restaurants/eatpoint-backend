@@ -3,21 +3,19 @@ from django import forms
 from django.utils.safestring import mark_safe
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
+from reservation.models import Slot
 from .models import (
     Establishment,
     Kitchen,
-    OwnerResponse,
     Service,
-    Event,
-    Review,
     TypeEst,
+    Table,
     ZoneEstablishment,
     ImageEstablishment,
     WorkEstablishment,
     SocialEstablishment,
     Favorite,
     City,
-    TypeEvents,
 )
 
 
@@ -30,11 +28,61 @@ class ContactForm(forms.ModelForm):
         }
 
 
+@admin.register(Table)
+class TableAdmin(admin.ModelAdmin):
+    """Админка: столик"""
+
+    list_display = (
+        "id",
+        "number",
+        "establishment",
+        "zone",
+        "seats",
+        "is_active",
+        "is_reserved",
+    )
+
+
+class TableInLine(admin.TabularInline):
+    """Админка: добавление столиков"""
+
+    model = Table
+    extra = 0
+
+
+@admin.register(Slot)
+class SlotAdmin(admin.ModelAdmin):
+    """Админка: слоты"""
+
+    list_display = (
+        "id",
+        "establishment",
+        "zone",
+        "date",
+        "time",
+        "table",
+        "seats",
+        "is_active",
+    )
+
+    list_filter = ("establishment", "zone", "table", "date", "time")
+
+    actions = ["set_active"]
+
+    @admin.action(description='Установить статус "Активный"')
+    def set_active(self, request, queryset):
+        queryset.update(is_active=True)
+
+
 @admin.register(ZoneEstablishment)
 class ZoneAdmin(admin.ModelAdmin):
     """Админка: зона заведения"""
 
-    list_display = ("zone", "id")
+    list_display = ("establishment", "zone", "id")
+    ordering = ("establishment", "-zone")
+    inlines = [
+        TableInLine,
+    ]
 
 
 @admin.register(ImageEstablishment)
@@ -42,64 +90,6 @@ class ImageEstablishmentAdmin(admin.ModelAdmin):
     """Админка: отзывы"""
 
     list_display = ("id", "name")
-
-
-@admin.register(OwnerResponse)
-class OwnerResponseAdmin(admin.ModelAdmin):
-    """Админка: ответ владельца заведения"""
-
-    list_display = ("id", "establishment_owner", "review", "text", "created")
-    list_filter = ("establishment_owner", "created")
-    search_fields = ("text",)
-
-
-class OwnerResponseInline(admin.TabularInline):
-    """Админка: управление OwnerResponse внутри панели Review"""
-
-    model = OwnerResponse
-    extra = 0
-
-
-@admin.register(Review)
-class ReviewAdmin(admin.ModelAdmin):
-    """Админка: отзывы"""
-
-    list_display = ("id", "author", "establishment")
-    inlines = [OwnerResponseInline]
-
-
-@admin.register(TypeEvents)
-class TypeEventAdmin(admin.ModelAdmin):
-    """Админка: события"""
-
-    list_display = ("name", "id")
-    empty_value_display = "-пусто-"
-    prepopulated_fields = {"slug": ("name",)}
-
-
-@admin.register(Event)
-class EventAdmin(admin.ModelAdmin):
-    """Админка: события"""
-
-    list_display = ("name", "preview", "id", "date_start")
-    empty_value_display = "-пусто-"
-    fieldsets = (
-        ("Основная информация", {"fields": ("name", "establishment")}),
-        ("Постер и описание", {"fields": ("image", "description")}),
-        ("Начало и конец события", {"fields": ("date_start", "date_end")}),
-        ("Тип события и стоимость", {"fields": ("type_event", "price")}),
-    )
-
-    def preview(self, obj):
-        """Отображение превью заведения"""
-        if obj.image:
-            return mark_safe(
-                f'<img src="{obj.image.url}" style="max-height: 50px;">'
-            )
-        else:
-            return "No preview"
-
-    preview.short_description = "Превью"
 
 
 @admin.register(Kitchen)

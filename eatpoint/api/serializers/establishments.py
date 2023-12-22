@@ -5,7 +5,6 @@ from drf_spectacular.utils import (
     extend_schema_field,
 )
 
-
 from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 
@@ -14,21 +13,18 @@ from core.services import days_available
 from core.validators import validate_uniq
 from establishments.models import (
     Establishment,
-    OwnerResponse,
     WorkEstablishment,
     Kitchen,
     ZoneEstablishment,
     Favorite,
-    Review,
     Service,
     SocialEstablishment,
     ImageEstablishment,
     TypeEst,
     City,
-    Event,
 )
 from reservation.models import Availability
-from users.models import User
+from reviews.models import Review
 
 
 class KitchenSerializer(serializers.ModelSerializer):
@@ -436,134 +432,3 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
             instance,
             context={"request": self.context.get("request")},
         ).data
-
-
-class SmallUserSerializer(serializers.ModelSerializer):
-    """Сериализация данных: Данные пользователя для отзывов"""
-
-    class Meta:
-        model = User
-        fields = [
-            "first_name",
-            "last_name",
-            "role",
-        ]
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализация данных: Отзывы"""
-
-    establishment = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
-    author = SmallUserSerializer(read_only=True)
-
-    class Meta:
-        fields = "__all__"
-        model = Review
-
-    def validate(self, data):
-        """Проверка на уникальность отзыва"""
-        if self.context["request"].method == "POST":
-            establishment = self.context["view"].kwargs.get("establishment_id")
-            user = self.context["request"].user
-
-            is_booking_confirmed = user.reservationhistory.filter(
-                establishment=establishment, status=True
-            ).exists()
-            if not is_booking_confirmed:
-                raise serializers.ValidationError(
-                    "Отзыв недоступен из-за отсутствия подтвержденной брони"
-                )
-
-            if Review.objects.filter(
-                author=user, establishment=establishment
-            ).exists():
-                raise serializers.ValidationError(
-                    "Нельзя оставить повторный отзыв на одно заведение"
-                )
-        return data
-
-
-class OwnerResponseSerializer(serializers.ModelSerializer):
-    """
-    Сериализация данных: Ответ владельца заведения на отзыв.
-    Для получения информации о самом отзыве в ответе API при
-    создании ответа владельца на отзыв, добавлен 'review'.
-    """
-
-    class Meta:
-        model = OwnerResponse
-        fields = ["id", "establishment_owner", "review", "text", "created"]
-
-
-class EventSerializer(serializers.ModelSerializer):
-    """Сериализатор событий"""
-
-    establishment = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
-    image = Base64ImageField()
-
-    class Meta:
-        model = Event
-        fields = (
-            "name",
-            "establishment",
-            "description",
-            "date_start",
-            "date_end",
-            "type_event",
-            "price",
-            "image",
-        )
-
-
-class EventEditSerializer(serializers.ModelSerializer):
-    """Сериализатор событий"""
-
-    establishment = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
-
-    class Meta:
-        model = Event
-        fields = (
-            "name",
-            "establishment",
-            "description",
-            "date_start",
-            "date_end",
-            "type_event",
-            "price",
-        )
-
-    def to_representation(self, instance):
-        return EventSerializer(
-            instance,
-            context={"request": self.context.get("request")},
-        ).data
-
-    def validate(self, data):
-        name = data.get("name")
-        date_start = data.get("date_start")
-        if Event.objects.filter(name=name, date_start=date_start).exists():
-            raise ValueError()
-
-    def create(self, validated_data):
-        type_event = validated_data.pop("type_event")
-        event = Event.objects.create(**validated_data)
-        event.kitchens.set(type_event)
-        return event
-
-    def update(self, instance, validated_data):
-        if "type_event" in validated_data:
-            instance.type_event.set(validated_data.pop("type_event"))
-
-        return super().update(
-            instance,
-            validated_data,
-        )

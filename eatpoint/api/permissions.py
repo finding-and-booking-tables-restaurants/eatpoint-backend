@@ -1,6 +1,8 @@
 from rest_framework import permissions
 
 import core.constants
+from reviews.models import Review
+from django.shortcuts import get_object_or_404
 
 
 class IsAnonymous(permissions.BasePermission):
@@ -62,6 +64,18 @@ class IsRestorateurEdit(permissions.BasePermission):
         return obj.establishment.owner == request.user
 
 
+class IsEstablishmentOwner(permissions.BasePermission):
+    """
+    Проверяем, что пользователь, отправляющий запрос на создание ответа на
+    отзыв, является владельцем заведения, связанного с этим отзывом.
+    """
+
+    def has_permission(self, request, view):
+        review_id = view.kwargs.get("review_id")
+        review = get_object_or_404(Review, pk=review_id)
+        return request.user == review.establishment.owner
+
+
 class ReadOnly(permissions.BasePermission):
     """
     Возвращает результат проверки методов HTTP запросов
@@ -121,3 +135,19 @@ class IsAdministrator(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.is_administrator
+
+
+# Кажется, надо пересмотреть IsOwnerRestaurant и IsEstablishmentOwner:
+# либо не отражают содержание,
+# либо не покрывают все кейсы, где пользователь админ/владелец другого ресторана
+class IsEstOwner(permissions.BasePermission):
+    """
+    Возвращает True, если пользователь является владельцем указанного ресторана.
+    """
+
+    def has_permission(self, request, view):
+        est_id = view.kwargs.get("establishment_id")
+        return (
+            request.user.is_authenticated
+            and request.user.establishment.filter(id=est_id)
+        )

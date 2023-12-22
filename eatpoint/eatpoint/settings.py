@@ -26,7 +26,7 @@ DEBUG = os.getenv("DEBUG", default=False)
 ALLOWED_HOSTS = [
     "backend",
     "backend:8000",
-    "eatpoint.sytes.net",
+    "eatpoint.site",
 ]
 
 if DEBUG:
@@ -37,11 +37,11 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = False if DEBUG else True
 SESSION_COOKIE_SECURE = False if DEBUG else True
 CSRF_TRUSTED_ORIGINS = [
-    "https://eatpoint.sytes.net",
-    "http://eatpoint.sytes.net",
+    "https://eatpoint.site",
+    "http://eatpoint.site",
 ]
 CSRF_COOKIE_SECURE = False if DEBUG else True
-CSRF_COOKIE_DOMAIN = "eatpoint.sytes.net" if not DEBUG else None
+CSRF_COOKIE_DOMAIN = "eatpoint.site" if not DEBUG else None
 CORS_URLS_REGEX = r"^/api/.*$"
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -62,13 +62,14 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     "django_filters",
     "phonenumber_field",
-    "jwt",
     "establishments.apps.EstablishmentsConfig",
     "api.apps.ApiConfig",
     "core.apps.CoreConfig",
     "reservation.apps.ReservationConfig",
     "users.apps.UsersConfig",
     "analytics.apps.AnalyticsConfig",
+    "reviews.apps.ReviewsConfig",
+    "events.apps.EventsConfig",
     "django.contrib.postgres",
 ]
 
@@ -107,7 +108,6 @@ WSGI_APPLICATION = "eatpoint.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 
 DATABASES = {
     "default": {
@@ -191,6 +191,8 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ),
+    "DATETIME_FORMAT": "%d.%m.%Y %H:%M",
+    "DATETIME_INPUT_FORMATS": ["%d.%m.%Y %H:%M"],
 }
 
 DJOSER = {
@@ -217,45 +219,30 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
 }
 
-# OTHER SETTINGS
+# EMAIL SETTINGS
 
 if DEBUG:
-    DEFAULT_FROM_EMAIL = os.getenv(
-        "DEFAULT_FROM_EMAIL", default="mail@fake.ru"
-    )
-    EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-    EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+    # EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+    # EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = os.getenv("EMAIL_HOST")
-    EMAIL_PORT = os.getenv("EMAIL_PORT")
-    EMAIL_USE_TLS = True
-    EMAIL_USE_SSL = False
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL")
 
-    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-    SERVER_EMAIL = EMAIL_HOST_USER
-    EMAIL_ADMIN = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
 
+
+# OTHER SETTINGS=============================================================
 TIME_INPUT_FORMATS = ("%I:%M",)
 PHONENUMBER_DEFAULT_REGION = "RU"
-
-JAZZMIN_SETTINGS = {
-    "site_title": "Eatpoint Admin",
-    "site_header": "Администрирование Eatpoint",
-    "site_brand": "EatPoint",
-    # "site_icon": "jazzmin/admin/bird_2.jpg",
-    # "site_logo": "/jazzmin/admin/bird_2.jpg",
-    # "site_logo_classes": "img-circle",
-    "welcome_sign": "Добро пожаловать в EatPoint",
-    "copyright": "Яндекс.Акселератор",
-    "dark_mode_theme": "darkly",
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "use_google_fonts_cdn": True,
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -271,9 +258,9 @@ AUTH_PASSWORD_VALIDATORS = [
         },
     },
     {
-        "NAME": "users.validators.NoRussianLettersValidator",
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "users.validators.OnlyAllowedCharactersValidator",
     },
 ]

@@ -336,120 +336,58 @@ class ZoneEstablishment(models.Model):
         return self.zone
 
 
-class TypeEvents(models.Model):
-    """Тип события"""
+class Table(models.Model):
+    """Столики"""
 
-    name = models.CharField(
-        verbose_name="Тип события",
-        max_length=200,
+    number = models.PositiveSmallIntegerField(
+        verbose_name="Номер столика",
     )
-    description = models.TextField(
-        verbose_name="Описание",
-        max_length=2000,
-    )
-    slug = models.SlugField(
-        verbose_name="Ссылка",
-        max_length=200,
-        unique=True,
-    )
-
-    class Meta:
-        verbose_name = "Тип события"
-        verbose_name_plural = "Типы события"
-
-    def __str__(self):
-        return self.name
-
-
-class Event(models.Model):
-    """События"""
-
-    name = models.CharField(
-        verbose_name="Название события",
-        max_length=200,
-    )
-    establishment = models.ForeignKey(
-        Establishment,
-        on_delete=models.CASCADE,
-        related_name="event",
-    )
-    description = models.TextField(
-        verbose_name="Описание события",
-        max_length=5000,
-    )
-    image = models.ImageField(
-        verbose_name="Постер события",
-        upload_to="establishment/images/event",
-    )
-    date_start = models.DateTimeField(
-        verbose_name="Начало события",
-    )
-    date_end = models.DateTimeField(
-        verbose_name="Окончание события",
-        blank=True,
-        null=True,
-    )
-    type_event = models.ManyToManyField(
-        TypeEvents,
-        verbose_name="Тип события",
-        related_name="establishments",
-        blank=True,
-    )
-    price = models.PositiveSmallIntegerField(
-        verbose_name="Цена события",
-        blank=True,
-        null=True,
-    )
-
-    class Meta:
-        verbose_name = "Событие"
-        verbose_name_plural = "События"
-
-    def __str__(self):
-        return f"{self.name}: {self.date_start} - {self.date_end}"
-
-
-class Review(models.Model):
-    """Отзывы"""
 
     establishment = models.ForeignKey(
         Establishment,
         on_delete=models.CASCADE,
-        related_name="review",
+        null=True,
+        related_name="tables",
     )
-    author = models.ForeignKey(
-        User,
+    zone = models.ForeignKey(
+        ZoneEstablishment,
         on_delete=models.CASCADE,
+        null=True,
+        related_name="tables",
     )
-    text = models.TextField(
-        verbose_name="Текст отзыва",
-        max_length=500,
+
+    is_active = models.BooleanField(
+        verbose_name="Активен",
+        default=True,
     )
-    created = models.DateTimeField(
-        verbose_name="Дата публикации",
-        auto_now_add=True,
+
+    is_reserved = models.BooleanField(
+        verbose_name="Забронирован",
+        default=False,
     )
-    score = models.PositiveSmallIntegerField(
+
+    seats = models.PositiveSmallIntegerField(
+        verbose_name="Количество мест",
         validators=[
-            MinValueValidator(1, message="Допустимые значние 1-5"),
-            MaxValueValidator(5, message="Допустимые значние 1-5"),
+            MaxValueValidator(
+                MAX_SEATS,
+                message=f"Количество мест не может быть больше {MAX_SEATS}",
+            ),
+            MinValueValidator(
+                MIN_SEATS,
+                message=f"Количество мест не может быть меньше {MIN_SEATS}",
+            ),
         ],
     )
 
     class Meta:
-        verbose_name = "Отзыв"
-        verbose_name_plural = "Отзывы"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["establishment", "author"], name="uniquereview"
-            ),
-        ]
-        ordering = ["-created"]
+        verbose_name = "Столик"
+        verbose_name_plural = "Столики"
 
     def __str__(self):
-        return self.text
+        return f"номер: {self.number}, мест: {self.seats}, зона: {self.zone}"
 
-
+      
 class Favorite(models.Model):
     """Избранное"""
 
@@ -473,22 +411,3 @@ class Favorite(models.Model):
                 fields=["user", "establishment"], name="uniquefavorit"
             ),
         ]
-
-
-class OwnerResponse(models.Model):
-    """Модель для ответа владельца на отзыв о заведении."""
-
-    establishment_owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="owner_responses"
-    )
-    review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name="owner_responses"
-    )
-    text = models.TextField(verbose_name="Текст ответа хозяина")
-    created = models.DateTimeField(
-        verbose_name="Дата публикации", auto_now_add=True
-    )
-
-    class Meta:
-        verbose_name = "Ответ хозяина"
-        verbose_name_plural = "Ответы хозяина"
