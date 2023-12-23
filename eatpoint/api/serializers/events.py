@@ -63,7 +63,6 @@ class RetrieveEventSrializer(BaseEventSerializer):
     class Meta(BaseEventSerializer.Meta):
         fields = BaseEventSerializer.Meta.fields + (
             "description",
-            "date_end",
             "photos",
         )
 
@@ -74,10 +73,7 @@ class CreateEditEventSerializer(BaseEventSerializer):
     image = Base64ImageField()
 
     class Meta(BaseEventSerializer.Meta):
-        fields = BaseEventSerializer.Meta.fields + (
-            "description",
-            "date_end",
-        )
+        fields = BaseEventSerializer.Meta.fields + ("description",)
 
     def validate(self, attrs):
         name, date_start = attrs.get("name"), attrs.get("date_start")

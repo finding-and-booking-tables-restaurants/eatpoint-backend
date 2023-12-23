@@ -50,11 +50,6 @@ class Event(models.Model):
     date_start = models.DateTimeField(
         verbose_name="Начало события",
     )
-    date_end = models.DateTimeField(
-        verbose_name="Окончание события",
-        blank=True,
-        null=True,
-    )
     type_event = models.ManyToManyField(
         TypeEvent,
         verbose_name="Тип события",

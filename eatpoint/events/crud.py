@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db.models import QuerySet
 
 from establishments.models import Establishment
@@ -20,10 +22,13 @@ def list_event_types() -> QuerySet[TypeEvent]:
     return TypeEvent.objects.all()
 
 
-def list_events(establishment_id: int) -> QuerySet[Event]:
+def list_active_events(establishment_id: int) -> QuerySet[Event]:
     """Получение списка Событий."""
     return (
-        Event.objects.filter(establishment_id=establishment_id)
+        Event.objects.filter(
+            establishment_id=establishment_id,
+            date_start__date__gte=date.today(),
+        )
         .select_related("establishment")
         .prefetch_related("type_event", "photos")
     )

@@ -30,7 +30,7 @@ class EventAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Основная информация", {"fields": ("name", "establishment")}),
         ("Постер и описание", {"fields": ("image", "description")}),
-        ("Начало и конец события", {"fields": ("date_start", "date_end")}),
+        ("Начало события", {"fields": ("date_start",)}),
         ("Тип события и стоимость", {"fields": ("type_event", "price")}),
     )
     autocomplete_fields = ("type_event",)

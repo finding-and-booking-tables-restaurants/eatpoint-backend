@@ -28,7 +28,9 @@ class BaseEventViewset(viewsets.ModelViewSet):
         raise Http404("Заведение не найдено.")
 
     def get_queryset(self):
-        return crud.list_events(establishment_id=self._get_establishment_id())
+        return crud.list_future_events(
+            establishment_id=self._get_establishment_id()
+        )
 
 
 @extend_schema(tags=["События"])
