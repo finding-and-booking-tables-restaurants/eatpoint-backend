@@ -387,7 +387,7 @@ class Table(models.Model):
     def __str__(self):
         return f"номер: {self.number}, мест: {self.seats}, зона: {self.zone}"
 
-      
+
 class Favorite(models.Model):
     """Избранное"""
 
