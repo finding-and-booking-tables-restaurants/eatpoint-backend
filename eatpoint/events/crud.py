@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 
 from establishments.models import Establishment
 
-from .models import Event, TypeEvent, EventPhoto
+from .models import Event, TypeEvent, EventPhoto, RecurSetting
 
 
 def establishment_exists(**fields) -> bool:
@@ -22,7 +22,7 @@ def list_event_types() -> QuerySet[TypeEvent]:
     return TypeEvent.objects.all()
 
 
-def list_active_events(establishment_id: int) -> QuerySet[Event]:
+def list_future_events(establishment_id: int) -> QuerySet[Event]:
     """Получение списка Событий."""
     return (
         Event.objects.filter(
@@ -34,12 +34,9 @@ def list_active_events(establishment_id: int) -> QuerySet[Event]:
     )
 
 
-def create_event(est_id: int, data: dict) -> Event:
+def add_event(data: dict) -> Event:
     """Создание экземпляра События."""
-    event_types = data.pop("type_event")
-    event = Event.objects.create(establishment_id=est_id, **data)
-    event.type_event.set(event_types)
-    return event
+    return Event.objects.create(**data)
 
 
 def update_event(event: Event, data: dict) -> Event:
@@ -58,3 +55,12 @@ def update_event(event: Event, data: dict) -> Event:
 def list_event_photos(event_id: int) -> QuerySet[EventPhoto]:
     """Получение списка Фото по id события."""
     return EventPhoto.objects.filter(event_id=event_id)
+
+
+def create_recur_setting(
+    date_start: date, date_end: date, recurrence_id: int
+) -> RecurSetting:
+    """Создание настроек повтора для серии событий."""
+    return RecurSetting.objects.create(
+        date_start=date_start, date_end=date_end, recurrence_id=recurrence_id
+    )

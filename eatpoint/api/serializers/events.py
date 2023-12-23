@@ -2,7 +2,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from establishments.models import Establishment
-from events.models import Event, TypeEvent, EventPhoto
+from events.models import Event, TypeEvent, EventPhoto, RecurrenceSetting
 from events.crud import event_exists
 
 
@@ -67,7 +67,41 @@ class RetrieveEventSrializer(BaseEventSerializer):
         )
 
 
-class CreateEditEventSerializer(BaseEventSerializer):
+class CreateEventSerializer(BaseEventSerializer):
+    """Сериализатор полей для создания/изменения События."""
+
+    recurrence = serializers.ChoiceField(
+        choices=RecurrenceSetting.Recurrence.choices, required=False
+    )
+    date_end = serializers.DateField(required=False)
+    image = Base64ImageField()
+
+    class Meta(BaseEventSerializer.Meta):
+        fields = BaseEventSerializer.Meta.fields + (
+            "description",
+            "recurrence",
+            "date_end",
+            "photos",
+        )
+
+    def validate(self, attrs):
+        name, date_start = attrs.get("name"), attrs.get("date_start")
+        est_id = self.context.get("view").kwargs.get("establishment_id")
+        if event_exists(
+            establishment_id=est_id, name=name, date_start=date_start
+        ):
+            raise serializers.ValidationError("Событие уже создано")
+        if sum(attrs.get("recurrence") > 0, attrs.get("date_end") > 0) == 1:
+            raise serializers.ValidationError(
+                "Укажите периодичность и дату последнего события."
+            )
+        return attrs
+
+    def to_representation(self, instance):
+        return RetrieveEventSrializer(instance=instance).data
+
+
+class UpdateEventSerializer(BaseEventSerializer):
     """Сериализатор полей для создания/изменения События."""
 
     image = Base64ImageField()

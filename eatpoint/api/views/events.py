@@ -65,9 +65,6 @@ class EventBusinessViewSet(BaseEventViewset):
         est_id = self._get_establishment_id()
         crud.create_event(est_id=est_id, data=serializer.validated_data)
 
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
     def perform_update(self, serializer):
         crud.update_event(
             event=serializer.instance, data=serializer.validated_data

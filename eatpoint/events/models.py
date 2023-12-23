@@ -28,6 +28,26 @@ class TypeEvent(models.Model):
         return self.name
 
 
+class EventPhoto(models.Model):
+    """Фото события."""
+
+    establishment = models.ForeignKey(
+        Establishment,
+        on_delete=models.CASCADE,
+    )
+    image = models.ImageField(
+        verbose_name="Файл фото",
+        upload_to="establishment/images/event_photos/%Y-%m-%d",
+    )
+
+    class Meta:
+        verbose_name = "Фотография события"
+        verbose_name_plural = "Фотографии событий"
+
+    def __str__(self):
+        return f"Фото {self.id} - событие {self.event}"
+
+
 class Event(models.Model):
     """События."""
 
@@ -45,7 +65,6 @@ class Event(models.Model):
     image = models.ImageField(
         verbose_name="Постер события",
         upload_to="establishment/images/event_posters/%Y-%m-%d",
-        # upload_to="establishment/images/event",
     )
     date_start = models.DateTimeField(
         verbose_name="Начало события",
@@ -59,6 +78,12 @@ class Event(models.Model):
         verbose_name="Цена события",
         blank=True,
         null=True,
+    )
+    photos = models.ManyToManyField(
+        EventPhoto, null=True, verbose_name="Фото события"
+    )
+    recurrence = models.ForeignKey(
+        "RecurrenceSetting", on_delete=models.SET_NULL, blank=True, null=True
     )
 
     class Meta:
@@ -76,23 +101,32 @@ class Event(models.Model):
         return f"{self.name}: {self.date_start} - {self.date_end}"
 
 
-class EventPhoto(models.Model):
-    """Фото события."""
+class Reccurence(models.Model):
+    """Частота повторений событий."""
 
-    event = models.ForeignKey(
-        Event,
-        on_delete=models.CASCADE,
-        related_name="photos",
-        verbose_name="Событие",
-    )
-    image = models.ImageField(
-        verbose_name="Файл фото",
-        upload_to="establishment/images/event_photos/%Y-%m-%d",
-    )
+    description = models.CharField(verbose_name="Описание", max_length="30")
+    days = models.PositiveSmallIntegerField(verbose_name="Частота в днях")
 
     class Meta:
-        verbose_name = "Фотография события"
-        verbose_name_plural = "Фотографии событий"
+        verbose_name = "Частота повторения события"
+        verbose_name_plural = "Частоты повторения событий"
 
     def __str__(self):
-        return f"Фото {self.id} - событие {self.event}"
+        return f"Настройки {self.ID} {self.recurrence}: {self.date_start} - {self.date_end}"
+
+
+class RecurSetting(models.Model):
+    """Настройки периодичности события."""
+
+    recurrence = models.ForeignKey(
+        Reccurence, on_delete=models.PROTECT, verbose_name="Частота повторений"
+    )
+    date_start = models.DateField(verbose_name="Дата первого события")
+    date_end = models.DateField(verbose_name="Дата последнего события")
+
+    class Meta:
+        verbose_name = "Настройки повторения событий"
+        verbose_name_plural = "Настройки повторения событий"
+
+    def __str__(self):
+        return f"Настройки {self.ID} {self.recurrence}: {self.date_start} - {self.date_end}"
