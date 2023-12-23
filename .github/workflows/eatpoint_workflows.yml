@@ -62,8 +62,8 @@ jobs:
           stack_file_name: docker-compose.yaml
           script: |
             cd ../home/infraa/
-            sudo docker stop $(sudo docker ps -a -q)
-            docker-compose pull
+            sudo docker-compose stop
+            sudo docker-compose pull
             sudo docker-compose up -d
             sudo docker image prune --force
 
