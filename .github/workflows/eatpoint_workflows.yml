@@ -63,7 +63,7 @@ jobs:
           script: |
             cd ../home/infraa/
             sudo docker-compose stop
-            docker-compose pull
+            sudo docker-compose pull
             sudo docker-compose up -d
             sudo docker image prune --force
 
