@@ -82,8 +82,8 @@ class Event(models.Model):
     photos = models.ManyToManyField(
         EventPhoto, null=True, verbose_name="Фото события"
     )
-    recurrence = models.ForeignKey(
-        "RecurrenceSetting", on_delete=models.SET_NULL, blank=True, null=True
+    recur_settings = models.ForeignKey(
+        "RecurSetting", on_delete=models.SET_NULL, blank=True, null=True
     )
 
     class Meta:
@@ -102,14 +102,17 @@ class Event(models.Model):
 
 
 class Reccurence(models.Model):
-    """Частота повторений событий."""
+    """Периодичность повторения событий."""
 
-    description = models.CharField(verbose_name="Описание", max_length="30")
-    days = models.PositiveSmallIntegerField(verbose_name="Частота в днях")
+    description = models.CharField(verbose_name="Описание", max_length=30)
+    days = models.PositiveSmallIntegerField(
+        verbose_name="Период в днях", unique=True
+    )
 
     class Meta:
-        verbose_name = "Частота повторения события"
-        verbose_name_plural = "Частоты повторения событий"
+        ordering = ("days",)
+        verbose_name = "Период повторения события"
+        verbose_name_plural = "Периоды повторения событий"
 
     def __str__(self):
         return f"Настройки {self.ID} {self.recurrence}: {self.date_start} - {self.date_end}"

@@ -59,7 +59,10 @@ class EventBusinessViewSet(BaseEventViewset):
             return ser.ListEventSerializer
         if self.action == "retrieve":
             return ser.RetrieveEventSrializer
-        return ser.CreateEditEventSerializer
+        if self.actiom == "create":
+            return ser.CreateEventSerializer
+        # TODO дописать сериализатор на изменение
+        # return ser.CreateEditEventSerializer
 
     def perform_create(self, serializer):
         est_id = self._get_establishment_id()
@@ -76,18 +79,15 @@ class EventBusinessViewSet(BaseEventViewset):
 class EventPhotoViewset(viewsets.ModelViewSet):
     """Вьюсет для обработки Фото событий."""
 
-    http_method_names = ["get", "post", "delete"]
+    http_method_names = ["post", "delete"]
     serializer_class = ser.EventPhotoSerializer
     permission_classes = (IsEstOwner,)
 
-    def _get_event_id(self) -> None:
-        event_id = self.kwargs.get("event_id")
-        if crud.event_exists(id=event_id):
-            return event_id
-        return Http404("Событие не найдено.")
-
-    def get_queryset(self):
-        return crud.list_event_photos(event_id=self._get_event_id())
+    def _get_establishment_id(self) -> None:
+        est_id = self.kwargs.get("establishment_id")
+        if crud.establishment_exists(id=est_id):
+            return est_id
+        raise Http404("Заведение не найдено.")
 
     def perform_create(self, serializer):
-        return serializer.save(event_id=self._get_event_id())
+        return serializer.save(establisment_id=self._get_establishment_id())

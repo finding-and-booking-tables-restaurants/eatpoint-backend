@@ -4,13 +4,6 @@ from django.utils.safestring import mark_safe
 from .models import Event, TypeEvent, EventPhoto
 
 
-class PhotoInline(admin.TabularInline):
-    """Админка: фото события."""
-
-    model = EventPhoto
-    extra = 0
-
-
 @admin.register(TypeEvent)
 class TypeEventAdmin(admin.ModelAdmin):
     """Админка: тип события."""
@@ -34,7 +27,6 @@ class EventAdmin(admin.ModelAdmin):
         ("Тип события и стоимость", {"fields": ("type_event", "price")}),
     )
     autocomplete_fields = ("type_event",)
-    inlines = (PhotoInline,)
 
     # def preview(self, obj):
     #     """Отображение превью заведения"""

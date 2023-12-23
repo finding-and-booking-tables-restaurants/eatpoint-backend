@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema, OpenApiExample
 
 from ..serializers.events import (
-    CreateEditEventSerializer,
+    CreateEventSerializer,
     RetrieveEventSrializer,
 )
 
@@ -35,7 +35,6 @@ event_full_response = {
     "price": 2500,
     "type_event": [{"id": 1, "name": "Вечеринка"}],
     "description": "Тут много слов о событии",
-    "date_end": "01.01.2024 10:00",
     "photos": [{"id": 1, "image": "https://eatpoint.site/media/.../123.png"}],
 }
 
@@ -46,7 +45,6 @@ event_request = {
     "price": 2500,
     "type_event": [1],
     "description": "Тут много слов о событии",
-    "date_end": "01.01.2024 10:00",
 }
 
 business_events_schema = {
@@ -67,7 +65,7 @@ business_events_schema = {
     "create": extend_schema(
         summary="Создать событие",
         description="Ресторатор",
-        request=CreateEditEventSerializer,
+        request=CreateEventSerializer,
         responses={201: RetrieveEventSrializer},
         examples=[
             OpenApiExample(
@@ -95,7 +93,8 @@ business_events_schema = {
     "partial_update": extend_schema(
         summary="Редактировать событие",
         description="Ресторатор",
-        request=CreateEditEventSerializer,
+        # TODO добавить
+        # request=CreateEditEventSerializer,
         responses={201: RetrieveEventSrializer},
         examples=[
             OpenApiExample(
@@ -137,20 +136,12 @@ users_events_schema = {
 
 
 events_photo_schema = {
-    "list": extend_schema(
-        summary="Получить список фото события",
-        description="Ресторатор",
-    ),
     "destroy": extend_schema(
         summary="Удалить фото события",
         description="Ресторатор",
     ),
     "create": extend_schema(
         summary="Добавить фото события",
-        description="Ресторатор",
-    ),
-    "retrieve": extend_schema(
-        summary="Просмотр одного фото события",
         description="Ресторатор",
     ),
 }

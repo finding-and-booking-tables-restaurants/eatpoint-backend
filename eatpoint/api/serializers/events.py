@@ -2,8 +2,8 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from establishments.models import Establishment
-from events.models import Event, TypeEvent, EventPhoto, RecurrenceSetting
-from events.crud import event_exists
+from events.models import Event, TypeEvent, EventPhoto
+from events.crud import event_exists, list_recurrencies
 
 
 class EventPhotoSerializer(serializers.ModelSerializer):
@@ -59,19 +59,25 @@ class RetrieveEventSrializer(BaseEventSerializer):
 
     type_event = TypeEventSerializer(many=True)
     photos = EventPhotoSerializer(many=True)
+    recurrence = serializers.CharField(
+        source="recur_settings.recurrence.description"
+    )
+    date_end = serializers.DateField(source="recur_settings.date_end")
 
     class Meta(BaseEventSerializer.Meta):
         fields = BaseEventSerializer.Meta.fields + (
             "description",
             "photos",
+            "recurrence",
+            "date_end",
         )
 
 
 class CreateEventSerializer(BaseEventSerializer):
     """Сериализатор полей для создания/изменения События."""
 
-    recurrence = serializers.ChoiceField(
-        choices=RecurrenceSetting.Recurrence.choices, required=False
+    recurrence = serializers.PrimaryKeyRelatedField(
+        queryset=list_recurrencies(), required=False
     )
     date_end = serializers.DateField(required=False)
     image = Base64ImageField()

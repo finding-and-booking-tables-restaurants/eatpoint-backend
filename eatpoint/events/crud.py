@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 
 from establishments.models import Establishment
 
-from .models import Event, TypeEvent, EventPhoto, RecurSetting
+from .models import Event, TypeEvent, EventPhoto, RecurSetting, Reccurence
 
 
 def establishment_exists(**fields) -> bool:
@@ -64,3 +64,7 @@ def create_recur_setting(
     return RecurSetting.objects.create(
         date_start=date_start, date_end=date_end, recurrence_id=recurrence_id
     )
+
+
+def list_recurrencies() -> QuerySet[Reccurence]:
+    return Reccurence.objects.all()
