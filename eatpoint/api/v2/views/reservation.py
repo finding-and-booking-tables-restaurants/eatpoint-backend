@@ -36,6 +36,7 @@ from api.v2.serializers.reservations import (
     ReservationsRestorateurListSerializer,
     UpdateReservationStatusSerializer,
     AvailableSlotsSerializer,
+    UpdateReservationVisitedSerializer,
 )
 from reservation.models import (
     Reservation,
@@ -191,8 +192,14 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
-        if self.request.method == "PATCH":
+        if self.request.method == "PATCH" and self.request.data.get(
+            "is_accepted"
+        ):
             return UpdateReservationStatusSerializer
+        elif self.request.method == "PATCH" and self.request.data.get(
+            "is_visited"
+        ):
+            return UpdateReservationVisitedSerializer
         return ReservationsRestorateurListSerializer
 
     def destroy(self, request, *args, **kwargs):
@@ -227,22 +234,42 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         )
 
     def partial_update(self, request, *args, **kwargs):
-        """Изменяет статус бронирования"""
+        """Изменяет статус бронирования и статус посещения"""
         instance = self.get_object()
-        reservation_id = self.kwargs.get("pk")
-        if Reservation.objects.filter(
-            id=reservation_id, is_accepted=True
-        ).exists():
-            return Response(
-                {"message": "Бронирование уже подтверждено!"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        email = Reservation.objects.get(id=reservation_id).email
-        serializer = UpdateReservationStatusSerializer(
-            instance, data=request.data, partial=True
+        date_reservation = datetime.combine(
+            instance.date_reservation,
+            datetime.strptime(instance.start_time_reservation, "%H:%M").time(),
         )
+
+        if instance.is_accepted and request.data.get("is_accepted"):
+            return Response(
+                {"error": "Бронирование уже подтверждено"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if instance.is_visited and request.data.get("is_visited"):
+            return Response(
+                {"error": "Заведение уже посещено"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not instance.is_accepted and request.data.get("is_visited"):
+            return Response(
+                {"error": "Бронирование еще не подтверждено"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if (
+            request.data.get("is_visited")
+            and date_reservation > datetime.now()
+        ):
+            return Response(
+                {"error": "Время бронирования еще не наступило"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = self.get_serializer_class()
+        serializer = serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        email = instance.email
         message = f"""
             Бронирование подтверждено!\n
             {instance},\n
@@ -257,7 +284,7 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
             [email],
         )
         return Response(
-            {"message": "Бронирование подтверждено!"},
+            {"complete": "Бронирование подтверждено!"},
             status=status.HTTP_200_OK,
         )
 
