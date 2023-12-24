@@ -54,7 +54,28 @@ class UpdateReservationStatusSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         if validated_data.get("is_accepted") is None:
             raise ValidationError(
-                {"status": "Введите код для подтверждения бронирования!"}
+                {
+                    "status": "Отправь '{is_accepted: True}' "
+                    "для подтверждения посещения заведения!"
+                }
+            )
+        return validated_data
+
+
+class UpdateReservationVisitedSerializer(serializers.ModelSerializer):
+    is_visited = serializers.BooleanField(required=True)
+
+    class Meta:
+        model = Reservation
+        fields = ["is_visited"]
+
+    def validate(self, validated_data):
+        if validated_data.get("is_visited") is None:
+            raise ValidationError(
+                {
+                    "status": "Отправь '{is_visited: True}' "
+                    "для подтверждения посещения заведения!"
+                }
             )
         return validated_data
 

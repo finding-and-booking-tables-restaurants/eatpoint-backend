@@ -84,7 +84,7 @@ class UpdateReservationStatusSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         if validated_data.get("status") is None:
             raise ValidationError(
-                {"status": "Введите ture для подтверждения бронирования!"}
+                {"status": "Введите true для подтверждения бронирования!"}
             )
         return validated_data
 
