@@ -336,6 +336,58 @@ class ZoneEstablishment(models.Model):
         return self.zone
 
 
+class Table(models.Model):
+    """Столики"""
+
+    number = models.PositiveSmallIntegerField(
+        verbose_name="Номер столика",
+    )
+
+    establishment = models.ForeignKey(
+        Establishment,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="tables",
+    )
+    zone = models.ForeignKey(
+        ZoneEstablishment,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="tables",
+    )
+
+    is_active = models.BooleanField(
+        verbose_name="Активен",
+        default=True,
+    )
+
+    is_reserved = models.BooleanField(
+        verbose_name="Забронирован",
+        default=False,
+    )
+
+    seats = models.PositiveSmallIntegerField(
+        verbose_name="Количество мест",
+        validators=[
+            MaxValueValidator(
+                MAX_SEATS,
+                message=f"Количество мест не может быть больше {MAX_SEATS}",
+            ),
+            MinValueValidator(
+                MIN_SEATS,
+                message=f"Количество мест не может быть меньше {MIN_SEATS}",
+            ),
+        ],
+    )
+
+    class Meta:
+        verbose_name = "Столик"
+        verbose_name_plural = "Столики"
+
+    def __str__(self):
+        return f"номер: {self.number}, мест: {self.seats}, зона: {self.zone}"
+
+      
 class Favorite(models.Model):
     """Избранное"""
 
