@@ -17,10 +17,12 @@ def send_reminder(_id, for_client=False):
             booking = Reservation.objects.get(id=_id, is_accepted=True)
             subj = "Напоминание о бронировании"
             context = f"адрес: {booking.establishment.address}"
+            recipient_email = booking.email
         else:
             booking = Reservation.objects.get(id=_id, is_accepted=False)
             subj = "Подтвердите бронирование"
             context = f"телефон: {booking.telephone}"
+            recipient_email = booking.establishment.email
         slot = booking.slots.first()
         message = (
             f"{subj}: \n"
@@ -36,7 +38,7 @@ def send_reminder(_id, for_client=False):
             subject=subj,
             message=message,
             from_email=django_settings.EMAIL_HOST_USER,
-            recipient_list=[booking.email],
+            recipient_list=[recipient_email],
         )
         return message
 
@@ -49,8 +51,15 @@ def check_unconfirmed_booking():
     try:
         bookings = Reservation.objects.filter(is_accepted=False)
         for booking in bookings:
-            if not booking.is_accepted and not is_task_scheduled(
-                send_reminder, booking.id, None
+            booking_data = booking.date_reservation
+            booking_time = datetime.strptime(
+                booking.start_time_reservation, "%H:%M"
+            ).time()
+            booking_date_time = datetime.combine(booking_data, booking_time)
+            if (
+                not booking.is_accepted
+                and booking_date_time > datetime.now()
+                and not is_task_scheduled(send_reminder, booking.id, None)
             ):
                 send_reminder.apply_async(
                     args=[booking.id], kwargs={"for_client": False}
