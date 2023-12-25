@@ -10,15 +10,6 @@ class TypeEvent(models.Model):
         verbose_name="Тип события",
         max_length=200,
     )
-    # description = models.TextField(
-    #     verbose_name="Описание",
-    #     max_length=2000,
-    # )
-    # slug = models.SlugField(
-    #     verbose_name="Ссылка",
-    #     max_length=200,
-    #     unique=True,
-    # )
 
     class Meta:
         verbose_name = "Тип события"
@@ -72,7 +63,6 @@ class Event(models.Model):
     type_event = models.ManyToManyField(
         TypeEvent,
         verbose_name="Тип события",
-        blank=True,
     )
     price = models.PositiveSmallIntegerField(
         verbose_name="Цена события",
@@ -80,7 +70,7 @@ class Event(models.Model):
         null=True,
     )
     photos = models.ManyToManyField(
-        EventPhoto, null=True, verbose_name="Фото события"
+        EventPhoto, blank=True, verbose_name="Фото события"
     )
     recur_settings = models.ForeignKey(
         "RecurSetting", on_delete=models.SET_NULL, blank=True, null=True
@@ -98,7 +88,7 @@ class Event(models.Model):
         )
 
     def __str__(self):
-        return f"{self.name}: {self.date_start} - {self.date_end}"
+        return f"{self.date_start}: {self.name} в {self.establishment}"
 
 
 class Reccurence(models.Model):
@@ -115,7 +105,7 @@ class Reccurence(models.Model):
         verbose_name_plural = "Периоды повторения событий"
 
     def __str__(self):
-        return f"Настройки {self.ID} {self.recurrence}: {self.date_start} - {self.date_end}"
+        return self.description
 
 
 class RecurSetting(models.Model):
@@ -124,7 +114,6 @@ class RecurSetting(models.Model):
     recurrence = models.ForeignKey(
         Reccurence, on_delete=models.PROTECT, verbose_name="Частота повторений"
     )
-    date_start = models.DateField(verbose_name="Дата первого события")
     date_end = models.DateField(verbose_name="Дата последнего события")
 
     class Meta:
@@ -132,4 +121,4 @@ class RecurSetting(models.Model):
         verbose_name_plural = "Настройки повторения событий"
 
     def __str__(self):
-        return f"Настройки {self.ID} {self.recurrence}: {self.date_start} - {self.date_end}"
+        return f"Настройки {self.recurrence} до {self.date_end}"

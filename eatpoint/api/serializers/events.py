@@ -2,8 +2,20 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from establishments.models import Establishment
-from events.models import Event, TypeEvent, EventPhoto
+from events.models import Event, TypeEvent, EventPhoto, RecurSetting
 from events.crud import event_exists, list_recurrencies
+
+
+class RecurSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecurSetting
+        fields = ("recurrence", "date_end")
+
+    def to_representation(self, instance):
+        return {
+            "recurrence": instance.recurrence.description,
+            "date_end": instance.date_end,
+        }
 
 
 class EventPhotoSerializer(serializers.ModelSerializer):
@@ -59,34 +71,36 @@ class RetrieveEventSrializer(BaseEventSerializer):
 
     type_event = TypeEventSerializer(many=True)
     photos = EventPhotoSerializer(many=True)
-    recurrence = serializers.CharField(
-        source="recur_settings.recurrence.description"
-    )
-    date_end = serializers.DateField(source="recur_settings.date_end")
+    recur_settings = RecurSettingSerializer()
 
     class Meta(BaseEventSerializer.Meta):
         fields = BaseEventSerializer.Meta.fields + (
             "description",
             "photos",
-            "recurrence",
-            "date_end",
+            "recur_settings",
         )
+
+    def get_recurrence(self, obj):
+        if obj.recur_settings:
+            return obj.recur_settings.recurrence.description
+        return None
+
+    def get_date_end(self, obj):
+        if obj.recur_settings:
+            return obj.recur_settings.date_end
+        return None
 
 
 class CreateEventSerializer(BaseEventSerializer):
     """Сериализатор полей для создания/изменения События."""
 
-    recurrence = serializers.PrimaryKeyRelatedField(
-        queryset=list_recurrencies(), required=False
-    )
-    date_end = serializers.DateField(required=False)
+    recur_settings = RecurSettingSerializer(required=False)
     image = Base64ImageField()
 
     class Meta(BaseEventSerializer.Meta):
         fields = BaseEventSerializer.Meta.fields + (
             "description",
-            "recurrence",
-            "date_end",
+            "recur_settings",
             "photos",
         )
 
@@ -97,10 +111,6 @@ class CreateEventSerializer(BaseEventSerializer):
             establishment_id=est_id, name=name, date_start=date_start
         ):
             raise serializers.ValidationError("Событие уже создано")
-        if sum(attrs.get("recurrence") > 0, attrs.get("date_end") > 0) == 1:
-            raise serializers.ValidationError(
-                "Укажите периодичность и дату последнего события."
-            )
         return attrs
 
     def to_representation(self, instance):

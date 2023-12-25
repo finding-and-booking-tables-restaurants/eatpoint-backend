@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import Event, TypeEvent, EventPhoto
+from .models import Event, TypeEvent, EventPhoto, Reccurence
 
 
 @admin.register(TypeEvent)
@@ -38,3 +38,11 @@ class EventAdmin(admin.ModelAdmin):
     #         return "No preview"
 
     # preview.short_description = "Превью"
+
+
+@admin.register(Reccurence)
+class ReccurenceAdmin(admin.ModelAdmin):
+    """Админка: повторы событий."""
+
+    list_display = ("id", "description", "days")
+    empty_value_display = "-пусто-"

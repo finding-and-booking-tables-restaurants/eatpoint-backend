@@ -57,13 +57,9 @@ def list_event_photos(event_id: int) -> QuerySet[EventPhoto]:
     return EventPhoto.objects.filter(event_id=event_id)
 
 
-def create_recur_setting(
-    date_start: date, date_end: date, recurrence_id: int
-) -> RecurSetting:
+def create_recur_setting(**fields) -> RecurSetting:
     """Создание настроек повтора для серии событий."""
-    return RecurSetting.objects.create(
-        date_start=date_start, date_end=date_end, recurrence_id=recurrence_id
-    )
+    return RecurSetting.objects.create(**fields)
 
 
 def list_recurrencies() -> QuerySet[Reccurence]:

@@ -114,7 +114,7 @@ router.register(
     basename="events-business",
 )
 router.register(
-    r"business/(?P<establishment_id>\d+)/events/(?P<event_id>\d+)/photos",
+    r"business/(?P<establishment_id>\d+)/events-photos",
     EventPhotoViewset,
     basename="events-photos",
 )

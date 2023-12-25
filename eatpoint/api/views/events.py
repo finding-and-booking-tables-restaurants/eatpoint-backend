@@ -1,12 +1,13 @@
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 
 from api.permissions import IsEstOwner
+from api.schemas import events as schema
 from api.serializers import events as ser
 from events import crud
-
-from . import schema
+from events.services import create_event
 
 
 @extend_schema(tags=["Типы событий"])
@@ -47,7 +48,7 @@ class EventUsersViewSet(BaseEventViewset):
 
 
 @extend_schema(tags=["Бизнес (события)"])
-@extend_schema_view(**schema.business_events_schema)
+# @extend_schema_view(**schema.business_events_schema)
 class EventBusinessViewSet(BaseEventViewset):
     """Вьюсет для обработки Событий для ресторатора."""
 
@@ -59,14 +60,17 @@ class EventBusinessViewSet(BaseEventViewset):
             return ser.ListEventSerializer
         if self.action == "retrieve":
             return ser.RetrieveEventSrializer
-        if self.actiom == "create":
+        if self.action == "create":
             return ser.CreateEventSerializer
         # TODO дописать сериализатор на изменение
         # return ser.CreateEditEventSerializer
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         est_id = self._get_establishment_id()
-        crud.create_event(est_id=est_id, data=serializer.validated_data)
+        create_event(est_id=est_id, data=serializer.validated_data)
+        return Response(status=status.HTTP_201_CREATED)
 
     def perform_update(self, serializer):
         crud.update_event(
@@ -90,4 +94,4 @@ class EventPhotoViewset(viewsets.ModelViewSet):
         raise Http404("Заведение не найдено.")
 
     def perform_create(self, serializer):
-        return serializer.save(establisment_id=self._get_establishment_id())
+        return serializer.save(establishment_id=self._get_establishment_id())
