@@ -4,8 +4,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 from api.permissions import IsEstOwner
-from api.views import schemas as schema
-from api.serializers import events as ser
+from api.v2.schemas import events as schema
+from api.v2.serializers import events as ser
 from events import crud
 from events.services import create_event
 

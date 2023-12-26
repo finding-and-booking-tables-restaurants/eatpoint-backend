@@ -53,9 +53,12 @@ class Event(models.Model):
     description = models.TextField(
         verbose_name="Описание события", max_length=5000, blank=True
     )
-    image = models.ImageField(
-        verbose_name="Постер события",
-        upload_to="establishment/images/event_posters/%Y-%m-%d",
+    image = models.ForeignKey(
+        EventPhoto,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name="Обложка события",
+        related_name="covered_events",
     )
     date_start = models.DateTimeField(
         verbose_name="Начало события",
