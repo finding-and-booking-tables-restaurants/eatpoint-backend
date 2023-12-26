@@ -43,42 +43,27 @@ def create_event(est_id: int, data: dict) -> Event:
         events_to_create = [Event(**dataset) for dataset in events_datasets]
         Event.objects.bulk_create(events_to_create)
 
-        created_events = Event.objects.filter(recur_settings=recur_settings)
+        new_events = Event.objects.filter(recur_settings=recur_settings)
 
-        event_type_relations = []
-        for event in created_events:
-            for type_event in event_types:
-                event_type_relations.append(
-                    Event.type_event.through(
-                        event_id=event.id, typeevent=type_event
-                    )
-                )
-        Event.type_event.through.objects.bulk_create(event_type_relations)
-
+        crud.bulk_events_set_types(events=new_events, event_types=event_types)
         if photos is not None:
-            photos_relations = []
-            for event in created_events:
-                for photo in photos:
-                    photos_relations.append(
-                        Event.photos.through(
-                            event_id=event.id, eventphoto=photo
-                        )
-                    )
-            Event.photos.through.objects.bulk_create(photos_relations)
+            crud.bulk_events_set_photos(events=new_events, photos=photos)
 
-        return
+        return None
 
 
 @atomic
 def update_event(event: Event, data: dict) -> Event:
     """Изменение 1 экземпляра События."""
-    if "type_event" in data:
+    event_types = data.pop("type_event", None)
+    if event_types is not None:
         event.type_event.clear()
-        event.type_event.set(data.pop("type_event"))
+        event.type_event.set(event_types)
 
-    if "photos" in data:
+    photos = data.pop("photos", None)
+    if photos is not None:
         event.photos.clear()
-        event.photos.set(data.pop("photos"))
+        event.photos.set(photos)
 
     for field, value in data.items():
         if getattr(event, field):
@@ -87,4 +72,28 @@ def update_event(event: Event, data: dict) -> Event:
     return event
 
 
-# def update_event_seria
+def update_event_seria(event: Event, data: dict) -> Event:
+    """Обновление серии Событий, начиная с указанного события."""
+
+    events = Event.objects.filter(
+        recur_settings=event.recur_settings, date_start__gte=event.date_start
+    )
+
+    recur_settings = data.pop("recur_settings", None)
+    if recur_settings is not None:
+        pass
+
+    event_types = data.pop("type_event", None)
+    if event_types is not None:
+        crud.bulk_events_clear_types(start_event=event)
+        crud.bulk_events_set_types(events=events, event_types=event_types)
+
+    photos = data.pop("photos", None)
+    if photos is not None:
+        crud.bulk_events_clear_photos(start_event=event)
+        crud.bulk_events_set_photos(events=events, photos=photos)
+
+    data.pop("date_start", None)
+    crud.bulk_events_fields_update(events=events, new_data=data)
+
+    return event

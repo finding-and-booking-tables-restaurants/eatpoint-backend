@@ -3,48 +3,66 @@ from drf_spectacular.utils import extend_schema, OpenApiExample
 from ..serializers.events import (
     CreateEventSerializer,
     RetrieveEventSrializer,
+    UpdateEventSerializer,
 )
 
 
-event_short_response = {
-    "id": 1,
+event_request = {
     "name": "Новый Год",
+    "cover_image": 1,
+    "date_start": "31.12.2023 20:00",
+    "price": 2500,
+    "type_event": [1, 2],
+    "photos": [6, 7],
+    "description": "Тут много слов о событии",
+}
+
+event_short_response = {
+    "id": 79,
+    "name": "Новогодняя елка",
     "establishment": {
         "id": 1,
-        "name": "Лучшее место",
-        "address": "Невский пр, 60",
-        "telephone": "+79991234567",
+        "name": "Пиццерия",
+        "address": "ул. Мирная, 14",
+        "telephone": "+79998998878",
     },
-    "image": "https://eatpoint.site/media/.../123.png",
-    "date_start": "30.12.2023 20:22",
-    "price": 2500,
-    "type_event": [{"id": 1, "name": "Вечеринка"}],
+    "cover_image": {
+        "id": 8,
+        "image": "http://eatpoint.site/media/establishment/../48413f.png",
+    },
+    "date_start": "01.01.2024 16:00",
+    "price": 3000,
+    "type_event": [],
 }
 
 event_full_response = {
-    "id": 1,
-    "name": "Новый Год",
+    "id": 83,
+    "name": "Новогодняя елка",
     "establishment": {
         "id": 1,
-        "name": "Лучшее место",
-        "address": "Невский пр, 60",
-        "telephone": "+79991234567",
+        "name": "Пиццерия",
+        "address": "ул. Мирная, 14",
+        "telephone": "+79998998878",
     },
-    "image": "https://eatpoint.site/media/.../123.png",
-    "date_start": "31.12.2023 20:00",
-    "price": 2500,
+    "cover_image": {
+        "id": 8,
+        "image": "http://eatpoint.site/media/establishment/../8413f.png",
+    },
+    "date_start": "05.01.2024 16:00",
+    "price": 3500,
     "type_event": [{"id": 1, "name": "Вечеринка"}],
-    "description": "Тут много слов о событии",
-    "photos": [{"id": 1, "image": "https://eatpoint.site/media/.../123.png"}],
-}
-
-event_request = {
-    "name": "Новый Год",
-    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA",
-    "date_start": "31.12.2023 20:00",
-    "price": 2500,
-    "type_event": [1],
-    "description": "Тут много слов о событии",
+    "description": "",
+    "photos": [
+        {
+            "id": 6,
+            "image": "http://eatpoint.site/media/establishment/../06cc2.png",
+        },
+        {
+            "id": 7,
+            "image": "http://eatpoint.site/media/establishment/../77921.png",
+        },
+    ],
+    "recur_settings": {"recurrence": "Ежедневно", "date_end": "2024-01-07"},
 }
 
 business_events_schema = {
@@ -66,18 +84,18 @@ business_events_schema = {
         summary="Создать событие",
         description="Ресторатор",
         request=CreateEventSerializer,
-        responses={201: RetrieveEventSrializer},
+        responses={201: None},
         examples=[
             OpenApiExample(
                 name="Создание события - запрос",
                 value=event_request,
                 request_only=True,
             ),
-            OpenApiExample(
-                name="Создание события - ответ",
-                value=event_full_response,
-                response_only=True,
-            ),
+            # OpenApiExample(
+            #     name="Создание события - ответ",
+            #     value=event_full_response,
+            #     response_only=True,
+            # ),
         ],
     ),
     "retrieve": extend_schema(
@@ -93,8 +111,7 @@ business_events_schema = {
     "partial_update": extend_schema(
         summary="Редактировать событие",
         description="Ресторатор",
-        # TODO добавить
-        # request=CreateEditEventSerializer,
+        request=UpdateEventSerializer,
         responses={201: RetrieveEventSrializer},
         examples=[
             OpenApiExample(
@@ -104,6 +121,24 @@ business_events_schema = {
             ),
             OpenApiExample(
                 name="Изменение события - ответ",
+                value=event_full_response,
+                response_only=True,
+            ),
+        ],
+    ),
+    "update_seria": extend_schema(
+        summary="Редактировать серию событий, начиная с указанного",
+        description="Ресторатор",
+        request=CreateEventSerializer,
+        responses={201: RetrieveEventSrializer},
+        examples=[
+            OpenApiExample(
+                name="Изменение серии событий - запрос",
+                value=event_request,
+                request_only=True,
+            ),
+            OpenApiExample(
+                name="Изменение серии событий - ответ",
                 value=event_full_response,
                 response_only=True,
             ),
@@ -154,6 +189,17 @@ events_types_schema = {
     ),
     "retrieve": extend_schema(
         summary="Просмотр одного типа события события",
+        description="Любой пользователь",
+    ),
+}
+
+recurrencies_schema = {
+    "list": extend_schema(
+        summary="Получить список Периодов повтора событий",
+        description="Любой пользователь",
+    ),
+    "retrieve": extend_schema(
+        summary="Просмотр одного Периода повтора событий ",
         description="Любой пользователь",
     ),
 }

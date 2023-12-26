@@ -2,13 +2,14 @@ from django.db.utils import IntegrityError
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.permissions import IsEstOwner
 from api.v2.schemas import events as schema
 from api.v2.serializers import events as ser
 from events import crud
-from events.services import create_event, update_event
+from events.services import create_event, update_event, update_event_seria
 
 
 @extend_schema(tags=["Типы событий"])
@@ -49,7 +50,7 @@ class EventUsersViewSet(BaseEventViewset):
 
 
 @extend_schema(tags=["Бизнес (события)"])
-# @extend_schema_view(**schema.business_events_schema)
+@extend_schema_view(**schema.business_events_schema)
 class EventBusinessViewSet(BaseEventViewset):
     """Вьюсет для обработки Событий для ресторатора."""
 
@@ -61,26 +62,49 @@ class EventBusinessViewSet(BaseEventViewset):
             return ser.ListEventSerializer
         if self.action == "retrieve":
             return ser.RetrieveEventSrializer
-        if self.action == "create":
-            return ser.CreateEventSerializer
         if self.action == "partial_update":
             return ser.UpdateEventSerializer
+        return ser.CreateEventSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         est_id = self._get_establishment_id()
         try:
-            create_event(est_id=est_id, data=serializer.validated_data)
+            event = create_event(est_id=est_id, data=serializer.validated_data)
         except IntegrityError:
             message = {
-                "non_field_errors": ["Событие с таким именем/датой создано"]
+                "non_field_errors": ["Событие с такими именем/датой создано"]
             }
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_201_CREATED)
 
     def perform_update(self, serializer):
-        update_event(event=serializer.instance, data=serializer.validated_data)
+        try:
+            update_event(
+                event=serializer.instance, data=serializer.validated_data
+            )
+        except IntegrityError:
+            message = {
+                "non_field_errors": ["Событие с такими именем/датой создано"]
+            }
+            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=["patch"], detail=True)
+    def update_seria(self, request, establishment_id: int, pk: int):
+        event = self.get_object()
+        serializer = self.get_serializer(
+            event, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        try:
+            event = update_event_seria(event, serializer.validated_data)
+        except IntegrityError:
+            message = {
+                "non_field_errors": ["Событие с такими именем/датой создано"]
+            }
+            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=["Бизнес (события)"])
@@ -100,3 +124,12 @@ class EventPhotoViewset(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         return serializer.save(establishment_id=self._get_establishment_id())
+
+
+@extend_schema(tags=["Периоды повтора событий"])
+@extend_schema_view(**schema.recurrencies_schema)
+class ReccurenceViewset(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для обработки вариантов повторения событий."""
+
+    queryset = crud.list_recurrencies()
+    serializer_class = ser.RecurrenceSerializer

@@ -21,8 +21,9 @@ from api.v2.views.establishments import (
 from api.v2.views.events import (
     EventBusinessViewSet,
     EventUsersViewSet,
-    TypeEventViewset,
     EventPhotoViewset,
+    ReccurenceViewset,
+    TypeEventViewset,
 )
 from api.v2.views.reservation import (
     ReservationsEditViewSet,
@@ -120,7 +121,8 @@ router_v2.register(
     EventPhotoViewset,
     basename="events-photos",
 )
-router_v2.register("event_types", TypeEventViewset, basename="event-types")
+router_v2.register("event_types", TypeEventViewset, basename="events-types")
+router_v2.register("recurrencies", ReccurenceViewset, basename="recurrencies")
 
 urlpatterns = [
     path("auth/signup/", SignUp.as_view()),
