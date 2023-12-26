@@ -53,10 +53,9 @@ class Event(models.Model):
     description = models.TextField(
         verbose_name="Описание события", max_length=5000, blank=True
     )
-    image = models.ForeignKey(
+    cover_image = models.ForeignKey(
         EventPhoto,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.PROTECT,
         verbose_name="Обложка события",
         related_name="covered_events",
     )
@@ -80,6 +79,7 @@ class Event(models.Model):
     )
 
     class Meta:
+        ordering = ("date_start",)
         verbose_name = "Событие"
         verbose_name_plural = "События"
         default_related_name = "events"

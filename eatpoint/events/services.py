@@ -67,3 +67,24 @@ def create_event(est_id: int, data: dict) -> Event:
             Event.photos.through.objects.bulk_create(photos_relations)
 
         return
+
+
+@atomic
+def update_event(event: Event, data: dict) -> Event:
+    """Изменение 1 экземпляра События."""
+    if "type_event" in data:
+        event.type_event.clear()
+        event.type_event.set(data.pop("type_event"))
+
+    if "photos" in data:
+        event.photos.clear()
+        event.photos.set(data.pop("photos"))
+
+    for field, value in data.items():
+        if getattr(event, field):
+            setattr(event, field, value)
+    event.save()
+    return event
+
+
+# def update_event_seria
