@@ -24,8 +24,6 @@ from api.v2.views.reservation import (
     ReservationsHistoryListViewSet,
     ReservationsRestorateurListViewSet,
     AvailableSlotsViewSet,
-    # DateAvailabilityView,
-    # TimeAvailabilityView,
 )
 from api.v2.views.reviews import OwnerResponseCreateView, ReviewViewSet
 from api.v2.views.users import (

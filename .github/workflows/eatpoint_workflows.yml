@@ -61,13 +61,11 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           stack_file_name: docker-compose.yaml
           script: |
-            cd ..
-            cd home/
-            cd infraa/
+            cd ../home/infraa/
             sudo docker-compose stop
-            docker-compose pull
+            sudo docker-compose pull
             sudo docker-compose up -d
-            sudo docker rmi $(docker images -f dangling=true -q)
+            sudo docker image prune --force
 
   send_message:
     name: Send telegram message
@@ -79,4 +77,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: ${{ github.workflow }} выполнен! Новая версия приложения доступна по адресу https://eatpoint.sytes.net/admin/
+        message: ${{ github.workflow }} выполнен! Новая версия приложения доступна по адресу https://eatpoint.site/

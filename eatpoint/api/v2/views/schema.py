@@ -1,7 +1,14 @@
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+    OpenApiExample,
+)
 
-from api.v2.serializers.reservations import ReservationsEditSerializer
+from api.v2.serializers.reservations import (
+    ReservationsEditSerializer,
+    UpdateReservationStatusSerializer,
+)
 
 reservations_edit_schema = {
     "tags": ["Бронирование"],
@@ -99,7 +106,24 @@ ReservationsRestorateurListViewSet_schema_view = {
         ],
     ),
     "partial_update": extend_schema(
-        summary="Принять бронирование",
+        summary="Принять бронирование или отметить бронирование как выполненное",
+        request=UpdateReservationStatusSerializer,
+        examples=[
+            OpenApiExample(
+                "Example 1",
+                description="Принять бронирование",
+                value={
+                    "is_accepted": True,
+                },
+            ),
+            OpenApiExample(
+                "Example 2",
+                description="Отметить бронирование как выполненное",
+                value={
+                    "is_visited": True,
+                },
+            ),
+        ],
     ),
 }
 

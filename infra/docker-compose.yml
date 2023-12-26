@@ -12,7 +12,7 @@ services:
   backend:
     container_name: backend
     restart: always
-    image: valentaine98/eatpoint-backend:latest
+    image: eatpointhub/eatpoint-backend:latest
     ports:
       - "8000:8000"
     volumes:
