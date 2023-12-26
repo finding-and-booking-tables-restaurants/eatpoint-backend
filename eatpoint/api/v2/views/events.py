@@ -8,8 +8,14 @@ from rest_framework.response import Response
 from api.permissions import IsEstOwner
 from api.v2.schemas import events as schema
 from api.v2.serializers import events as ser
+from core.pagination import LargeResultsSetPagination
 from events import crud
-from events.services import create_event, update_event, update_event_seria
+from events.services import (
+    create_event,
+    update_event,
+    update_event_seria,
+    delete_seria,
+)
 
 
 @extend_schema(tags=["Типы событий"])
@@ -42,6 +48,7 @@ class EventUsersViewSet(BaseEventViewset):
     """Вьюсет для обработки Событий для пользователей."""
 
     http_method_names = ["get"]
+    pagination_class = LargeResultsSetPagination
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -56,6 +63,7 @@ class EventBusinessViewSet(BaseEventViewset):
 
     permission_classes = (IsEstOwner,)
     http_method_names = ["get", "post", "delete", "patch"]
+    pagination_class = LargeResultsSetPagination
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -105,6 +113,12 @@ class EventBusinessViewSet(BaseEventViewset):
             }
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(methods=["delete"], detail=True)
+    def delete_seria(self, request, establishment_id: int, pk: int):
+        event = self.get_object()
+        delete_seria(event=event)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema(tags=["Бизнес (события)"])

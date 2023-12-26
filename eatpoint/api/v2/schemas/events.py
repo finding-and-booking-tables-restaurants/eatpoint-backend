@@ -15,6 +15,7 @@ event_request = {
     "type_event": [1, 2],
     "photos": [6, 7],
     "description": "Тут много слов о событии",
+    "recur_settings": {"recurrence": 1, "date_end": "2024-01-07"},
 }
 
 event_short_response = {
@@ -143,6 +144,10 @@ business_events_schema = {
                 response_only=True,
             ),
         ],
+    ),
+    "delete_seria": extend_schema(
+        summary="Удалить серию событий, начиная с указанного",
+        description="Ресторатор",
     ),
 }
 

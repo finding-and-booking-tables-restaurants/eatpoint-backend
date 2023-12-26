@@ -75,9 +75,7 @@ def update_event(event: Event, data: dict) -> Event:
 def update_event_seria(event: Event, data: dict) -> Event:
     """Обновление серии Событий, начиная с указанного события."""
 
-    events = Event.objects.filter(
-        recur_settings=event.recur_settings, date_start__gte=event.date_start
-    )
+    events = crud.get_events_seria(event=event)
 
     recur_settings = data.pop("recur_settings", None)
     if recur_settings is not None:
@@ -97,3 +95,12 @@ def update_event_seria(event: Event, data: dict) -> Event:
     crud.bulk_events_fields_update(events=events, new_data=data)
 
     return event
+
+
+def delete_seria(event: Event) -> bool:
+    """Удаление серии событий, начиная с указанного события."""
+
+    events = crud.get_events_seria(event=event)
+    deleted, _ = events.delete()
+
+    return deleted

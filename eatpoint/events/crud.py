@@ -105,3 +105,10 @@ def bulk_events_fields_update(events: QuerySet[Event], new_data: dict) -> None:
             if getattr(event, field):
                 setattr(event, field, value)
     Event.objects.bulk_update(events, fields=fields)
+
+
+def get_events_seria(event: Event) -> QuerySet[Event]:
+    """Получение серии событий, начиная с переданного."""
+    return Event.objects.filter(
+        recur_settings=event.recur_settings, date_start__gte=event.date_start
+    )
