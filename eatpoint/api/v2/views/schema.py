@@ -147,3 +147,17 @@ ReservationsHistoryListViewSet_schema_view = {
         ],
     ),
 }
+
+AvailableSlotsViewSet_schema = {
+    "tags": ["Слоты для бронирования"],
+    "methods": ["GET"],
+    "description": "Все пользователи",
+}
+AvailableSlotsViewSet_schema_view = {
+    "list": extend_schema(
+        summary="Получить список слотов к заведению с id",
+    ),
+    "retrieve": extend_schema(
+        summary="Детальная информация о слоте",
+    ),
+}

@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, status, mixins
 
+from api.filters.reservations import SlotsFilter
 from api.permissions import (
     IsUserReservationCreate,
     IsRestorateur,
@@ -23,6 +24,8 @@ from api.v2.views.schema import (
     ReservationsRestorateurListViewSet_schema_view,
     ReservationsHistoryListViewSet_schema,
     ReservationsHistoryListViewSet_schema_view,
+    AvailableSlotsViewSet_schema,
+    AvailableSlotsViewSet_schema_view,
 )
 from core.pagination import LargeResultsSetPagination
 from core.validators import (
@@ -317,19 +320,8 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
         )
 
 
-@extend_schema(
-    tags=["Слоты для бронирования"],
-    methods=["GET"],
-    description="Все пользователи",
-)
-@extend_schema_view(
-    list=extend_schema(
-        summary="Получить список слотов к заведению с id",
-    ),
-    retrieve=extend_schema(
-        summary="Детальная информация о слоте",
-    ),
-)
+@extend_schema(**AvailableSlotsViewSet_schema)
+@extend_schema_view(**AvailableSlotsViewSet_schema_view)
 class AvailableSlotsViewSet(
     mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
 ):
@@ -338,6 +330,7 @@ class AvailableSlotsViewSet(
     serializer_class = AvailableSlotsSerializer
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
+    filterset_class = SlotsFilter
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
