@@ -128,4 +128,6 @@ class UpdateEventSerializer(BaseEventSerializer):
         fields = BaseEventSerializer.Meta.fields + ("description", "photos")
 
     def to_representation(self, instance):
-        return RetrieveEventSrializer(instance=instance).data
+        return RetrieveEventSrializer(
+            instance=instance, context=self.context
+        ).data

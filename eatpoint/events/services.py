@@ -1,6 +1,9 @@
 from datetime import timedelta
 
+from django.db.utils import IntegrityError
 from django.db.transaction import atomic
+
+from core.exeptions import EventHasNoSeriaException, SuchEventExistsException
 
 from .models import Event, RecurSetting
 from . import crud
@@ -30,31 +33,40 @@ def create_event(est_id: int, data: dict) -> Event:
     data["establishment_id"] = est_id
 
     if recur_data is None:
-        event = crud.add_event(data=data)
-        event.type_event.set(event_types)
-        if photos is not None:
-            event.photos.set(photos)
+        try:
+            event = crud.add_event(data=data)
+        except IntegrityError:
+            raise SuchEventExistsException()
+        else:
+            event.type_event.set(event_types)
+            if photos is not None:
+                event.photos.set(photos)
     else:
         recur_settings = crud.create_recur_setting(**recur_data)
         events_datasets = form_recur_events_dataset(
             initial_data=data, recur_settings=recur_settings
         )
 
-        events_to_create = [Event(**dataset) for dataset in events_datasets]
-        Event.objects.bulk_create(events_to_create)
+        try:
+            crud.bulk_events_create(datasets=events_datasets)
+        except IntegrityError:
+            raise SuchEventExistsException()
+        else:
+            new_events = Event.objects.filter(recur_settings=recur_settings)
 
-        new_events = Event.objects.filter(recur_settings=recur_settings)
+            crud.bulk_events_set_types(
+                events=new_events, event_types=event_types
+            )
+            if photos is not None:
+                crud.bulk_events_set_photos(events=new_events, photos=photos)
 
-        crud.bulk_events_set_types(events=new_events, event_types=event_types)
-        if photos is not None:
-            crud.bulk_events_set_photos(events=new_events, photos=photos)
-
-        return None
+            return None
 
 
 @atomic
 def update_event(event: Event, data: dict) -> Event:
     """Изменение 1 экземпляра События."""
+
     event_types = data.pop("type_event", None)
     if event_types is not None:
         event.type_event.clear()
@@ -68,17 +80,26 @@ def update_event(event: Event, data: dict) -> Event:
     for field, value in data.items():
         if getattr(event, field):
             setattr(event, field, value)
-    event.save()
-    return event
+    try:
+        event.save()
+    except IntegrityError:
+        raise SuchEventExistsException()
+    else:
+        return event
 
 
+@atomic
 def update_event_seria(event: Event, data: dict) -> Event:
     """Обновление серии Событий, начиная с указанного события."""
 
-    events = crud.get_events_seria(event=event)
+    if event.recur_settings is None:
+        raise EventHasNoSeriaException()
 
+    events = crud.get_events_seria(event=event)
     recur_settings = data.pop("recur_settings", None)
+
     if recur_settings is not None:
+        # if recur_settings.get('')
         pass
 
     event_types = data.pop("type_event", None)
@@ -100,7 +121,9 @@ def update_event_seria(event: Event, data: dict) -> Event:
 def delete_seria(event: Event) -> bool:
     """Удаление серии событий, начиная с указанного события."""
 
+    if event.recur_settings is None:
+        raise EventHasNoSeriaException()
+
     events = crud.get_events_seria(event=event)
     deleted, _ = events.delete()
-
     return deleted

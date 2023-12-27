@@ -53,6 +53,11 @@ def list_recurrencies() -> QuerySet[Reccurence]:
     return Reccurence.objects.all()
 
 
+def bulk_events_create(datasets: list[dict]) -> None:
+    events_to_create = [Event(**dataset) for dataset in datasets]
+    Event.objects.bulk_create(events_to_create)
+
+
 def bulk_events_clear_types(start_event: Event) -> None:
     """Единовременное удаление связей Событие-Типы у серии событий."""
     Event.type_event.through.objects.filter(

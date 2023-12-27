@@ -1,4 +1,3 @@
-from django.db.utils import IntegrityError
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets, status
@@ -8,6 +7,7 @@ from rest_framework.response import Response
 from api.permissions import IsEstOwner
 from api.v2.schemas import events as schema
 from api.v2.serializers import events as ser
+from core.exeptions import EventHasNoSeriaException, SuchEventExistsException
 from core.pagination import LargeResultsSetPagination
 from events import crud
 from events.services import (
@@ -79,24 +79,22 @@ class EventBusinessViewSet(BaseEventViewset):
         serializer.is_valid(raise_exception=True)
         est_id = self._get_establishment_id()
         try:
-            event = create_event(est_id=est_id, data=serializer.validated_data)
-        except IntegrityError:
-            message = {
-                "non_field_errors": ["Событие с такими именем/датой создано"]
-            }
-            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+            create_event(est_id=est_id, data=serializer.validated_data)
+        except SuchEventExistsException as e:
+            return self._send_error(message=e.message)
         return Response(status=status.HTTP_201_CREATED)
 
-    def perform_update(self, serializer):
+    def update(self, request, *args, **kwargs):
+        event = self.get_object()
+        serializer = self.get_serializer(
+            event, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
         try:
-            update_event(
-                event=serializer.instance, data=serializer.validated_data
-            )
-        except IntegrityError:
-            message = {
-                "non_field_errors": ["Событие с такими именем/датой создано"]
-            }
-            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+            update_event(event=event, data=serializer.validated_data)
+        except SuchEventExistsException as e:
+            return self._send_error(message=e.message)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=["patch"], detail=True)
     def update_seria(self, request, establishment_id: int, pk: int):
@@ -107,18 +105,22 @@ class EventBusinessViewSet(BaseEventViewset):
         serializer.is_valid(raise_exception=True)
         try:
             event = update_event_seria(event, serializer.validated_data)
-        except IntegrityError:
-            message = {
-                "non_field_errors": ["Событие с такими именем/датой создано"]
-            }
-            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+        except [SuchEventExistsException, EventHasNoSeriaException] as e:
+            return self._send_error(message=e.message)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=["delete"], detail=True)
     def delete_seria(self, request, establishment_id: int, pk: int):
         event = self.get_object()
-        delete_seria(event=event)
+        try:
+            delete_seria(event=event)
+        except EventHasNoSeriaException as e:
+            return self._send_error(message=e.message)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def _send_error(self, message):
+        error = {"non_field_errors": [message]}
+        return Response(data=error, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(tags=["Бизнес (события)"])
