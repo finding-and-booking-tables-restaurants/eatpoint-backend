@@ -11,7 +11,7 @@ from api.v2.serializers.reservations import (
 )
 
 reservations_edit_schema = {
-    "tags": ["Бронирование"],
+    "tags": ["Бронирование для клиентов"],
     "methods": ["POST"],
     "description": "Клиент",
     "request": ReservationsEditSerializer,
@@ -77,7 +77,7 @@ ReservationsUserListViewSet_schema_view = {
 }
 
 ReservationsRestorateurListViewSet_schema = {
-    "tags": ["Бизнес(бронирования)"],
+    "tags": ["Бизнес(Бронирование)"],
     "methods": ["GET", "DELETE", "PATCH"],
     "description": "Ресторатор",
 }
@@ -145,5 +145,19 @@ ReservationsHistoryListViewSet_schema_view = {
                 type=OpenApiTypes.INT,
             )
         ],
+    ),
+}
+
+AvailableSlotsViewSet_schema = {
+    "tags": ["Слоты для бронирования"],
+    "methods": ["GET"],
+    "description": "Все пользователи",
+}
+AvailableSlotsViewSet_schema_view = {
+    "list": extend_schema(
+        summary="Получить список слотов к заведению с id",
+    ),
+    "retrieve": extend_schema(
+        summary="Детальная информация о слоте",
     ),
 }
