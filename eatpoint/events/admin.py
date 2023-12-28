@@ -1,14 +1,6 @@
 from django.contrib import admin
-from django.utils.safestring import mark_safe
 
-from .models import Event, TypeEvent, EventPhoto
-
-
-class PhotoInline(admin.TabularInline):
-    """Админка: фото события."""
-
-    model = EventPhoto
-    extra = 0
+from .models import Event, TypeEvent, Reccurence
 
 
 @admin.register(TypeEvent)
@@ -18,7 +10,6 @@ class TypeEventAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
     empty_value_display = "-пусто-"
     search_fields = ("name",)
-    # prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Event)
@@ -29,20 +20,16 @@ class EventAdmin(admin.ModelAdmin):
     empty_value_display = "-пусто-"
     fieldsets = (
         ("Основная информация", {"fields": ("name", "establishment")}),
-        ("Постер и описание", {"fields": ("image", "description")}),
-        ("Начало и конец события", {"fields": ("date_start", "date_end")}),
+        ("Постер и описание", {"fields": ("cover_image", "description")}),
+        ("Начало события", {"fields": ("date_start",)}),
         ("Тип события и стоимость", {"fields": ("type_event", "price")}),
     )
     autocomplete_fields = ("type_event",)
-    inlines = (PhotoInline,)
 
-    # def preview(self, obj):
-    #     """Отображение превью заведения"""
-    #     if obj.image:
-    #         return mark_safe(
-    #             f'<img src="{obj.image.url}" style="max-height: 50px;">'
-    #         )
-    #     else:
-    #         return "No preview"
 
-    # preview.short_description = "Превью"
+@admin.register(Reccurence)
+class ReccurenceAdmin(admin.ModelAdmin):
+    """Админка: повторы событий."""
+
+    list_display = ("id", "description", "days")
+    empty_value_display = "-пусто-"
