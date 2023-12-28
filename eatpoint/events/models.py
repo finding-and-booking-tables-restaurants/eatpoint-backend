@@ -36,7 +36,7 @@ class EventPhoto(models.Model):
         verbose_name_plural = "Фотографии событий"
 
     def __str__(self):
-        return f"Фото {self.id} - событие {self.event}"
+        return f"Фото события {self.id} в заведении {self.establishment}"
 
 
 class Event(models.Model):

@@ -79,10 +79,13 @@ class EventBusinessViewSet(BaseEventViewset):
         serializer.is_valid(raise_exception=True)
         est_id = self._get_establishment_id()
         try:
-            create_event(est_id=est_id, data=serializer.validated_data)
+            event = create_event(est_id=est_id, data=serializer.validated_data)
         except SuchEventExistsException as e:
             return self._send_error(message=e.message)
-        return Response(status=status.HTTP_201_CREATED)
+        serializer = ser.RetrieveEventSrializer(
+            instance=event, context={"view": self, "request": request}
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         event = self.get_object()
@@ -91,12 +94,15 @@ class EventBusinessViewSet(BaseEventViewset):
         )
         serializer.is_valid(raise_exception=True)
         try:
-            update_event(event=event, data=serializer.validated_data)
+            event = update_event(event=event, data=serializer.validated_data)
         except SuchEventExistsException as e:
             return self._send_error(message=e.message)
+        serializer = ser.RetrieveEventSrializer(
+            instance=event, context={"view": self, "request": request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(methods=["patch"], detail=True)
+    @action(methods=["post"], detail=True)
     def update_seria(self, request, establishment_id: int, pk: int):
         event = self.get_object()
         serializer = self.get_serializer(
@@ -105,8 +111,11 @@ class EventBusinessViewSet(BaseEventViewset):
         serializer.is_valid(raise_exception=True)
         try:
             event = update_event_seria(event, serializer.validated_data)
-        except [SuchEventExistsException, EventHasNoSeriaException] as e:
+        except (SuchEventExistsException, EventHasNoSeriaException) as e:
             return self._send_error(message=e.message)
+        serializer = ser.RetrieveEventSrializer(
+            instance=event, context={"view": self, "request": request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(methods=["delete"], detail=True)

@@ -22,16 +22,23 @@ def list_event_types() -> QuerySet[TypeEvent]:
     return TypeEvent.objects.all()
 
 
-def list_future_events(establishment_id: int) -> QuerySet[Event]:
+def add_tables_to_events(events: QuerySet[Event]) -> QuerySet[Event]:
+    return events.select_related(
+        "establishment", "cover_image"
+    ).prefetch_related("type_event", "photos")
+
+
+def list_future_events(
+    establishment_id: int, add_tables: bool = True
+) -> QuerySet[Event]:
     """Получение списка Событий."""
-    return (
-        Event.objects.filter(
-            establishment_id=establishment_id,
-            date_start__date__gte=date.today(),
-        )
-        .select_related("establishment")
-        .prefetch_related("type_event", "photos")
+    events = Event.objects.filter(
+        establishment_id=establishment_id,
+        date_start__date__gte=date.today(),
     )
+    if add_tables:
+        return add_tables_to_events(events)
+    return events
 
 
 def add_event(data: dict) -> Event:
@@ -112,8 +119,23 @@ def bulk_events_fields_update(events: QuerySet[Event], new_data: dict) -> None:
     Event.objects.bulk_update(events, fields=fields)
 
 
-def get_events_seria(event: Event) -> QuerySet[Event]:
+def get_events_seria_by_event(event: Event) -> QuerySet[Event]:
     """Получение серии событий, начиная с переданного."""
     return Event.objects.filter(
-        recur_settings=event.recur_settings, date_start__gte=event.date_start
+        recur_settings=event.recur_settings,
+        date_start__gte=event.date_start,
+        id__gte=event.id,
     )
+
+
+def get_events_seria_by_date(
+    recur_settings: RecurSetting, date_start: date, add_tables: bool = True
+) -> QuerySet[Event]:
+    """Получение серии событий по дате."""
+    events = Event.objects.filter(
+        recur_settings=recur_settings,
+        date_start__gte=date_start,
+    )
+    if add_tables:
+        return add_tables_to_events(events)
+    return events

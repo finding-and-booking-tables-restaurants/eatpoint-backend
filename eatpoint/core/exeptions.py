@@ -1,4 +1,4 @@
-class EventHasNoSeriaException(Exception):
+class EventHasNoSeriaException(BaseException):
     """Ошибка при попытке работы с серией события, когда событие разовое."""
 
     def __init__(self, message="Событие разовое и не имеет серии"):
@@ -6,7 +6,7 @@ class EventHasNoSeriaException(Exception):
         super().__init__(message)
 
 
-class SuchEventExistsException(Exception):
+class SuchEventExistsException(BaseException):
     """
     Ошибка при создании/измении события, когда событие с
     таким именем и датой уже существует в базе.
