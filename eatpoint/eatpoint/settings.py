@@ -193,6 +193,8 @@ REST_FRAMEWORK = {
     ),
     "DATETIME_FORMAT": "%d.%m.%Y %H:%M",
     "DATETIME_INPUT_FORMATS": ["%d.%m.%Y %H:%M"],
+    "DATE_FORMAT": "%d.%m.%Y",
+    "DATE_INPUT_FORMATS": ["%d.%m.%Y"],
 }
 
 DJOSER = {

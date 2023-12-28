@@ -18,6 +18,13 @@ from api.v2.views.establishments import (
     FavoriteViewSet,
     ImageEstablishmentViewSet,
 )
+from api.v2.views.events import (
+    EventBusinessViewSet,
+    EventUsersViewSet,
+    EventPhotoViewset,
+    ReccurenceViewset,
+    TypeEventViewset,
+)
 from api.v2.views.reservation import (
     ReservationsEditViewSet,
     ReservationsUserListViewSet,
@@ -97,6 +104,25 @@ router_v2.register(
     ImageEstablishmentViewSet,
     basename="image",
 )
+
+# РОУТЕРЫ ПРИЛОЖЕНИЯ EVENTS #
+router_v2.register(
+    r"establishments/(?P<establishment_id>\d+)/events",
+    EventUsersViewSet,
+    basename="events",
+),
+router_v2.register(
+    r"business/(?P<establishment_id>\d+)/events",
+    EventBusinessViewSet,
+    basename="events-business",
+)
+router_v2.register(
+    r"business/(?P<establishment_id>\d+)/events-photos",
+    EventPhotoViewset,
+    basename="events-photos",
+)
+router_v2.register("event_types", TypeEventViewset, basename="events-types")
+router_v2.register("recurrencies", ReccurenceViewset, basename="recurrencies")
 
 urlpatterns = [
     path("auth/signup/", SignUp.as_view()),
