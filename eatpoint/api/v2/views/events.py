@@ -122,10 +122,12 @@ class EventBusinessViewSet(BaseEventViewset):
     def delete_seria(self, request, establishment_id: int, pk: int):
         event = self.get_object()
         try:
-            delete_seria(event=event)
+            deleted = delete_seria(event=event)
         except EventHasNoSeriaException as e:
             return self._send_error(message=e.message)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if deleted:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def _send_error(self, message):
         error = {"non_field_errors": [message]}
