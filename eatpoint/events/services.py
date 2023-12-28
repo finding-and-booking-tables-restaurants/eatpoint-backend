@@ -30,6 +30,7 @@ def form_event_data(event: Event, data: dict) -> dict:
 def form_recur_events_dataset(
     initial_data: dict, recur_settings: RecurSetting
 ) -> list[dict]:
+    """Формирование списка датасетов для создания серии Событий."""
     data = initial_data.copy()
     frequency = recur_settings.recurrence.days
     start_date = initial_data["date_start"]
@@ -43,6 +44,7 @@ def form_recur_events_dataset(
 
 
 def create_single_event(data: dict) -> Event:
+    """Создание 1 События"""
     event_types = data.pop("type_event")
     photos = data.pop("photos", None)
     try:
@@ -57,6 +59,7 @@ def create_single_event(data: dict) -> Event:
 
 
 def create_event_seria(data: dict, recur_settings: RecurSetting) -> Event:
+    """Создание серии событий."""
     event_types = data.pop("type_event")
     photos = data.pop("photos", None)
 

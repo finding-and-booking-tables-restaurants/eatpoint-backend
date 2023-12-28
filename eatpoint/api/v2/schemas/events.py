@@ -85,18 +85,18 @@ business_events_schema = {
         summary="Создать событие",
         description="Ресторатор",
         request=CreateEventSerializer,
-        responses={201: None},
+        responses={201: RetrieveEventSrializer},
         examples=[
             OpenApiExample(
                 name="Создание события - запрос",
                 value=event_request,
                 request_only=True,
             ),
-            # OpenApiExample(
-            #     name="Создание события - ответ",
-            #     value=event_full_response,
-            #     response_only=True,
-            # ),
+            OpenApiExample(
+                name="Создание события - ответ",
+                value=event_full_response,
+                response_only=True,
+            ),
         ],
     ),
     "retrieve": extend_schema(
