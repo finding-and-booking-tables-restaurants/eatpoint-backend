@@ -49,7 +49,7 @@ from reservation.models import (
 )
 
 
-@extend_schema(**reservations_edit_schema)
+@extend_schema(tags=["Бронирование для клиентов"], **reservations_edit_schema)
 @extend_schema_view(**reservations_edit_schema_view)
 class ReservationsEditViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
@@ -143,7 +143,7 @@ class ReservationsEditViewSet(
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@extend_schema(**ReservationsUserListViewSet_schema)
+@extend_schema(tags=["Мои бронирования"], **ReservationsUserListViewSet_schema)
 @extend_schema_view(**ReservationsUserListViewSet_schema_view)
 class ReservationsUserListViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования для клиента"""
@@ -250,7 +250,9 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
         )
 
 
-@extend_schema(**ReservationsRestorateurListViewSet_schema)
+@extend_schema(
+    tags=["Бизнес(Бронирование)"], **ReservationsRestorateurListViewSet_schema
+)
 @extend_schema_view(**ReservationsRestorateurListViewSet_schema_view)
 class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования для ресторатора"""
@@ -291,7 +293,7 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         if not removable.exists():
             return Response(
                 {"errors": "Бронирование отсутствует"},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
         new_removable = Reservation.objects.filter(
             establishment__owner=user,
@@ -366,7 +368,9 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         )
 
 
-@extend_schema(**ReservationsHistoryListViewSet_schema)
+@extend_schema(
+    tags=["История бронирования"], **ReservationsHistoryListViewSet_schema
+)
 @extend_schema_view(**ReservationsHistoryListViewSet_schema_view)
 class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
     """Вьюсет для обработки бронирования"""
@@ -394,7 +398,7 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
         )
 
 
-@extend_schema(**AvailableSlotsViewSet_schema)
+@extend_schema(tags=["Слоты для бронирования"], **AvailableSlotsViewSet_schema)
 @extend_schema_view(**AvailableSlotsViewSet_schema_view)
 class AvailableSlotsViewSet(
     mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet

@@ -11,7 +11,6 @@ from api.v2.serializers.reservations import (
 )
 
 reservations_edit_schema = {
-    "tags": ["Бронирование для клиентов"],
     "methods": ["POST"],
     "description": "Клиент",
     "request": ReservationsEditSerializer,
@@ -31,7 +30,6 @@ reservations_edit_schema_view = {
 }
 
 ReservationsUserListViewSet_schema = {
-    "tags": ["Мои бронирования"],
     "methods": ["GET", "DELETE", "PATCH"],
     "description": "Клиент/ресторатор",
 }
@@ -77,7 +75,7 @@ ReservationsUserListViewSet_schema_view = {
 }
 
 ReservationsRestorateurListViewSet_schema = {
-    "tags": ["Бизнес(Бронирование)"],
+    # "tags": ["Бизнес(Бронирование)"],
     "methods": ["GET", "DELETE", "PATCH"],
     "description": "Ресторатор",
 }
@@ -128,7 +126,6 @@ ReservationsRestorateurListViewSet_schema_view = {
 }
 
 ReservationsHistoryListViewSet_schema = {
-    "tags": ["История бронирования"],
     "methods": ["GET"],
     "description": "Клиент/ресторатор",
 }
@@ -149,7 +146,6 @@ ReservationsHistoryListViewSet_schema_view = {
 }
 
 AvailableSlotsViewSet_schema = {
-    "tags": ["Слоты для бронирования"],
     "methods": ["GET"],
     "description": "Все пользователи",
 }
