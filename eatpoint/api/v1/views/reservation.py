@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 
-from api.permissions import (
+from api.v2.permissions import (
     IsUserReservationCreate,
     IsRestorateur,
     IsClient,
@@ -24,7 +24,7 @@ from core.validators import (
     validate_reserv_anonim,
 )
 from establishments.models import Establishment, WorkEstablishment
-from api.serializers.reservations import (
+from api.v1.serializers import (
     ReservationsEditSerializer,
     ReservationsHistoryEditSerializer,
     ReservationsUserListSerializer,

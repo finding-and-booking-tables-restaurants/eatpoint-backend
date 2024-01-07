@@ -1,6 +1,6 @@
 from drf_spectacular.utils import extend_schema, OpenApiExample
 
-from ..serializers.events import (
+from api.v1.serializers import (
     CreateEventSerializer,
     RetrieveEventSrializer,
 )

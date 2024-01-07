@@ -5,8 +5,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.permissions import IsAnonymous
-from api.serializers.code_generate import (
+from api.v2.permissions import IsAnonymous
+from api.v1.serializers.code_generate import (
     SMSSendSerializer,
     SMSVerifySerializer,
 )

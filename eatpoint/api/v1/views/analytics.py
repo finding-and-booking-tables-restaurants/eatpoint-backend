@@ -11,8 +11,8 @@ from django.db.models.functions import ExtractWeek, ExtractMonth
 from django.db.models import Q
 
 
-from api.permissions import IsRestorateur
-from api.serializers.analytics import (
+from api.v2.permissions import IsRestorateur
+from api.v1.serializers.analytics import (
     AnalyticsStaticSerializer,
     AnalyticsDynamicSerializer,
 )

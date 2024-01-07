@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from establishments.models import Establishment
 from events.models import Event, TypeEvent, EventPhoto, RecurSetting
-from events.crud import event_exists, list_recurrencies
+from events.crud import event_exists
 
 
 class RecurSettingSerializer(serializers.ModelSerializer):

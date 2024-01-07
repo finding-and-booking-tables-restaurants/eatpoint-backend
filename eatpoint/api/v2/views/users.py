@@ -22,7 +22,7 @@ import core.constants
 from core.pagination import LargeResultsSetPagination
 from core.tgbot import send_code
 from users.models import User
-from api.permissions import IsClient, IsRestorateur
+from api.v2.permissions import IsClient, IsRestorateur
 from api.v2.serializers.users import (
     MeSerializer,
     SignUpSerializer,

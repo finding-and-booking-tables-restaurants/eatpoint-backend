@@ -4,7 +4,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.permissions import IsEstOwner
+from api.v2.permissions import IsEstOwner
 from api.v2.schemas import events as schema
 from api.v2.serializers import events as ser
 from core.exeptions import EventHasNoSeriaException, SuchEventExistsException

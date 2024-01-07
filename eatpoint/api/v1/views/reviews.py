@@ -6,8 +6,8 @@ from drf_spectacular.utils import (
     OpenApiParameter,
 )
 from rest_framework import generics, viewsets
-from api.permissions import IsAuthor, IsEstablishmentOwner, ReadOnly
-from api.serializers.reviews import OwnerResponseSerializer, ReviewSerializer
+from api.v2.permissions import IsAuthor, IsEstablishmentOwner, ReadOnly
+from api.v1.serializers import OwnerResponseSerializer, ReviewSerializer
 
 from establishments.models import Establishment
 from reviews.models import Review

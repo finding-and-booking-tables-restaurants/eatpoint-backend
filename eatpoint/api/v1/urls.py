@@ -1,27 +1,27 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views.analytics import (
+from api.v1.views.analytics import (
     AnalyticsHistoryListViewSet,
     AnalyticsHistoryViewSet,
     AnalyticsViewSet,
     AnalyticsListViewSet,
 )
-from api.views.code_generate import SendSMSCode, VerifySMSCode
-from api.views.events import (
+from api.v1.views.code_generate import SendSMSCode, VerifySMSCode
+from api.v1.views.events import (
     TypeEventViewset,
     EventBusinessViewSet,
     EventPhotoViewset,
     EventUsersViewSet,
 )
-from api.views.establishments import (
+from api.v1.views.establishments import (
     ZoneViewSet,
     CityViewSet,
     EstablishmentBusinessViewSet,
     FavoriteViewSet,
     ImageEstablishmentViewSet,
 )
-from api.views.reservation import (
+from api.v1.views.reservation import (
     ReservationsEditViewSet,
     ReservationsUserListViewSet,
     ReservationsHistoryListViewSet,
@@ -30,8 +30,8 @@ from api.views.reservation import (
     DateAvailabilityView,
     TimeAvailabilityView,
 )
-from api.views.reviews import OwnerResponseCreateView, ReviewViewSet
-from api.views.users import (
+from api.v1.views.reviews import OwnerResponseCreateView, ReviewViewSet
+from api.v1.views.users import (
     SignUp,
     ConfirmCodeView,
     UserViewSet,
@@ -40,7 +40,7 @@ from api.views.users import (
     MyTokenObtainPairView,
     MyTokenRefreshView,
 )
-from api.views.establishments import (
+from api.v1.views.establishments import (
     EstablishmentViewSet,
     KitchenViewSet,
     ServicesViewSet,
