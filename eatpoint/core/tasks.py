@@ -4,8 +4,12 @@ import pytz
 from celery import shared_task, current_app
 from django.conf import settings as django_settings
 from django.core.mail import send_mail
+from django.db import transaction
 
-from reservation.models import Reservation
+from core.constants import AVAILABLE_DAYS, DAYS, INTERVAL_MINUTES
+from core.services import time_generator
+from establishments.models import Table
+from reservation.models import Reservation, Slot
 
 tz_moscow = pytz.timezone(django_settings.CELERY_TIMEZONE)
 
@@ -70,7 +74,8 @@ def check_unconfirmed_booking():
 
 
 @shared_task
-def check_bookings():
+def find_bookings_with_remind():
+    """Поиск броней с напоминанием."""
     try:
         bookings = Reservation.objects.filter(is_accepted=True)
     except Reservation.DoesNotExist:
@@ -82,15 +87,15 @@ def check_bookings():
             booking.start_time_reservation, "%H:%M"
         ).time()
         booking_date_time = datetime.combine(booking_data, booking_time)
+        time_now_iso = (datetime.now() - timedelta(minutes=1)).isoformat()
 
         # За 30 минут до начала
         reminder_time = booking_date_time - timedelta(minutes=30)
         reminder_time = tz_moscow.localize(reminder_time).isoformat()
         if (
             not is_task_scheduled(send_reminder, booking.id, reminder_time)
-            and booking.reminder_half_on_hour is True
-            and reminder_time
-            > (datetime.now() - timedelta(minutes=1)).isoformat()
+            and booking.reminder_half_on_hour
+            and reminder_time > time_now_iso
         ):
             send_reminder.apply_async(
                 args=[booking.id],
@@ -103,9 +108,8 @@ def check_bookings():
         reminder_time = tz_moscow.localize(reminder_time).isoformat()
         if (
             not is_task_scheduled(send_reminder, booking.id, reminder_time)
-            and booking.reminder_three_hours is True
-            and reminder_time
-            > (datetime.now() - timedelta(minutes=1)).isoformat()
+            and booking.reminder_three_hours
+            and reminder_time > time_now_iso
         ):
             send_reminder.apply_async(
                 args=[booking.id],
@@ -119,8 +123,7 @@ def check_bookings():
         if (
             not is_task_scheduled(send_reminder, booking.id, reminder_time)
             and booking.reminder_one_day is True
-            and reminder_time
-            > (datetime.now() - timedelta(minutes=1)).isoformat()
+            and reminder_time > time_now_iso
         ):
             send_reminder.apply_async(
                 args=[booking.id],
@@ -140,3 +143,53 @@ def is_task_scheduled(task, booking_id, reminder_time):
             ):
                 return True
     return False
+
+
+@shared_task
+def delete_old_slots():
+    """Удаление слотов с датой меньше сегодняшней."""
+    Slot.objects.filter(date__lt=datetime.now().date()).delete()
+    return "Слоты далее сегодняшней даты удалены"
+
+
+@shared_task
+def create_slots():
+    """Создание слотов."""
+    start_date = datetime.now().date()
+    days = AVAILABLE_DAYS
+
+    with transaction.atomic():
+        tables = Table.objects.filter(
+            establishment__is_verified=True, is_active=True
+        ).prefetch_related("zone__establishment")
+
+        for table in tables:
+            establishment = table.zone.establishment
+
+            for day in range(days):
+                current_date = start_date + timedelta(days=day)
+                week_day = establishment.worked.filter(
+                    day=DAYS[current_date.weekday()]
+                )
+
+                if week_day.exists() and not week_day.first().day_off:
+                    start_time = week_day.first().start
+                    end_time = week_day.first().end
+                    worked_time = time_generator(
+                        start_time, end_time, INTERVAL_MINUTES
+                    )
+
+                    for time in worked_time:
+                        if table.is_active:
+                            Slot.objects.get_or_create(
+                                establishment=establishment,
+                                zone=table.zone,
+                                date=current_date,
+                                time=time,
+                                table=table,
+                                seats=table.seats,
+                            )
+    return "Новые слоты созданы"
+
+
+# todo: нужно  сделать задачу для удаления юронирований после посещения заведения

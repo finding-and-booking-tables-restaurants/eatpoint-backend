@@ -16,8 +16,16 @@ app.conf.beat_schedule = {
         "task": "core.tasks.check_unconfirmed_booking",
         "schedule": crontab(minute="*/1"),
     },
-    "check_bookings_task": {
-        "task": "core.tasks.check_bookings",
+    "send_reminder_for_client": {
+        "task": "core.tasks.find_bookings_with_remind",
         "schedule": crontab(minute="*/15"),
+    },
+    "create_slots": {
+        "task": "core.tasks.create_slots",
+        "schedule": crontab(hour=0, minute=1),
+    },
+    "delete_old_slots": {
+        "task": "core.tasks.delete_old_slots",
+        "schedule": crontab(hour=0, minute=1),
     },
 }
