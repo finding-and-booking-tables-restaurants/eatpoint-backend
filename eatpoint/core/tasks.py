@@ -15,18 +15,22 @@ tz_moscow = pytz.timezone(django_settings.CELERY_TIMEZONE)
 
 
 @shared_task()
-def send_reminder(_id, for_client=False):
+def send_reminder(booking_id: int, for_client: bool = False):
     try:
-        if for_client:
-            booking = Reservation.objects.get(id=_id, is_accepted=True)
-            subj = "Напоминание о бронировании"
-            context = f"адрес: {booking.establishment.address}"
-            recipient_email = booking.email
-        else:
-            booking = Reservation.objects.get(id=_id, is_accepted=False)
-            subj = "Подтвердите бронирование"
-            context = f"телефон: {booking.telephone}"
-            recipient_email = booking.establishment.email
+        booking = Reservation.objects.get(id=booking_id, is_accepted=False)
+        subj = (
+            "Подтвердите бронирование"
+            if not for_client
+            else "Напоминание о бронировании"
+        )
+        context = (
+            f"телефон: {booking.telephone}"
+            if not for_client
+            else f"адрес: {booking.establishment.address}"
+        )
+        recipient_email = (
+            booking.establishment.email if not for_client else booking.email
+        )
         slot = booking.slots.first()
         message = (
             f"{subj}: \n"
@@ -229,6 +233,5 @@ def delete_reservation_after_visit():
     reservations = Reservation.objects.filter(
         is_accepted=True, is_visited=True
     )
-    for reservation in reservations:
-        reservation.delete()
+    reservations.bulk_delete()
     return "Исполненные брони удалены"
