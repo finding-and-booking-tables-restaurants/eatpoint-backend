@@ -51,6 +51,29 @@ services:
     depends_on:
       - nginx
 
+  redis:
+    restart: unless-stopped
+    image: redis:7.0.5-alpine
+    container_name: redis
+    expose:
+      - 6379
+
+  celery:
+    restart: unless-stopped
+    container_name: celery
+    image: eatpointhub/eatpoint-backend:latest
+    hostname: celery
+    entrypoint: celery
+    command: -A eatpoint worker --loglevel=INFO --beat
+    volumes:
+      - static_value:/app/static
+      - db_bas:/var/lib/postgresql/data
+    env_file:
+      - .env
+    depends_on:
+      - backend
+      - redis
+
 volumes:
   static_value:
   media_value:

@@ -170,13 +170,22 @@ class Reservation(models.Model):
             raise ValidationError("Заполните хотя бы одно поле user или email")
 
     def __str__(self):
-        return (
-            f"заведение: {self.slots.all()[0].establishment},"
-            f" зона: {self.slots.all()[0].zone},"
-            f" {self.slots.all()[0].date} {self.slots.all()[0].time},"
-            f" стол №{self.slots.all()[0].table.number},"
-            f" мест: {self.slots.all()[0].table.seats}"
-        )
+        try:
+            slot = self.slots.all().first().prefetch_related("table").first()
+            return (
+                f"заведение: {self.establishment.name},"
+                f" зона: {slot.zone},"
+                f" {slot.date} {slot.time},"
+                f" стол №{slot.table.number},"
+                f" мест: {slot.table.seats}"
+            )
+        except (IndexError, AttributeError):
+            return (
+                f"заведение: {self.establishment.name},"
+                f" дата брони: {self.date_reservation},"
+                f" время брони: {self.start_time_reservation},"
+                f" клиент: {self.first_name} {self.last_name}"
+            )
 
 
 class ReservationHistory(models.Model):
