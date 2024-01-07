@@ -9,7 +9,7 @@ from django.db import transaction
 from core.constants import AVAILABLE_DAYS, DAYS, INTERVAL_MINUTES
 from core.services import time_generator
 from establishments.models import Table
-from reservation.models import Reservation, Slot
+from reservation.models import Reservation, Slot, ReservationHistory
 
 tz_moscow = pytz.timezone(django_settings.CELERY_TIMEZONE)
 
@@ -192,4 +192,39 @@ def create_slots():
     return "Новые слоты созданы"
 
 
-# todo: нужно  сделать задачу для удаления юронирований после посещения заведения
+@shared_task
+def copy_reservation_to_archive_after_visit():
+    """Копирование бронирования в архив после посещения"""
+    reservations = Reservation.objects.filter(
+        is_visited=True
+    ).prefetch_related("slots")
+    for reservation in reservations:
+        slots = ",\n".join([str(slot) for slot in reservation.slots.all()])
+
+        ReservationHistory.objects.create(
+            reservation_date=reservation.reservation_date,
+            establishment=str(reservation.id)
+            + ";"
+            + str(reservation.establishment),
+            date_reservation=reservation.date_reservation,
+            start_time_reservation=reservation.start_time_reservation,
+            is_accepted=reservation.is_accepted,
+            is_visited=reservation.is_visited,
+            first_name=reservation.first_name,
+            last_name=reservation.last_name,
+            email=reservation.email,
+            telephone=reservation.telephone,
+            slots=slots,
+            comment=reservation.comment,
+            reminder_one_day=reservation.reminder_one_day,
+            reminder_three_hours=reservation.reminder_three_hours,
+            reminder_half_on_hour=reservation.reminder_half_on_hour,
+        )
+
+
+@shared_task
+def delete_reservation_after_visit():
+    """Удаление бронирования после посещения"""
+    reservations = Reservation.objects.filter(is_visited=True)
+    for reservation in reservations:
+        reservation.delete()
