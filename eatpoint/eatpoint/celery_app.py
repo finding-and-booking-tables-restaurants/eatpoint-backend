@@ -28,12 +28,12 @@ app.conf.beat_schedule = {
         "task": "core.tasks.delete_old_slots",
         "schedule": crontab(hour=0, minute=5),
     },
-    "copy_reservations_to_archive": {
-        "task": "core.tasks.copy_reservations_to_archive",
+    "copy_reservation_to_archive_after_visit": {
+        "task": "core.tasks.copy_reservation_to_archive_after_visit",
         "schedule": crontab(minute="*/15"),
     },
-    "delete_reservations_after_visit": {
-        "task": "core.tasks.delete_reservations_after_visit",
+    "delete_reservation_after_visit": {
+        "task": "core.tasks.delete_reservation_after_visit",
         "schedule": crontab(minute="*/20"),
     },
 }
