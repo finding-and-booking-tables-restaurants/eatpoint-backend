@@ -196,7 +196,7 @@ def create_slots():
 def copy_reservation_to_archive_after_visit():
     """Копирование бронирования в архив после посещения"""
     reservations = Reservation.objects.filter(
-        is_visited=True
+        is_accepted=True, is_visited=True
     ).prefetch_related("slots")
     for reservation in reservations:
         slots = ",\n".join([str(slot) for slot in reservation.slots.all()])
@@ -220,11 +220,15 @@ def copy_reservation_to_archive_after_visit():
             reminder_three_hours=reservation.reminder_three_hours,
             reminder_half_on_hour=reservation.reminder_half_on_hour,
         )
+    return "Исполненные брони скопированы в архив"
 
 
 @shared_task
 def delete_reservation_after_visit():
     """Удаление бронирования после посещения"""
-    reservations = Reservation.objects.filter(is_visited=True)
+    reservations = Reservation.objects.filter(
+        is_accepted=True, is_visited=True
+    )
     for reservation in reservations:
         reservation.delete()
+    return "Исполненные брони удалены"
