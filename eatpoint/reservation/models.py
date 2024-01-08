@@ -191,6 +191,12 @@ class Reservation(models.Model):
 class ReservationHistory(models.Model):
     """История бронирований"""
 
+    reservation_id = models.CharField(
+        verbose_name="id брони",
+        max_length=200,
+        blank=False,
+    )
+
     reservation_date = models.DateTimeField(
         verbose_name="Дата создания",
         auto_now_add=True,
