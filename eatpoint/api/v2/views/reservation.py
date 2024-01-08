@@ -145,7 +145,13 @@ class ReservationsEditViewSet(
 
 @extend_schema(**ReservationsUserListViewSet_schema)
 @extend_schema_view(**ReservationsUserListViewSet_schema_view)
-class ReservationsUserListViewSet(viewsets.ModelViewSet):
+class ReservationsUserListViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """Вьюсет для обработки бронирования для клиента"""
 
     http_method_names = ["get", "patch", "delete"]
@@ -178,7 +184,13 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
 
 @extend_schema(**ReservationsRestorateurListViewSet_schema)
 @extend_schema_view(**ReservationsRestorateurListViewSet_schema_view)
-class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
+class ReservationsRestorateurListViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """Вьюсет для обработки бронирования для ресторатора"""
 
     http_method_names = ["get", "delete", "patch"]

@@ -203,27 +203,29 @@ def copy_reservation_to_archive_after_visit():
         is_accepted=True, is_visited=True
     ).prefetch_related("slots")
     for reservation in reservations:
-        slots = ",\n".join([str(slot) for slot in reservation.slots.all()])
+        slots = ";\n".join([str(slot) for slot in reservation.slots.all()])
 
-        ReservationHistory.objects.create(
-            reservation_date=reservation.reservation_date,
-            establishment=str(reservation.id)
-            + ";"
-            + str(reservation.establishment),
-            date_reservation=reservation.date_reservation,
-            start_time_reservation=reservation.start_time_reservation,
-            is_accepted=reservation.is_accepted,
-            is_visited=reservation.is_visited,
-            first_name=reservation.first_name,
-            last_name=reservation.last_name,
-            email=reservation.email,
-            telephone=reservation.telephone,
-            slots=slots,
-            comment=reservation.comment,
-            reminder_one_day=reservation.reminder_one_day,
-            reminder_three_hours=reservation.reminder_three_hours,
-            reminder_half_on_hour=reservation.reminder_half_on_hour,
-        )
+        try:
+            ReservationHistory.objects.get(reservation_id=reservation.id)
+        except ReservationHistory.DoesNotExist:
+            ReservationHistory.objects.create(
+                reservation_date=reservation.reservation_date,
+                reservation_id=reservation.id,
+                establishment=reservation.establishment,
+                date_reservation=reservation.date_reservation,
+                start_time_reservation=reservation.start_time_reservation,
+                is_accepted=reservation.is_accepted,
+                is_visited=reservation.is_visited,
+                first_name=reservation.first_name,
+                last_name=reservation.last_name,
+                email=reservation.email,
+                telephone=reservation.telephone,
+                slots=slots,
+                comment=reservation.comment,
+                reminder_one_day=reservation.reminder_one_day,
+                reminder_three_hours=reservation.reminder_three_hours,
+                reminder_half_on_hour=reservation.reminder_half_on_hour,
+            )
     return "Исполненные брони скопированы в архив"
 
 
@@ -233,5 +235,11 @@ def delete_reservation_after_visit():
     reservations = Reservation.objects.filter(
         is_accepted=True, is_visited=True
     )
-    reservations.bulk_delete()
+
+    for reservation in reservations:
+        try:
+            ReservationHistory.objects.get(reservation_id=reservation.id)
+            reservation.delete()
+        except ReservationHistory.DoesNotExist:
+            continue
     return "Исполненные брони удалены"
