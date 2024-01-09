@@ -49,7 +49,7 @@ from reservation.models import (
 )
 
 
-@extend_schema(**reservations_edit_schema)
+@extend_schema(tags=["Бронирование"], **reservations_edit_schema)
 @extend_schema_view(**reservations_edit_schema_view)
 class ReservationsEditViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
@@ -143,10 +143,9 @@ class ReservationsEditViewSet(
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@extend_schema(**ReservationsUserListViewSet_schema)
+@extend_schema(tags=["Мои бронирования"], **ReservationsUserListViewSet_schema)
 @extend_schema_view(**ReservationsUserListViewSet_schema_view)
 class ReservationsUserListViewSet(
-    mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -163,8 +162,7 @@ class ReservationsUserListViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        reservation = Reservation.objects.filter(user=user)
-        return reservation
+        return Reservation.objects.filter(user=user)
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
@@ -182,7 +180,9 @@ class ReservationsUserListViewSet(
         )
 
 
-@extend_schema(**ReservationsRestorateurListViewSet_schema)
+@extend_schema(
+    tags=["Бизнес(бронирования)"], **ReservationsRestorateurListViewSet_schema
+)
 @extend_schema_view(**ReservationsRestorateurListViewSet_schema_view)
 class ReservationsRestorateurListViewSet(
     mixins.RetrieveModelMixin,
@@ -304,10 +304,12 @@ class ReservationsRestorateurListViewSet(
         )
 
 
-@extend_schema(**ReservationsHistoryListViewSet_schema)
+@extend_schema(
+    tags=["История бронирования"], **ReservationsHistoryListViewSet_schema
+)
 @extend_schema_view(**ReservationsHistoryListViewSet_schema_view)
 class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обработки бронирования"""
+    """Вьюсет для обработки истории бронирования"""
 
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
@@ -318,21 +320,14 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
         if user.is_client:
-            reservation = ReservationHistory.objects.filter(user=user)
-            return reservation
+            return ReservationHistory.objects.filter(user=user)
         elif user.is_restorateur:
-            reservation_rest = ReservationHistory.objects.filter(
-                establishment__owner=user
-            )
-            return reservation_rest
-        return Response(
-            {"errors": "Вы не авторизованы"},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+            return ReservationHistory.objects.filter(establishment__owner=user)
 
 
-@extend_schema(**AvailableSlotsViewSet_schema)
+@extend_schema(tags=["Слоты для бронирования"], **AvailableSlotsViewSet_schema)
 @extend_schema_view(**AvailableSlotsViewSet_schema_view)
 class AvailableSlotsViewSet(
     mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
@@ -375,7 +370,7 @@ class AvailableSlotsViewSet(
 
 
 class AvailabilityViewSet(viewsets.ModelViewSet):
-    """Вьюсет: Слоты"""
+    """Вьюсет: Слоты -----ЭТО ДЛЯ V1 ---------"""
 
 
 #
