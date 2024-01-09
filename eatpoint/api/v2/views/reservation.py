@@ -285,21 +285,29 @@ class ReservationsRestorateurListViewSet(
         serializer.save()
 
         email = instance.email
+        subj = ""
+
+        if request.data.get("is_accepted"):
+            subj = "Бронирование подтверждено!"
+        elif request.data.get("is_visited"):
+            subj = "Бронирование выполнено!"
+
         message = f"""
-            Бронирование подтверждено!\n
+            {subj}\n
             {instance},\n
             адрес: {instance.establishment.cities} \
             {instance.establishment.address}
             """
 
         send_mail(
-            "Бронирование подтверждено!",
+            subj,
             message,
             django_settings.EMAIL_HOST_USER,
             [email],
         )
+
         return Response(
-            {"complete": "Бронирование подтверждено!"},
+            {"complete": subj},
             status=status.HTTP_200_OK,
         )
 
