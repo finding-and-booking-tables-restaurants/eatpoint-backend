@@ -20,24 +20,13 @@ class ConfirmationCode(admin.ModelAdmin):
     )
 
 
-@admin.register(Availability)
-class AvailabilityHistory(admin.ModelAdmin):
-    """Админка: свободные места"""
-
-    list_display = (
-        "id",
-        "date",
-        "zone",
-        "available_seats",
-    )
-
-
 @admin.register(ReservationHistory)
 class ReservationHistory(admin.ModelAdmin):
     """Админка: история бронирования"""
 
     list_display = (
         "id",
+        "reservation_id",
         "establishment",
         "date_reservation",
         "start_time_reservation",
@@ -73,7 +62,7 @@ class YourModelAdminForm(forms.ModelForm):
 
 
 @admin.register(Reservation)
-class EstablishmentReservAdmin(admin.ModelAdmin):
+class ReservationAdmin(admin.ModelAdmin):
     """Админка: бронирования"""
 
     list_display = (

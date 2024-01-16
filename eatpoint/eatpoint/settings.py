@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
 
 if DEBUG:
     ALLOWED_HOSTS.append("127.0.0.1")
+    ALLOWED_HOSTS.append("localhost")
 
 # SSL and CSRF
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -71,6 +72,7 @@ INSTALLED_APPS = [
     "reviews.apps.ReviewsConfig",
     "events.apps.EventsConfig",
     "django.contrib.postgres",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -193,6 +195,8 @@ REST_FRAMEWORK = {
     ),
     "DATETIME_FORMAT": "%d.%m.%Y %H:%M",
     "DATETIME_INPUT_FORMATS": ["%d.%m.%Y %H:%M"],
+    "DATE_FORMAT": "%d.%m.%Y",
+    "DATE_INPUT_FORMATS": ["%d.%m.%Y"],
 }
 
 DJOSER = {
@@ -264,3 +268,15 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "users.validators.OnlyAllowedCharactersValidator",
     },
 ]
+
+# Celery Configuration Options
+
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get(
+    "CELERY_RESULT_BACKEND", "redis://redis:6379/0"
+)
+CELERY_CACHE_BACKEND = os.environ.get("CELERY_CACHE_BACKEND", None)

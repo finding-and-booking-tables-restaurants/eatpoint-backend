@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, status, mixins
 
+from api.filters.reservations import SlotsFilter
 from api.permissions import (
     IsUserReservationCreate,
     IsRestorateur,
@@ -49,7 +50,7 @@ from reservation.models import (
 )
 
 
-@extend_schema(tags=["Бронирование для клиентов"], **reservations_edit_schema)
+@extend_schema(tags=["Бронирование"], **reservations_edit_schema)
 @extend_schema_view(**reservations_edit_schema_view)
 class ReservationsEditViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
@@ -145,7 +146,12 @@ class ReservationsEditViewSet(
 
 @extend_schema(tags=["Мои бронирования"], **ReservationsUserListViewSet_schema)
 @extend_schema_view(**ReservationsUserListViewSet_schema_view)
-class ReservationsUserListViewSet(viewsets.ModelViewSet):
+class ReservationsUserListViewSet(
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """Вьюсет для обработки бронирования для клиента"""
 
     http_method_names = ["get", "patch", "delete"]
@@ -157,8 +163,7 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        reservation = Reservation.objects.filter(user=user)
-        return reservation
+        return Reservation.objects.filter(user=user)
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
@@ -252,10 +257,16 @@ class ReservationsUserListViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=["Бизнес(Бронирование)"], **ReservationsRestorateurListViewSet_schema
+    tags=["Бизнес(бронирования)"], **ReservationsRestorateurListViewSet_schema
 )
 @extend_schema_view(**ReservationsRestorateurListViewSet_schema_view)
-class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
+class ReservationsRestorateurListViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """Вьюсет для обработки бронирования для ресторатора"""
 
     http_method_names = ["get", "delete", "patch"]
@@ -411,21 +422,29 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
         serializer.save()
 
         email = instance.email
+        subj = ""
+
+        if request.data.get("is_accepted"):
+            subj = "Бронирование подтверждено!"
+        elif request.data.get("is_visited"):
+            subj = "Бронирование выполнено!"
+
         message = f"""
-            Бронирование подтверждено!\n
+            {subj}\n
             {instance},\n
             адрес: {instance.establishment.cities} \
             {instance.establishment.address}
             """
 
         send_mail(
-            "Бронирование подтверждено!",
+            subj,
             message,
             django_settings.EMAIL_HOST_USER,
             [email],
         )
+
         return Response(
-            {"complete": "Бронирование подтверждено!"},
+            {"complete": subj},
             status=status.HTTP_200_OK,
         )
 
@@ -435,7 +454,7 @@ class ReservationsRestorateurListViewSet(viewsets.ModelViewSet):
 )
 @extend_schema_view(**ReservationsHistoryListViewSet_schema_view)
 class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
-    """Вьюсет для обработки бронирования"""
+    """Вьюсет для обработки истории бронирования"""
 
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
@@ -446,18 +465,11 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
         if user.is_client:
-            reservation = ReservationHistory.objects.filter(user=user)
-            return reservation
+            return ReservationHistory.objects.filter(user=user)
         elif user.is_restorateur:
-            reservation_rest = ReservationHistory.objects.filter(
-                establishment__owner=user
-            )
-            return reservation_rest
-        return Response(
-            {"errors": "Вы не авторизованы"},
-            status=status.HTTP_401_UNAUTHORIZED,
-        )
+            return ReservationHistory.objects.filter(establishment__owner=user)
 
 
 @extend_schema(tags=["Слоты для бронирования"], **AvailableSlotsViewSet_schema)
@@ -470,6 +482,7 @@ class AvailableSlotsViewSet(
     serializer_class = AvailableSlotsSerializer
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
+    filterset_class = SlotsFilter
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
@@ -502,4 +515,14 @@ class AvailableSlotsViewSet(
 
 
 class AvailabilityViewSet(viewsets.ModelViewSet):
-    """Вьюсет: Слоты"""
+    """Вьюсет: Слоты -----ЭТО ДЛЯ V1 ---------"""
+
+#
+#     queryset = Availability.objects.all()
+#     serializer_class = AvailabilitySerializer
+#     http_method_names = ["get"]
+#     pagination_class = LargeResultsSetPagination
+#
+#     def get_queryset(self):
+#         establishment_id = self.kwargs.get("establishment_id")
+#         return Availability.objects.filter(establishment=establishment_id)

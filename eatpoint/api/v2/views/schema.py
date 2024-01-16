@@ -75,7 +75,6 @@ ReservationsUserListViewSet_schema_view = {
 }
 
 ReservationsRestorateurListViewSet_schema = {
-    # "tags": ["Бизнес(Бронирование)"],
     "methods": ["GET", "DELETE", "PATCH"],
     "description": "Ресторатор",
 }

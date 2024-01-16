@@ -1,12 +1,13 @@
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
 
 from api.permissions import IsEstOwner
+from api.views import schemas as schema
 from api.serializers import events as ser
 from events import crud
-
-from . import schema
+from events.services import create_event
 
 
 @extend_schema(tags=["Типы событий"])
@@ -28,7 +29,9 @@ class BaseEventViewset(viewsets.ModelViewSet):
         raise Http404("Заведение не найдено.")
 
     def get_queryset(self):
-        return crud.list_events(establishment_id=self._get_establishment_id())
+        return crud.list_future_events(
+            establishment_id=self._get_establishment_id()
+        )
 
 
 @extend_schema(tags=["События"])
@@ -45,7 +48,7 @@ class EventUsersViewSet(BaseEventViewset):
 
 
 @extend_schema(tags=["Бизнес (события)"])
-@extend_schema_view(**schema.business_events_schema)
+# @extend_schema_view(**schema.business_events_schema)
 class EventBusinessViewSet(BaseEventViewset):
     """Вьюсет для обработки Событий для ресторатора."""
 
@@ -57,14 +60,17 @@ class EventBusinessViewSet(BaseEventViewset):
             return ser.ListEventSerializer
         if self.action == "retrieve":
             return ser.RetrieveEventSrializer
-        return ser.CreateEditEventSerializer
-
-    def perform_create(self, serializer):
-        est_id = self._get_establishment_id()
-        crud.create_event(est_id=est_id, data=serializer.validated_data)
+        if self.action == "create":
+            return ser.CreateEventSerializer
+        # TODO дописать сериализатор на изменение
+        # return ser.CreateEditEventSerializer
 
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        est_id = self._get_establishment_id()
+        create_event(est_id=est_id, data=serializer.validated_data)
+        return Response(status=status.HTTP_201_CREATED)
 
     def perform_update(self, serializer):
         crud.update_event(
@@ -77,18 +83,15 @@ class EventBusinessViewSet(BaseEventViewset):
 class EventPhotoViewset(viewsets.ModelViewSet):
     """Вьюсет для обработки Фото событий."""
 
-    http_method_names = ["get", "post", "delete"]
+    http_method_names = ["post", "delete"]
     serializer_class = ser.EventPhotoSerializer
     permission_classes = (IsEstOwner,)
 
-    def _get_event_id(self) -> None:
-        event_id = self.kwargs.get("event_id")
-        if crud.event_exists(id=event_id):
-            return event_id
-        return Http404("Событие не найдено.")
-
-    def get_queryset(self):
-        return crud.list_event_photos(event_id=self._get_event_id())
+    def _get_establishment_id(self) -> None:
+        est_id = self.kwargs.get("establishment_id")
+        if crud.establishment_exists(id=est_id):
+            return est_id
+        raise Http404("Заведение не найдено.")
 
     def perform_create(self, serializer):
-        return serializer.save(event_id=self._get_event_id())
+        return serializer.save(establishment_id=self._get_establishment_id())
