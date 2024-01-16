@@ -3,6 +3,7 @@ from datetime import datetime
 from django.conf import settings as django_settings
 from django.core.mail import send_mail
 from django.db.models import Q
+from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -54,7 +55,7 @@ from reservation.models import (
 class ReservationsEditViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
-    """Вьюсет для создания бронирования для не авторизованного пользователя"""
+    """Вьюсет для создания бронирования"""
 
     http_method_names = ["post"]
     pagination_class = LargeResultsSetPagination
@@ -166,14 +167,89 @@ class ReservationsUserListViewSet(
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
-        reservation_id = self.kwargs.get("pk")
-        removable = Reservation.objects.filter(user=user, id=reservation_id)
-        if not removable.exists():
+        try:
+            removable = self.get_object()
+        except Http404:
             return Response(
                 {"errors": "Бронирование отсутствует"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        date_reservation = removable.date_reservation
+        time_reservation = datetime.strptime(
+            removable.start_time_reservation, "%H:%M"
+        ).time()
+        reservation_date_time = datetime.combine(
+            date_reservation, time_reservation
+        )
+
+        # бронь не подтверждена, время не наступило, не клиент
+        if (
+            not removable.is_accepted
+            and not removable.is_visited
+            and not user.is_client
+            and datetime.now() < reservation_date_time
+        ):
+            return Response(
+                {
+                    "errors": """если Бронь не подтверждена,
+                 время не наступило, может удалить только клиент"""
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # бронь подтверждена, время не наступило,
+        #  не клиент или не ресторатор
+        if (
+            removable.is_accepted
+            and not removable.is_visited
+            and datetime.now() < reservation_date_time
+            and (not user.is_client or not user.is_restorateur)
+        ):
+            return Response(
+                {
+                    "errors": """если Бронь подтверждена, время не наступило,
+                 может удалить только клиент или ресторатор"""
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # бронь подтверждена, время наступило, не выполнено
+        if (
+            removable.is_accepted
+            and reservation_date_time < datetime.now()
+            and not removable.is_visited
+        ):
+            return Response(
+                {
+                    "errors": """если Бронь подтверждена, время наступило
+                 и не выполнена, удалить бронь нельзя"""
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # бронь подтверждена, время наступило, выполнено
+        if (
+            removable.is_accepted
+            and reservation_date_time < datetime.now()
+            and removable.is_visited
+        ):
+            return Response(
+                {"errors": "если Бронь выполнена, удалить бронь нельзя"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # восстановление активности слотов перед удалением брони
+        if (
+            not removable.is_accepted
+            and datetime.now() < reservation_date_time
+        ):
+            slot_ids = removable.slots
+            for slot_id in slot_ids:
+                Slot.objects.get(id=slot_id).update(is_active=True)
+
         removable.delete()
+
         return Response(
             {"message": "Бронирование удалено"},
             status=status.HTTP_200_OK,
@@ -220,29 +296,90 @@ class ReservationsRestorateurListViewSet(
     def destroy(self, request, *args, **kwargs):
         """Удаление бронирования"""
         user = self.request.user
-        current_datetime = datetime.now()
-        reservation_id = self.kwargs.get("pk")
-        removable = Reservation.objects.filter(
-            establishment__owner=user,
-            id=reservation_id,
-        )
-        if not removable.exists():
+        try:
+            removable = self.get_object()
+        except Http404:
             return Response(
                 {"errors": "Бронирование отсутствует"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        new_removable = Reservation.objects.filter(
-            establishment__owner=user,
-            id=reservation_id,
-            is_accepted=True,
-            date_reservation__gte=current_datetime,
+
+        date_reservation = removable.date_reservation
+        time_reservation = datetime.strptime(
+            removable.start_time_reservation, "%H:%M"
+        ).time()
+        reservation_date_time = datetime.combine(
+            date_reservation, time_reservation
         )
-        if new_removable.exists():
+
+        # бронь не подтверждена, время не наступило, не клиент
+        if (
+            not removable.is_accepted
+            and not removable.is_visited
+            and not user.is_client
+            and datetime.now() < reservation_date_time
+        ):
             return Response(
-                {"errors": "Нельзя удалить подтвержденное бронирование."},
+                {
+                    "errors": """если Бронь не подтверждена,
+                 время не наступило, может удалить только клиент"""
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        # бронь подтверждена, время не наступило,
+        #  не клиент или не ресторатор
+        if (
+            removable.is_accepted
+            and not removable.is_visited
+            and datetime.now() < reservation_date_time
+            and (not user.is_client or not user.is_restorateur)
+        ):
+            return Response(
+                {
+                    "errors": """если Бронь подтверждена, время не наступило,
+                 может удалить только клиент или ресторатор"""
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # бронь подтверждена, время наступило, не выполнено
+        if (
+            removable.is_accepted
+            and reservation_date_time < datetime.now()
+            and not removable.is_visited
+            and removable.establishment.owner != user
+        ):
+            return Response(
+                {
+                    "errors": """если Бронь подтверждена, время наступило
+                 и не выполнена, удалить бронь может только хозяин заведения"""
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # бронь подтверждена, время наступило, выполнено
+        if (
+            removable.is_accepted
+            and reservation_date_time < datetime.now()
+            and removable.is_visited
+        ):
+            return Response(
+                {"errors": "если Бронь выполнена, удалить бронь нельзя"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # восстановление слотов перед удалением брони если время не наступило
+        if (
+            not removable.is_accepted
+            and datetime.now() < reservation_date_time
+        ):
+            slot_ids = removable.slots
+            for slot_id in slot_ids:
+                Slot.objects.get(id=slot_id).update(is_active=True)
+
         removable.delete()
+
         return Response(
             {"message": "Бронирование удалено"},
             status=status.HTTP_200_OK,
@@ -379,7 +516,6 @@ class AvailableSlotsViewSet(
 
 class AvailabilityViewSet(viewsets.ModelViewSet):
     """Вьюсет: Слоты -----ЭТО ДЛЯ V1 ---------"""
-
 
 #
 #     queryset = Availability.objects.all()
