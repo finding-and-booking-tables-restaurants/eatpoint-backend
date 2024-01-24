@@ -32,6 +32,8 @@ ALLOWED_HOSTS = [
 if DEBUG:
     ALLOWED_HOSTS.append("127.0.0.1")
     ALLOWED_HOSTS.append("localhost")
+    ALLOWED_HOSTS.append("testserver")
+
 
 # SSL and CSRF
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

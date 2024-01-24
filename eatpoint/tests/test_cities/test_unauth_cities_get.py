@@ -1,10 +1,11 @@
 import unittest
+
 from django.test import TestCase, Client
 from rest_framework import status
 from tests.config_tests import BASE_URL
 
 
-class ServicesGETUnauthTests(TestCase):
+class CitiesGETUnauthTests(TestCase):
     """
     Базовое тестирование эндпоинтов.
     """
@@ -13,17 +14,17 @@ class ServicesGETUnauthTests(TestCase):
         self.client = Client()
         self.random_id = 1
 
-    def test_unauth_get_extras(self):
+    def test_unauthorized_acces_to_cities(self):
         response = self.client.get(
-            f"{BASE_URL}/services/",
+            f"{BASE_URL}/cities/",
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-    def test_unauth_get_extras_id(self):
+    def test_unauthorized_acces_to_cities_id(self):
         response = self.client.get(
-            f"{BASE_URL}/services/{self.random_id}/",
+            f"{BASE_URL}/cities/{self.random_id}/",
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
 
 
 if __name__ == "__main__":

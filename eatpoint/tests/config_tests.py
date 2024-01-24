@@ -1,1 +1,1 @@
-BASE_URL = "https://eatpoint.site/api/v2/"
+BASE_URL = "/api/v2"

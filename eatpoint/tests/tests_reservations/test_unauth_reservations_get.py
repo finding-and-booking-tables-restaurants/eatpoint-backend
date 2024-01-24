@@ -1,8 +1,8 @@
-import requests
-from django.test import TestCase
+import unittest
+from django.test import TestCase, Client
 from rest_framework import status
 
-BASE_URL = "http://80.87.109.70/api/v1/"
+from tests.config_tests import BASE_URL
 
 
 class ReservationsGETUnauthTests(TestCase):
@@ -11,11 +11,13 @@ class ReservationsGETUnauthTests(TestCase):
     """
 
     def setUp(self):
-        self.base_url = BASE_URL
-        self.random_id = 3
+        self.client = Client()
+        self.random_id = 1
 
     def test_unauthorized_access_to_reservations(self):
-        response = requests.get(
-            f"{self.base_url}establishments/{self.random_id}/reservations/",
-        )
-        assert response.status_code == status.HTTP_200_OK
+        response = self.client.get(f"{BASE_URL}/reservations/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+if __name__ == "__main__":
+    unittest.main()
