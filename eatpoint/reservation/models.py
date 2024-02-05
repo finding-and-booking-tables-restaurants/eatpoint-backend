@@ -121,6 +121,7 @@ class Reservation(models.Model):
         related_name="reservation",
         on_delete=models.CASCADE,
         blank=True,
+        null=True,
     )
     first_name = models.CharField(
         verbose_name="Имя",

@@ -3,6 +3,7 @@ from datetime import datetime
 from django.conf import settings as django_settings
 from django.core.mail import send_mail
 from django.db.models import Q
+from django.db.utils import IntegrityError
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.shortcuts import get_object_or_404
@@ -34,13 +35,14 @@ from core.validators import (
 )
 from establishments.models import Establishment
 from api.v2.serializers.reservations import (
-    ReservationsEditSerializer,
+    ReservationsUnregUserSerializer,
     ReservationsHistoryEditSerializer,
     ReservationsUserListSerializer,
     ReservationsRestorateurListSerializer,
     UpdateReservationStatusSerializer,
     AvailableSlotsSerializer,
     UpdateReservationVisitedSerializer,
+    ReservationsUserSerializer,
 )
 from reservation.models import (
     Reservation,
@@ -60,51 +62,68 @@ class ReservationsEditViewSet(
     http_method_names = ["post"]
     pagination_class = LargeResultsSetPagination
     permission_classes = (IsUserReservationCreate,)
-    serializer_class = ReservationsEditSerializer
     queryset = Reservation.objects.all()
 
-    def create(self, *args, **kwargs):
-        serializer = self.serializer_class(data=self.request.data)
-        serializer.is_valid(raise_exception=True)
+    def get_serializer_class(self):
+        user = self.request.user
+        if user.is_anonymous:
+            return ReservationsUnregUserSerializer
+        else:
+            return ReservationsUserSerializer
 
+    def create(self, request, *args, **kwargs):
         establishment_id = self.kwargs.get("establishment_id")
         establishment = get_object_or_404(Establishment, id=establishment_id)
-        slots_ids = list(self.request.data.get("slots", []))
-        user = self.request.user
+        slots_ids = list(request.data.get("slots", []))
+        user = request.user
 
         if user.is_anonymous:
-            validate_reserv_anonim(user, self.request.data)
-            telephone = self.request.data.get("telephone")
-            email = self.request.data.get("email")
-            first_name = self.request.data.get("first_name")
-            last_name = self.request.data.get("last_name")
-
+            serializer = self.get_serializer(data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            validate_reserv_anonim(user, request.data)
+            email = request.data.get("email")
             try:
-                ConfirmationCode.objects.get(email=email, is_verified=True)
-            except ConfirmationCode.DoesNotExist:
+                unregistered_user = ConfirmationCode.objects.get(
+                    email=email, is_verified=True
+                )
+            except unregistered_user.DoesNotExist:
                 return Response(
-                    {"detail": "Подтвердите номер телефона!"},
+                    {"detail": "email не подтвержден!"},
                     status=status.HTTP_403_FORBIDDEN,
                 )
-            reservation = Reservation.objects.create(
-                user=None,
-                telephone=telephone,
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                establishment=establishment,
-                comment=self.request.data.get("comment"),
-            )
+
+            # telephone = self.request.data.get("telephone")
+            # first_name = self.request.data.get("first_name")
+            # last_name = self.request.data.get("last_name")
+
+            reservation = serializer.save(user=None)
+            # reservation = Reservation.objects.create(
+            #     user=None,
+            #     telephone=telephone,
+            #     email=email,
+            #     first_name=first_name,
+            #     last_name=last_name,
+            #     establishment=establishment,
+            #     comment=self.request.data.get("comment"),
+            # )
         else:
-            reservation = Reservation.objects.create(
-                user=user,
-                telephone=user.telephone,
-                email=user.email,
-                first_name=user.first_name,
-                last_name=user.last_name,
-                establishment=establishment,
-                comment=self.request.data.get("comment"),
-            )
+            serializer = self.get_serializer(data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            try:
+                reservation = serializer.save(user=user)
+            except IntegrityError as e:
+                return Response(
+                    {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
+                )
+            # reservation = Reservation.objects.create(
+            #     user=user,
+            #     telephone=user.telephone,
+            #     email=user.email,
+            #     first_name=user.first_name,
+            #     last_name=user.last_name,
+            #     establishment=establishment,
+            #     comment=self.request.data.get("comment"),
+            # )
 
         try:
             slots = Slot.objects.filter(
@@ -124,15 +143,15 @@ class ReservationsEditViewSet(
 
         message = f"""
             Подтвердите бронирование:
-            заведение: {establishment.name},\n
-            зона: {slots[0].zone},\n
-            дата: {slots[0].date} {slots[0].time},\n
-            стол No{slots[0].table.number},\n
-            мест: {slots[0].table.seats},\n
-            для пользователя:\n
-            {reservation.first_name} {reservation.last_name},\n
-            {reservation.email},\n
-            {reservation.telephone}\n
+            заведение: {establishment.name},
+            зона: {slots[0].zone},
+            дата: {slots[0].date} {slots[0].time},
+            стол No{slots[0].table.number},
+            мест: {slots[0].table.seats},
+            для пользователя:
+            {reservation.first_name} {reservation.last_name},
+            {reservation.email},
+            {reservation.telephone}
         """
 
         send_mail(
@@ -495,7 +514,7 @@ class AvailableSlotsViewSet(
                 Q(date=current_date, time__gte=current_time)
                 | Q(date__gt=current_date)
             )
-            .order_by("date", "time", "zone")
+            .order_by("table", "date", "time", "zone")
         )
 
         return slots
@@ -516,6 +535,7 @@ class AvailableSlotsViewSet(
 
 class AvailabilityViewSet(viewsets.ModelViewSet):
     """Вьюсет: Слоты -----ЭТО ДЛЯ V1 ---------"""
+
 
 #
 #     queryset = Availability.objects.all()
