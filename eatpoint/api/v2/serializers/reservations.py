@@ -15,7 +15,7 @@ class SlotSerializer(serializers.ModelSerializer):
         fields = ("id",)
 
 
-class ReservationsEditSerializer(serializers.ModelSerializer):
+class ReservationsUnregUserSerializer(serializers.ModelSerializer):
     """Сериализация данных:
     форма бронирования для не авторизованного пользователя"""
 
@@ -27,12 +27,12 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
         model = Reservation
         fields = (
             "id",
-            "reservation_date",
-            "establishment",
-            "date_reservation",
-            "start_time_reservation",
+            # "reservation_date",
+            # "establishment",
+            # "date_reservation",
+            # "start_time_reservation",
             "slots",
-            "user",
+            # "user",
             "first_name",
             "last_name",
             "email",
@@ -41,6 +41,35 @@ class ReservationsEditSerializer(serializers.ModelSerializer):
             "reminder_one_day",
             "reminder_three_hours",
             "reminder_half_on_hour",
+        )
+
+
+class ReservationsUserSerializer(serializers.ModelSerializer):
+    """Сериализация данных:
+    форма бронирования для авторизованного пользователя"""
+
+    slots = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Slot.objects.all()
+    )
+
+    class Meta:
+        model = Reservation
+        fields = (
+            "id",
+            "reservation_date",
+            "establishment",
+            "slots",
+            "comment",
+            "reminder_one_day",
+            "reminder_three_hours",
+            "reminder_half_on_hour",
+            # "user",
+            # "date_reservation",
+            # "start_time_reservation",
+            # "first_name",
+            # "last_name",
+            # "email",
+            # "telephone",
         )
 
 
