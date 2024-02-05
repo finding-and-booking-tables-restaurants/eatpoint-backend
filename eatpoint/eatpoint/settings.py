@@ -27,6 +27,8 @@ ALLOWED_HOSTS = [
     "backend",
     "backend:8000",
     "eatpoint.site",
+    "193.124.113.161",
+    "193.124.113.161:8000",
 ]
 
 if DEBUG:
@@ -193,10 +195,10 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.FormParser",
         "rest_framework.parsers.MultiPartParser",
     ),
-    "DATETIME_FORMAT": "%d.%m.%Y %H:%M",
-    "DATETIME_INPUT_FORMATS": ["%d.%m.%Y %H:%M"],
-    "DATE_FORMAT": "%d.%m.%Y",
-    "DATE_INPUT_FORMATS": ["%d.%m.%Y"],
+    # "DATETIME_FORMAT": "%d.%m.%Y %H:%M",
+    # "DATETIME_INPUT_FORMATS": ["%d.%m.%Y %H:%M"],
+    # "DATE_FORMAT": "%d.%m.%Y",
+    # "DATE_INPUT_FORMATS": ["%d.%m.%Y"],
 }
 
 DJOSER = {
