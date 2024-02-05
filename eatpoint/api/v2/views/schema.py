@@ -6,15 +6,12 @@ from drf_spectacular.utils import (
 )
 
 from api.v2.serializers.reservations import (
-    ReservationsEditSerializer,
     UpdateReservationStatusSerializer,
 )
 
 reservations_edit_schema = {
     "methods": ["POST"],
     "description": "Клиент",
-    "request": ReservationsEditSerializer,
-    "responses": ReservationsEditSerializer,
 }
 reservations_edit_schema_view = {
     "create": extend_schema(
@@ -25,6 +22,32 @@ reservations_edit_schema_view = {
                 location=OpenApiParameter.PATH,
                 type=OpenApiTypes.INT,
             )
+        ],
+        examples=[
+            OpenApiExample(
+                name="Создание брони - зарегистрированный пользователь",
+                value={
+                    "slots": [1, 2],
+                    "comment": "комментарий",
+                    "reminder_one_day": True,
+                    "reminder_three_hours": True,
+                    "reminder_half_on_hour": True,
+                },
+            ),
+            OpenApiExample(
+                name="Создание брони - не зарегистрированный пользователь",
+                value={
+                    "slots": [1, 2],
+                    "comment": "комментарий",
+                    "reminder_one_day": True,
+                    "reminder_three_hours": True,
+                    "reminder_half_on_hour": True,
+                    "telephone": "79876543210",
+                    "email": "anonim@example.com",
+                    "first_name": " Анон",
+                    "last_name": "Анонимов",
+                },
+            ),
         ],
     ),
 }
