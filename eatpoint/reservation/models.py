@@ -137,7 +137,7 @@ class Reservation(models.Model):
         verbose_name="Электронная почта",
         blank=True,
     )
-    telephone = PhoneNumberField(null=True, default=None)
+    telephone = PhoneNumberField(blank=True, null=True, default=None)
     slots = models.ManyToManyField(
         Slot,
         verbose_name="Забронированные слоты",
