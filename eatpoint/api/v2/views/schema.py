@@ -9,6 +9,7 @@ from api.v2.serializers.reservations import (
     UpdateReservationStatusSerializer,
 )
 
+
 reservations_edit_schema = {
     "methods": ["POST"],
     "description": "Клиент",
@@ -26,6 +27,7 @@ reservations_edit_schema_view = {
         examples=[
             OpenApiExample(
                 name="Создание брони - зарегистрированный пользователь",
+                request_only=True,
                 value={
                     "slots": [1, 2],
                     "comment": "комментарий",
@@ -35,7 +37,23 @@ reservations_edit_schema_view = {
                 },
             ),
             OpenApiExample(
+                name="Создание брони - зарегистрированный пользователь",
+                response_only=True,
+                value={
+                    "id": 1,
+                    "date_reservation": "2020-01-01",
+                    "start_time_reservation": "10:00",
+                    "establishment": 1,
+                    "slots": [1, 2],
+                    "comment": "комментарий",
+                    "reminder_one_day": True,
+                    "reminder_three_hours": True,
+                    "reminder_half_on_hour": True,
+                },
+            ),
+            OpenApiExample(
                 name="Создание брони - не зарегистрированный пользователь",
+                request_only=True,
                 value={
                     "slots": [1, 2],
                     "comment": "комментарий",
@@ -44,8 +62,27 @@ reservations_edit_schema_view = {
                     "reminder_half_on_hour": True,
                     "telephone": "79876543210",
                     "email": "anonim@example.com",
-                    "first_name": " Анон",
+                    "first_name": "Анон",
                     "last_name": "Анонимов",
+                },
+            ),
+            OpenApiExample(
+                name="Создание брони - не зарегистрированный пользователь",
+                response_only=True,
+                value={
+                    "id": 1,
+                    "slots": [1, 2],
+                    "first_name": "Анон",
+                    "last_name": "Анонимов",
+                    "email": "anonim@example.com",
+                    "telephone": "79876543210",
+                    "comment": "комментарий",
+                    "date_reservation": "2020-01-01",
+                    "start_time_reservation": "10:00",
+                    "establishment": 1,
+                    "reminder_one_day": True,
+                    "reminder_three_hours": True,
+                    "reminder_half_on_hour": True,
                 },
             ),
         ],
