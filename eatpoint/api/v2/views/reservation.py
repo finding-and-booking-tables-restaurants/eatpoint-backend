@@ -86,45 +86,34 @@ class ReservationsEditViewSet(
                 unregistered_user = ConfirmationCode.objects.get(
                     email=email, is_verified=True
                 )
+                first_name = request.data.get("first_name")
+                last_name = request.data.get("last_name")
+                email = request.data.get("email")
+                telephone = request.data.get("telephone")
             except unregistered_user.DoesNotExist:
                 return Response(
                     {"detail": "email не подтвержден!"},
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            # telephone = self.request.data.get("telephone")
-            # first_name = self.request.data.get("first_name")
-            # last_name = self.request.data.get("last_name")
-
-            reservation = serializer.save(user=None)
-            # reservation = Reservation.objects.create(
-            #     user=None,
-            #     telephone=telephone,
-            #     email=email,
-            #     first_name=first_name,
-            #     last_name=last_name,
-            #     establishment=establishment,
-            #     comment=self.request.data.get("comment"),
-            # )
+            reservation = serializer.save(
+                user=None, establishment=establishment
+            )
         else:
             serializer = self.get_serializer(data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             try:
-                reservation = serializer.save(user=user)
+                reservation = serializer.save(
+                    user=user, establishment=establishment
+                )
+                first_name = reservation.first_name
+                last_name = reservation.last_name
+                email = reservation.email
+                telephone = reservation.telephone
             except IntegrityError as e:
                 return Response(
                     {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
                 )
-            # reservation = Reservation.objects.create(
-            #     user=user,
-            #     telephone=user.telephone,
-            #     email=user.email,
-            #     first_name=user.first_name,
-            #     last_name=user.last_name,
-            #     establishment=establishment,
-            #     comment=self.request.data.get("comment"),
-            # )
-
         try:
             slots = Slot.objects.filter(
                 establishment=establishment_id, id__in=slots_ids
@@ -149,9 +138,9 @@ class ReservationsEditViewSet(
             стол No{slots[0].table.number},
             мест: {slots[0].table.seats},
             для пользователя:
-            {reservation.first_name} {reservation.last_name},
-            {reservation.email},
-            {reservation.telephone}
+            {first_name} {last_name},
+            {email},
+            {telephone}
         """
 
         send_mail(

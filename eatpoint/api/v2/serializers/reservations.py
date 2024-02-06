@@ -27,17 +27,15 @@ class ReservationsUnregUserSerializer(serializers.ModelSerializer):
         model = Reservation
         fields = (
             "id",
-            # "reservation_date",
-            # "establishment",
-            # "date_reservation",
-            # "start_time_reservation",
             "slots",
-            # "user",
             "first_name",
             "last_name",
             "email",
             "telephone",
             "comment",
+            "date_reservation",
+            "start_time_reservation",
+            "establishment",
             "reminder_one_day",
             "reminder_three_hours",
             "reminder_half_on_hour",
@@ -56,20 +54,14 @@ class ReservationsUserSerializer(serializers.ModelSerializer):
         model = Reservation
         fields = (
             "id",
-            "reservation_date",
+            "date_reservation",
+            "start_time_reservation",
             "establishment",
             "slots",
             "comment",
             "reminder_one_day",
             "reminder_three_hours",
             "reminder_half_on_hour",
-            # "user",
-            # "date_reservation",
-            # "start_time_reservation",
-            # "first_name",
-            # "last_name",
-            # "email",
-            # "telephone",
         )
 
 
