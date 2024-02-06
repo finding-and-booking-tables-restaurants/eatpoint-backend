@@ -3,7 +3,6 @@ from datetime import datetime
 from django.conf import settings as django_settings
 from django.core.mail import send_mail
 from django.db.models import Q
-from django.db.utils import IntegrityError
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.shortcuts import get_object_or_404
@@ -85,7 +84,7 @@ class ReservationsEditViewSet(
             first_name = request.data.get("first_name")
             last_name = request.data.get("last_name")
             telephone = request.data.get("telephone")
-            
+
             try:
                 unregistered_user = ConfirmationCode.objects.get(
                     email=email, is_verified=True
@@ -103,19 +102,14 @@ class ReservationsEditViewSet(
         else:
             serializer = self.get_serializer(data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            try:
-                reservation = serializer.save(
-                    user=user, establishment=establishment
-                )
-                first_name = reservation.first_name
-                last_name = reservation.last_name
-                email = reservation.email
-                telephone = reservation.telephone
+            reservation = serializer.save(
+                user=user, establishment=establishment
+            )
+            first_name = reservation.first_name
+            last_name = reservation.last_name
+            email = reservation.email
+            telephone = reservation.telephone
 
-            except IntegrityError as e:
-                return Response(
-                    {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
-                )
         try:
             slots = Slot.objects.filter(
                 establishment=establishment_id, id__in=slots_ids
