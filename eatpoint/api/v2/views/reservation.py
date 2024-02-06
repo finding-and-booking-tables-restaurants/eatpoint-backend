@@ -82,14 +82,14 @@ class ReservationsEditViewSet(
             serializer.is_valid(raise_exception=True)
             validate_reserv_anonim(user, request.data)
             email = request.data.get("email")
+            first_name = request.data.get("first_name")
+            last_name = request.data.get("last_name")
+            telephone = request.data.get("telephone")
+            
             try:
                 unregistered_user = ConfirmationCode.objects.get(
                     email=email, is_verified=True
                 )
-                first_name = request.data.get("first_name")
-                last_name = request.data.get("last_name")
-                email = request.data.get("email")
-                telephone = request.data.get("telephone")
             except unregistered_user.DoesNotExist:
                 return Response(
                     {"detail": "email не подтвержден!"},
@@ -99,6 +99,7 @@ class ReservationsEditViewSet(
             reservation = serializer.save(
                 user=None, establishment=establishment
             )
+
         else:
             serializer = self.get_serializer(data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
@@ -110,6 +111,7 @@ class ReservationsEditViewSet(
                 last_name = reservation.last_name
                 email = reservation.email
                 telephone = reservation.telephone
+
             except IntegrityError as e:
                 return Response(
                     {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
