@@ -282,8 +282,8 @@ class ReservationsRestorateurListViewSet(
     def get_queryset(self):
         user = self.request.user
         return Reservation.objects.filter(
-            establishment__owner=user,
-        )
+            establishment__email=user.email,
+        ).order_by("date_reservation", "start_time_reservation")
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -434,9 +434,9 @@ class ReservationsRestorateurListViewSet(
             subj = "Бронирование выполнено!"
 
         message = f"""
-            {subj}\n
-            {instance},\n
-            адрес: {instance.establishment.cities} \
+            {subj}
+            {instance},
+            адрес: {instance.establishment.cities}
             {instance.establishment.address}
             """
 

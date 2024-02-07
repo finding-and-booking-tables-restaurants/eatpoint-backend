@@ -163,6 +163,8 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "establishment",
+            "date_reservation",
+            "start_time_reservation",
             "first_name",
             "email",
             "telephone",
