@@ -85,7 +85,7 @@ class ReservationsEditViewSet(
             first_name = request.data.get("first_name")
             last_name = request.data.get("last_name")
             telephone = request.data.get("telephone")
-            
+
             try:
                 unregistered_user = ConfirmationCode.objects.get(
                     email=email, is_verified=True
@@ -288,8 +288,8 @@ class ReservationsRestorateurListViewSet(
     def get_queryset(self):
         user = self.request.user
         return Reservation.objects.filter(
-            establishment__owner=user,
-        )
+            establishment__email=user.email,
+        ).order_by("date_reservation", "start_time_reservation")
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -440,9 +440,9 @@ class ReservationsRestorateurListViewSet(
             subj = "Бронирование выполнено!"
 
         message = f"""
-            {subj}\n
-            {instance},\n
-            адрес: {instance.establishment.cities} \
+            {subj}
+            {instance},
+            адрес: {instance.establishment.cities}
             {instance.establishment.address}
             """
 
