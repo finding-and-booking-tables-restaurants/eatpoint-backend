@@ -1,10 +1,8 @@
 from django.contrib import admin
-from django import forms
 
 from .models import (
     Reservation,
     ReservationHistory,
-    Availability,
     ConfirmationCode,
 )
 
@@ -14,6 +12,7 @@ class ConfirmationCode(admin.ModelAdmin):
     """Админка: история бронирования"""
 
     list_display = (
+        "id",
         "email",
         "code",
         "is_verified",
@@ -43,27 +42,11 @@ class ReservationHistory(admin.ModelAdmin):
     empty_value_display = "-пусто-"
 
 
-class YourModelAdminForm(forms.ModelForm):
-    class Meta:
-        model = Reservation
-        fields = "__all__"
-
-    def clean(self):
-        cleaned_data = super().clean()
-        zone = cleaned_data.get("zone")
-        date = cleaned_data.get("date_reservation")
-        availability = Availability.objects.get(zone=zone, date=date)
-        print(availability.available_seats)
-        if availability == 0:
-            raise forms.ValidationError(
-                "Количество мест не может быть равно 0."
-            )
-        return cleaned_data
-
-
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
     """Админка: бронирования"""
+
+    raw_id_fields = ("slots",)
 
     list_display = (
         "id",
@@ -104,12 +87,18 @@ class ReservationAdmin(admin.ModelAdmin):
             {"fields": ("user",)},
         ),
         (
-            "Контакты клиента",
+            "Контакты не зарегистрированного пользователя",
             {"fields": ("first_name", "last_name", "telephone", "email")},
         ),
         (
             "Бронирование",
-            {"fields": ("slots",)},
+            {
+                "fields": (
+                    "date_reservation",
+                    "start_time_reservation",
+                    "slots",
+                )
+            },
         ),
         ("Комментарии к бронированию", {"fields": ("comment",)}),
         (
