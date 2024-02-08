@@ -56,6 +56,7 @@ class Slot(models.Model):
     class Meta:
         verbose_name = "Свободный слот"
         verbose_name_plural = "Свободные слоты"
+        ordering = ["date", "time"]
 
     def __str__(self):
         return (
