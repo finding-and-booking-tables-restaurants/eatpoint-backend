@@ -105,7 +105,11 @@ class ReservationsEditViewSet(
             serializer.is_valid(raise_exception=True)
             try:
                 reservation = serializer.save(
-                    user=user, establishment=establishment
+                    user=user,
+                    establishment=establishment,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    email=user.email,
                 )
                 first_name = reservation.first_name
                 last_name = reservation.last_name
