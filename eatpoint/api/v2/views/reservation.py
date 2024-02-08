@@ -102,13 +102,20 @@ class ReservationsEditViewSet(
         else:
             serializer = self.get_serializer(data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            reservation = serializer.save(
-                user=user, establishment=establishment
-            )
-            first_name = reservation.first_name
-            last_name = reservation.last_name
-            email = reservation.email
-            telephone = reservation.telephone
+
+            try:
+                reservation = serializer.save(
+                    user=user,
+                    establishment=establishment,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    email=user.email,
+                )
+                first_name = reservation.first_name
+                last_name = reservation.last_name
+                email = reservation.email
+                telephone = reservation.telephone
+
 
         try:
             slots = Slot.objects.filter(
