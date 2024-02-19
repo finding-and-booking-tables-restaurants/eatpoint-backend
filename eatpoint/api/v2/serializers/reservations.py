@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
+from core.choices import RESERVATION_STATUS
 from establishments.models import ZoneEstablishment, Establishment
 from reservation.models import (
     Reservation,
@@ -65,40 +65,12 @@ class ReservationsUserSerializer(serializers.ModelSerializer):
         )
 
 
-class UpdateReservationStatusSerializer(serializers.ModelSerializer):
-    is_accepted = serializers.BooleanField(required=True)
+class UpdateReservationActionSerializer(serializers.ModelSerializer):
+    action = serializers.ChoiceField(required=True, choices=RESERVATION_STATUS)
 
     class Meta:
         model = Reservation
-        fields = ["is_accepted"]
-
-    def validate(self, validated_data):
-        if validated_data.get("is_accepted") is None:
-            raise ValidationError(
-                {
-                    "status": "Отправь '{is_accepted: True}' "
-                    "для подтверждения посещения заведения!"
-                }
-            )
-        return validated_data
-
-
-class UpdateReservationVisitedSerializer(serializers.ModelSerializer):
-    is_visited = serializers.BooleanField(required=True)
-
-    class Meta:
-        model = Reservation
-        fields = ["is_visited"]
-
-    def validate(self, validated_data):
-        if validated_data.get("is_visited") is None:
-            raise ValidationError(
-                {
-                    "status": "Отправь '{is_visited: True}' "
-                    "для подтверждения посещения заведения!"
-                }
-            )
-        return validated_data
+        fields = ["action"]
 
 
 class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
@@ -139,6 +111,7 @@ class SpecialSlotSerializer(serializers.ModelSerializer):
     """Сериализация данных: Слот"""
 
     table = serializers.StringRelatedField()
+    zone = serializers.StringRelatedField()
 
     class Meta:
         model = Slot
@@ -165,6 +138,7 @@ class ReservationsUserListSerializer(serializers.ModelSerializer):
             "establishment",
             "is_accepted",
             "is_visited",
+            "is_deleted",
             "slots",
         )
 
@@ -195,6 +169,27 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
             "reminder_half_on_hour",
             "is_accepted",
             "is_visited",
+            "is_deleted",
+        )
+
+
+class ReservationsUpdateUserSerializer(serializers.ModelSerializer):
+    """Ресторатор"""
+
+    slots = SpecialSlotSerializer(many=True)
+
+    class Meta:
+        model = Reservation
+        fields = (
+            "id",
+            "date_reservation",
+            "start_time_reservation",
+            "slots",
+            "comment",
+            "reminder_one_day",
+            "reminder_three_hours",
+            "reminder_half_on_hour",
+            "is_deleted",
         )
 
 

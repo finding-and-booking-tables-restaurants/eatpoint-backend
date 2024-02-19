@@ -117,6 +117,10 @@ class Reservation(models.Model):
         verbose_name="Заведение посещено",
         default=False,
     )
+    is_deleted = models.BooleanField(
+        verbose_name="Бронь отменена",
+        default=False,
+    )
     user = models.ForeignKey(
         User,
         related_name="reservation",

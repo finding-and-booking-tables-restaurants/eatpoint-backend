@@ -61,6 +61,7 @@ class ReservationAdmin(admin.ModelAdmin):
         "first_name",
         "is_accepted",
         "is_visited",
+        "is_deleted",
         "reminder_one_day",
         "reminder_three_hours",
         "reminder_half_on_hour",
@@ -69,6 +70,7 @@ class ReservationAdmin(admin.ModelAdmin):
         "reservation_date",
         "is_accepted",
         "is_visited",
+        "is_deleted",
     )
     search_fields = (
         "last_name",
@@ -80,7 +82,10 @@ class ReservationAdmin(admin.ModelAdmin):
     )
     empty_value_display = "-пусто-"
     fieldsets = (
-        ("Статус бронирования", {"fields": ("is_accepted", "is_visited")}),
+        (
+            "Статус бронирования",
+            {"fields": ("is_accepted", "is_visited", "is_deleted")},
+        ),
         ("Ресторан", {"fields": ("establishment",)}),
         (
             "Основная информация о клиенте",

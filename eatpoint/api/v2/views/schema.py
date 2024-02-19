@@ -6,7 +6,8 @@ from drf_spectacular.utils import (
 )
 
 from api.v2.serializers.reservations import (
-    UpdateReservationStatusSerializer,
+    UpdateReservationActionSerializer,
+    ReservationsUpdateUserSerializer,
 )
 
 
@@ -119,6 +120,8 @@ ReservationsUserListViewSet_schema_view = {
     ),
     "partial_update": extend_schema(
         summary="Изменить данные бронирования",
+        request=ReservationsUpdateUserSerializer,
+        responses={200: ReservationsUpdateUserSerializer},
         parameters=[
             OpenApiParameter(
                 name="establishment_id",
@@ -129,6 +132,15 @@ ReservationsUserListViewSet_schema_view = {
                 name="id",
                 location=OpenApiParameter.PATH,
                 type=OpenApiTypes.INT,
+            ),
+        ],
+        examples=[
+            OpenApiExample(
+                "Example for deleted",
+                description="Отменить бронирование",
+                value={
+                    "action": "is_deleted",
+                },
             ),
         ],
     ),
@@ -164,20 +176,27 @@ ReservationsRestorateurListViewSet_schema_view = {
     ),
     "partial_update": extend_schema(
         summary="Принять бронирование или отметить бронирование как выполненное",
-        request=UpdateReservationStatusSerializer,
+        request=UpdateReservationActionSerializer,
         examples=[
             OpenApiExample(
-                "Example 1",
+                "Example for accepting",
                 description="Принять бронирование",
                 value={
-                    "is_accepted": True,
+                    "action": "is_accepted",
                 },
             ),
             OpenApiExample(
-                "Example 2",
+                "Example for visited",
                 description="Отметить бронирование как выполненное",
                 value={
-                    "is_visited": True,
+                    "action": "is_visited",
+                },
+            ),
+            OpenApiExample(
+                "Example for deleted",
+                description="Отменить бронирование",
+                value={
+                    "action": "is_deleted",
                 },
             ),
         ],
