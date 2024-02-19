@@ -32,15 +32,15 @@ def send_reminder(booking_id: int, for_client: bool = False):
             booking.establishment.email if not for_client else booking.email
         )
         slot = booking.slots.first()
-        message = (
-            f"{subj}: \n"
-            f"заведение: {booking.establishment}, \n"
-            f"{context}, \n"
-            f"дата: {booking.date_reservation}, \n"
-            f"время: {booking.start_time_reservation}, \n"
-            f"зона: {slot.table.zone}, \n"
-            f"гостей: {slot.table.seats}\n"
-        )
+        message = f"""
+            {subj}:
+            заведение: {booking.establishment},
+            {context},
+            дата: {booking.date_reservation},
+            время: {booking.start_time_reservation},
+            зона: {slot.table.zone},
+            гостей: {slot.table.seats}
+        """
 
         send_mail(
             subject=subj,
@@ -199,8 +199,9 @@ def create_slots():
 @shared_task
 def copy_reservation_to_archive_after_visit():
     """Копирование бронирования в архив после посещения"""
+    subj = None
     reservations = Reservation.objects.filter(
-        is_accepted=True, is_visited=True
+        is_accepted=True, is_visited=True, is_deleted=False
     ).prefetch_related("slots")
     for reservation in reservations:
         slots = ";\n".join([str(slot) for slot in reservation.slots.all()])
@@ -226,20 +227,26 @@ def copy_reservation_to_archive_after_visit():
                 reminder_three_hours=reservation.reminder_three_hours,
                 reminder_half_on_hour=reservation.reminder_half_on_hour,
             )
-    return "Исполненные брони скопированы в архив"
+            subj = "Исполненные брони скопированы в архив"
+    return subj
 
 
 @shared_task
 def delete_reservation_after_visit():
-    """Удаление бронирования после посещения"""
-    reservations = Reservation.objects.filter(
-        is_accepted=True, is_visited=True
-    )
+    """Удаление бронирования исполненные (более 30 дней назад)"""
 
+    reservations = Reservation.objects.filter(
+        is_accepted=True,
+        is_visited=True,
+        date_reservation__lt=(datetime.now().date() - timedelta(days=30)),
+    )
+    subj = None
     for reservation in reservations:
         try:
             ReservationHistory.objects.get(reservation_id=reservation.id)
             reservation.delete()
         except ReservationHistory.DoesNotExist:
             continue
-    return "Исполненные брони удалены"
+        else:
+            subj = "Исполненные (более 30 дней назад) брони удалены"
+    return subj
