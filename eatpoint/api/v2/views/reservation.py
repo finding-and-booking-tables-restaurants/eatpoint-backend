@@ -298,9 +298,14 @@ class ReservationsUserListViewSet(
                     slot_ids = instance.slots
                     for slot_id in slot_ids:
                         Slot.objects.get(id=slot_id).update(is_active=True)
-
                 subj = "Бронирование отменено!"
                 instance.is_deleted = True
+
+            case _:
+                return Response(
+                    {"error": f"метод {action} не поддерживается"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         serializer = self.get_serializer_class()
         serializer = serializer(instance, data=request.data, partial=True)
