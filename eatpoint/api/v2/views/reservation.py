@@ -561,9 +561,11 @@ class ReservationsHistoryListViewSet(viewsets.ModelViewSet):
         user = self.request.user
 
         if user.is_client:
-            return ReservationHistory.objects.filter(user=user)
+            return ReservationHistory.objects.filter(email=user.email)
         elif user.is_restorateur:
-            return ReservationHistory.objects.filter(establishment__owner=user)
+            return ReservationHistory.objects.filter(
+                establishment__email=user.email
+            )
 
 
 @extend_schema(tags=["Слоты для бронирования"], **AvailableSlotsViewSet_schema)
