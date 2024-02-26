@@ -365,7 +365,7 @@ class ReservationsRestorateurListViewSet(
 
     def destroy(self, request, *args, **kwargs):
         """Удаление бронирования"""
-        user = self.request.user
+        user = request.user
         try:
             removable = self.get_object()
         except Http404:
@@ -418,12 +418,13 @@ class ReservationsRestorateurListViewSet(
             removable.is_accepted
             and reservation_date_time < datetime.now()
             and not removable.is_visited
-            and removable.establishment.owner != user
+            and removable.establishment.email != user.email
         ):
             return Response(
                 {
                     "errors": """если Бронь подтверждена, время наступило
-                 и не выполнена, удалить бронь может только хозяин заведения"""
+                 и не выполнена, удалить бронь может
+                 только администратор заведения"""
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
