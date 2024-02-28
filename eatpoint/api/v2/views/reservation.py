@@ -256,9 +256,9 @@ class ReservationsUserListViewSet(
             not removable.is_accepted
             and datetime.now() < reservation_date_time
         ):
-            slot_ids = removable.slots
+            slot_ids = removable.slots.values_list("id", flat=True)
             for slot_id in slot_ids:
-                Slot.objects.get(id=slot_id).update(is_active=True)
+                Slot.objects.filter(id=slot_id).update(is_active=True)
 
         removable.delete()
 
@@ -295,9 +295,9 @@ class ReservationsUserListViewSet(
                     instance.is_accepted
                     and datetime.now() < reservation_date_time
                 ):
-                    slot_ids = instance.slots
+                    slot_ids = instance.slots.values_list("id", flat=True)
                     for slot_id in slot_ids:
-                        Slot.objects.get(id=slot_id).update(is_active=True)
+                        Slot.objects.filter(id=slot_id).update(is_active=True)
                 subj = "Бронирование отменено!"
                 instance.is_deleted = True
 
@@ -365,7 +365,7 @@ class ReservationsRestorateurListViewSet(
 
     def destroy(self, request, *args, **kwargs):
         """Удаление бронирования"""
-        user = self.request.user
+        user = request.user
         try:
             removable = self.get_object()
         except Http404:
@@ -418,12 +418,13 @@ class ReservationsRestorateurListViewSet(
             removable.is_accepted
             and reservation_date_time < datetime.now()
             and not removable.is_visited
-            and removable.establishment.owner != user
+            and removable.establishment.email != user.email
         ):
             return Response(
                 {
                     "errors": """если Бронь подтверждена, время наступило
-                 и не выполнена, удалить бронь может только хозяин заведения"""
+                 и не выполнена, удалить бронь может
+                 только администратор заведения"""
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -444,9 +445,9 @@ class ReservationsRestorateurListViewSet(
             not removable.is_accepted
             and datetime.now() < reservation_date_time
         ):
-            slot_ids = removable.slots
+            slot_ids = removable.slots.values_list("id", flat=True)
             for slot_id in slot_ids:
-                Slot.objects.get(id=slot_id).update(is_active=True)
+                Slot.objects.filter(id=slot_id).update(is_active=True)
 
         removable.delete()
 
@@ -511,9 +512,9 @@ class ReservationsRestorateurListViewSet(
                     instance.is_accepted
                     and datetime.now() < reservation_date_time
                 ):
-                    slot_ids = instance.slots
+                    slot_ids = instance.slots.values_list("id", flat=True)
                     for slot_id in slot_ids:
-                        Slot.objects.get(id=slot_id).update(is_active=True)
+                        Slot.objects.filter(id=slot_id).update(is_active=True)
 
                 subj = "Бронирование отменено!"
                 instance.is_deleted = True
