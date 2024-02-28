@@ -181,13 +181,17 @@ class Reservation(models.Model):
         )
         if self.slots.exists():
             slot = self.slots.first()
-            table_info = f"""зона: {slot.zone}, {slot.date} {slot.time},
-                             стол № {slot.table.number},
-                             мест: {slot.table.seats}"""
+            table_info = (
+                f"зона: {slot.zone}, {slot.date} {slot.time}, "
+                f"стол № {slot.table.number}, "
+                f"мест: {slot.table.seats}"
+            )
         else:
-            table_info = f"""дата брони: {self.date_reservation},
-                             время брони: {self.start_time_reservation},
-                             клиент: {self.first_name} {self.last_name}"""
+            table_info = (
+                f"дата брони: {self.date_reservation}, "
+                f"время брони: {self.start_time_reservation}, "
+                f"клиент: {self.first_name} {self.last_name}"
+            )
         return f"заведение: {establishment_name}, {table_info}"
 
 

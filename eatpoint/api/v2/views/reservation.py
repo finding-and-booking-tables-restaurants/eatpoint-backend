@@ -256,9 +256,9 @@ class ReservationsUserListViewSet(
             not removable.is_accepted
             and datetime.now() < reservation_date_time
         ):
-            slot_ids = removable.slots
+            slot_ids = removable.slots.values_list("id", flat=True)
             for slot_id in slot_ids:
-                Slot.objects.get(id=slot_id).update(is_active=True)
+                Slot.objects.filter(id=slot_id).update(is_active=True)
 
         removable.delete()
 
@@ -295,9 +295,9 @@ class ReservationsUserListViewSet(
                     instance.is_accepted
                     and datetime.now() < reservation_date_time
                 ):
-                    slot_ids = instance.slots
+                    slot_ids = instance.slots.values_list("id", flat=True)
                     for slot_id in slot_ids:
-                        Slot.objects.get(id=slot_id).update(is_active=True)
+                        Slot.objects.filter(id=slot_id).update(is_active=True)
                 subj = "Бронирование отменено!"
                 instance.is_deleted = True
 
@@ -445,9 +445,9 @@ class ReservationsRestorateurListViewSet(
             not removable.is_accepted
             and datetime.now() < reservation_date_time
         ):
-            slot_ids = removable.slots
+            slot_ids = removable.slots.values_list("id", flat=True)
             for slot_id in slot_ids:
-                Slot.objects.get(id=slot_id).update(is_active=True)
+                Slot.objects.filter(id=slot_id).update(is_active=True)
 
         removable.delete()
 
@@ -512,9 +512,9 @@ class ReservationsRestorateurListViewSet(
                     instance.is_accepted
                     and datetime.now() < reservation_date_time
                 ):
-                    slot_ids = instance.slots
+                    slot_ids = instance.slots.values_list("id", flat=True)
                     for slot_id in slot_ids:
-                        Slot.objects.get(id=slot_id).update(is_active=True)
+                        Slot.objects.filter(id=slot_id).update(is_active=True)
 
                 subj = "Бронирование отменено!"
                 instance.is_deleted = True
