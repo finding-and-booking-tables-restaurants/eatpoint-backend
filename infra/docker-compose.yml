@@ -50,6 +50,7 @@ services:
 
   certbot:
     image: certbot/certbot
+    restart: always
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     container_name: certbot
     volumes:
