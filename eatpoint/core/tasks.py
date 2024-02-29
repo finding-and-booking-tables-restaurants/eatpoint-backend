@@ -17,7 +17,7 @@ tz_moscow = pytz.timezone(django_settings.CELERY_TIMEZONE)
 @shared_task()
 def send_reminder(booking_id: int, for_client: bool = False):
     try:
-        booking = Reservation.objects.get(id=booking_id, is_accepted=False)
+        booking = Reservation.objects.get(id=booking_id)
         subj = (
             "Подтвердите бронирование"
             if not for_client
@@ -57,7 +57,9 @@ def send_reminder(booking_id: int, for_client: bool = False):
 @shared_task
 def check_unconfirmed_booking():
     try:
-        bookings = Reservation.objects.filter(is_accepted=False)
+        bookings = Reservation.objects.filter(
+            is_accepted=False, is_deleted=False
+        )
         for booking in bookings:
             booking_data = booking.date_reservation
             booking_time = datetime.strptime(
@@ -81,7 +83,9 @@ def check_unconfirmed_booking():
 def find_bookings_with_remind():
     """Поиск броней с напоминанием."""
     try:
-        bookings = Reservation.objects.filter(is_accepted=True)
+        bookings = Reservation.objects.filter(
+            is_accepted=True, is_deleted=False
+        )
     except Reservation.DoesNotExist:
         return "Подтвержденных броней не найдено"
 
@@ -249,4 +253,24 @@ def delete_reservation_after_visit():
             continue
         else:
             subj = "Исполненные (более 30 дней назад) брони удалены"
+    return subj
+
+
+@shared_task
+def delete_rejected_reservation():
+    """Удаление отмененных бронирований (выполняется каждое 1 число)"""
+
+    reservations = Reservation.objects.filter(
+        is_deleted=True,
+        date_reservation__lt=(datetime.now().date()),
+    )
+    subj = None
+    for reservation in reservations:
+        try:
+            ReservationHistory.objects.get(reservation_id=reservation.id)
+            reservation.delete()
+        except ReservationHistory.DoesNotExist:
+            continue
+        else:
+            subj = "Отменённые брони (более 30 дней назад) удалены"
     return subj
