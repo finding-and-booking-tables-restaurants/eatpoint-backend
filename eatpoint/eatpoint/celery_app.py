@@ -36,4 +36,8 @@ app.conf.beat_schedule = {
         "task": "core.tasks.delete_reservation_after_visit",
         "schedule": crontab(minute="*/3"),
     },
+    "delete_rejected_reservation": {
+        "task": "core.tasks.delete_rejected_reservation",
+        "schedule": crontab(day_of_month=1, hour=0, minute=0),
+    },
 }
