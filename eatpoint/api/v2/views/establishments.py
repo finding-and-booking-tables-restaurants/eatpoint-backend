@@ -236,7 +236,20 @@ class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Establishment.objects.filter(owner=user)
+        return (
+            Establishment.objects.filter(owner=user)
+            .select_related("cities")
+            .prefetch_related(
+                "types",
+                "kitchens",
+                "services",
+                "zones",
+                "socials",
+                "worked",
+                "images",
+                "review",
+            )
+        ).order_by("id")
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -266,7 +279,21 @@ class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
 class EstablishmentViewSet(viewsets.ModelViewSet):
     """Вьюсет: Заведение"""
 
-    queryset = Establishment.objects.filter(is_verified=True)
+    queryset = (
+        Establishment.objects.filter(is_verified=True)
+        .select_related("owner", "cities")
+        .prefetch_related(
+            "types",
+            "kitchens",
+            "services",
+            "zones",
+            "socials",
+            "worked",
+            "images",
+            "review",
+        )
+    ).order_by("id")
+
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
     permission_classes = (ReadOnly | IsAdminUser,)

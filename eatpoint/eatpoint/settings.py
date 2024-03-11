@@ -35,6 +35,11 @@ if DEBUG:
     ALLOWED_HOSTS.append("127.0.0.1")
     ALLOWED_HOSTS.append("localhost")
 
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 # SSL and CSRF
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = False if DEBUG else True
@@ -77,6 +82,10 @@ INSTALLED_APPS = [
     "django_celery_beat",
 ]
 
+if DEBUG:
+    INSTALLED_APPS.append("debug_toolbar")
+
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -88,6 +97,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+if DEBUG:
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
 
 ROOT_URLCONF = "eatpoint.urls"
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
