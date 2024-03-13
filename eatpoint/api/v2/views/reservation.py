@@ -9,7 +9,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, status, mixins
 
-from api.filters.reservations import SlotsFilter
 from api.permissions import (
     IsUserReservationCreate,
     IsRestorateur,
@@ -175,7 +174,9 @@ class ReservationsUserListViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        return Reservation.objects.filter(user=user)
+        return Reservation.objects.filter(user=user).select_related(
+            "establishment", "slots", "zone", "table"
+        )
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
@@ -276,7 +277,6 @@ class ReservationsUserListViewSet(
             datetime.strptime(instance.start_time_reservation, "%H:%M").time(),
         )
 
-        subj = ""
         action = request.data.get("action")
 
         match action:
@@ -579,23 +579,31 @@ class AvailableSlotsViewSet(
     serializer_class = AvailableSlotsSerializer
     http_method_names = ["get"]
     pagination_class = LargeResultsSetPagination
-    filterset_class = SlotsFilter
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
         current_date = datetime.today().date()
-        current_time = datetime.now().time().strftime("%H:%M")
-        slots = (
-            Slot.objects.filter(establishment=establishment_id)
+        current_time = datetime.now().strftime("%H:%M")
+
+        return (
+            Slot.objects.all()
+            .values(
+                "date",
+                "time",
+                "zone__zone",
+                "table__number",
+                "table__seats",
+                "establishment__id",
+                "establishment__name",
+            )
             .filter(is_active=True)
+            .filter(establishment__id=establishment_id)
             .filter(
                 Q(date=current_date, time__gte=current_time)
                 | Q(date__gt=current_date)
             )
-            .order_by("table", "date", "time", "zone")
+            .order_by("id")
         )
-
-        return slots
 
     def retrieve(self, request, *args, **kwargs):
         try:
