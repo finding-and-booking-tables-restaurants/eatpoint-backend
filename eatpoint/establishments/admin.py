@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib import admin
 from django import forms
 from django.utils.safestring import mark_safe
@@ -54,6 +56,8 @@ class TableInLine(admin.TabularInline):
 class SlotAdmin(admin.ModelAdmin):
     """Админка: слоты"""
 
+    raw_id_fields = ("table",)
+
     list_display = (
         "id",
         "establishment",
@@ -67,11 +71,16 @@ class SlotAdmin(admin.ModelAdmin):
 
     list_filter = ("establishment", "zone", "table", "date", "time")
 
-    actions = ["set_active"]
+    actions = ["set_active", "delete_old_slots"]
 
     @admin.action(description='Установить статус "Активный"')
     def set_active(self, request, queryset):
         queryset.update(is_active=True)
+
+    @admin.action(description="Удалить старые слоты")
+    def delete_old_slots(self, request, queryset):
+        """Удаление слотов с датой меньше сегодняшней."""
+        queryset.filter(date__lt=datetime.now().date()).delete()
 
 
 @admin.register(ZoneEstablishment)

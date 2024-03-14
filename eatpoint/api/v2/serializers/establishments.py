@@ -155,7 +155,7 @@ class WorkEstablishmentSerializer(serializers.ModelSerializer):
 
 class CityListField(serializers.SlugRelatedField):
     def to_representation(self, value):
-        return CitySerializer(value).data
+        return value.name
 
 
 class KitchenListField(serializers.SlugRelatedField):
@@ -195,21 +195,28 @@ class ZoneSmallSerializer(serializers.ModelSerializer):
 class EstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Заведение"""
 
-    poster = serializers.ImageField()
+    query_set = Establishment.objects.all().values(
+        "name",
+        "kitchens__name",
+        "types__name",
+        "services__name",
+        "cities__name",
+        "socials__name",
+    )
     owner = serializers.CharField(source="owner.email")
     kitchens = KitchenListField(
         slug_field="name",
-        queryset=Kitchen.objects.all(),
+        queryset=query_set,
         many=True,
     )
     types = TypeListField(
         slug_field="name",
-        queryset=TypeEst.objects.all(),
+        queryset=query_set,
         many=True,
     )
     services = ServiceListField(
         slug_field="name",
-        queryset=Service.objects.all(),
+        queryset=query_set,
         many=True,
     )
     is_favorited = serializers.SerializerMethodField("get_is_favorited")
@@ -221,7 +228,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     zones = ZoneEstablishmentSerializer(many=True)
     socials = SocialField(
         slug_field="name",
-        queryset=SocialEstablishment.objects.all(),
+        queryset=query_set,
         many=True,
     )
     rating = serializers.SerializerMethodField("get_rating")
@@ -229,6 +236,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
     review_count = serializers.SerializerMethodField("get_review_count")
 
     class Meta:
+        model = Establishment
         fields = [
             "id",
             "owner",
@@ -252,7 +260,6 @@ class EstablishmentSerializer(serializers.ModelSerializer):
             "rating",
             "review_count",
         ]
-        model = Establishment
 
     @extend_schema_field(OpenApiTypes.BOOL)
     def get_is_favorited(self, obj):
@@ -279,10 +286,16 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    poster = Base64ImageField()
-    owner = serializers.PrimaryKeyRelatedField(
-        read_only=True,
+    query_set = Establishment.objects.all().values(
+        "name",
+        "kitchens__name",
+        "types__name",
+        "services__name",
+        "cities__name",
+        "socials__name",
     )
+    poster = Base64ImageField()
+    owner = serializers.CharField(source="owner.email")
     worked = WorkEstablishmentSerializer(
         many=True,
         help_text="Время работы",
@@ -295,15 +308,13 @@ class EstablishmentEditSerializer(serializers.ModelSerializer):
     telephone = PhoneNumberField(
         help_text="Номер телефона",
     )
-    cities = CityListField(slug_field="name", queryset=City.objects.all())
+    cities = CityListField(slug_field="name", queryset=query_set)
     kitchens = KitchenListField(
-        slug_field="name", queryset=Kitchen.objects.all(), many=True
+        slug_field="name", queryset=query_set, many=True
     )
-    types = TypeListField(
-        slug_field="name", queryset=TypeEst.objects.all(), many=True
-    )
+    types = TypeListField(slug_field="name", queryset=query_set, many=True)
     services = ServiceListField(
-        slug_field="name", queryset=Service.objects.all(), many=True
+        slug_field="name", queryset=query_set, many=True
     )
 
     class Meta:
