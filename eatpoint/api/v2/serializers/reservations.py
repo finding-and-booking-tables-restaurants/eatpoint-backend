@@ -196,17 +196,10 @@ class ReservationsUpdateUserSerializer(serializers.ModelSerializer):
 class AvailableSlotsSerializer(serializers.ModelSerializer):
     """Свободные слоты"""
 
-    establishment = serializers.SlugRelatedField(
-        slug_field="name",
-        read_only=True,
-    )
-    zone = serializers.SlugRelatedField(
-        slug_field="zone",
-        read_only=True,
-    )
-    table = serializers.StringRelatedField(
-        read_only=True,
-    )
+    establishment = serializers.CharField(source="establishment__name")
+    zone = serializers.CharField(source="zone__zone")
+    table = serializers.CharField(source="table__number")
+    seats = serializers.CharField(source="table__seats")
 
     class Meta:
         model = Slot
@@ -217,4 +210,5 @@ class AvailableSlotsSerializer(serializers.ModelSerializer):
             "establishment",
             "zone",
             "table",
+            "seats",
         )

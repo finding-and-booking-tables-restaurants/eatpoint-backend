@@ -38,8 +38,12 @@ class EstablishmentFilter(FilterSet):
         queryset=City.objects.all(),
         to_field_name="name",
     )
-    is_favorited = filters.BooleanFilter(method="filters_favorited")
-    location = filters.CharFilter(method="filter_location")
+    is_favorited = filters.BooleanFilter(
+        label="Избранное", method="filters_favorited"
+    )
+    location = filters.CharFilter(
+        label="Местоположение", method="filter_location"
+    )
 
     class Meta:
         model = Establishment
