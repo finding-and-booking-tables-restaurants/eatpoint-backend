@@ -1,3 +1,4 @@
+from django.db.models import Count, Avg
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
@@ -293,19 +294,26 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
     """Вьюсет: Заведение"""
 
     queryset = (
-        Establishment.objects.filter(is_verified=True)
-        .select_related("owner", "cities")
-        .prefetch_related(
-            "types",
-            "kitchens",
-            "services",
-            "zones",
-            "socials",
-            "worked",
-            "images",
-            "review",
+        (
+            Establishment.objects.filter(is_verified=True)
+            .select_related("owner", "cities")
+            .prefetch_related(
+                "types",
+                "kitchens",
+                "services",
+                "zones",
+                "socials",
+                "worked",
+                "images",
+                "review",
+            )
         )
-    ).order_by("id")
+        .annotate(
+            review_count=Count("review", distinct=True),
+            rating=Avg("review__score"),
+        )
+        .order_by("id")
+    )
 
     filterset_class = EstablishmentFilter
     pagination_class = LargeResultsSetPagination
