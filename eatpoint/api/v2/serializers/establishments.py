@@ -1,4 +1,3 @@
-from django.db.models import Avg
 from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
@@ -23,7 +22,6 @@ from establishments.models import (
     TypeEst,
     City,
 )
-from reviews.models import Review
 
 
 class KitchenSerializer(serializers.ModelSerializer):
@@ -271,16 +269,14 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         return Favorite.objects.filter(establishment=obj, user=user).exists()
 
     @extend_schema_field(OpenApiTypes.FLOAT)
-    def get_rating(self, obj):
+    def get_rating(self, instance):
         """Отображение среднего рейтинга заведения"""
-        return Review.objects.filter(establishment=obj).aggregate(
-            Avg("score")
-        )["score__avg"]
+        return instance.rating
 
     @extend_schema_field(OpenApiTypes.INT)
-    def get_review_count(self, obj):
+    def get_review_count(self, instance):
         """Отображение количества отзывов заведения"""
-        return Review.objects.filter(establishment=obj).count()
+        return instance.review_count
 
 
 class EstablishmentEditSerializer(serializers.ModelSerializer):
