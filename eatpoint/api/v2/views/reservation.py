@@ -27,7 +27,7 @@ from api.v2.views.schema import (
     AvailableSlotsViewSet_schema,
     AvailableSlotsViewSet_schema_view,
 )
-from core.pagination import LargeResultsSetPagination
+from core.pagination import LargeResultsSetPagination, SlotsPagination
 from core.validators import (
     validate_reserv_anonim,
 )
@@ -578,7 +578,7 @@ class AvailableSlotsViewSet(
 
     serializer_class = AvailableSlotsSerializer
     http_method_names = ["get"]
-    pagination_class = LargeResultsSetPagination
+    pagination_class = SlotsPagination
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
