@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, status, mixins
 
+from api.v2.filters.reservations import SlotsFilter
 from api.permissions import (
     IsUserReservationCreate,
     IsRestorateur,
@@ -579,6 +580,7 @@ class AvailableSlotsViewSet(
     serializer_class = AvailableSlotsSerializer
     http_method_names = ["get"]
     pagination_class = SlotsPagination
+    filterset_class = SlotsFilter
 
     def get_queryset(self):
         establishment_id = self.kwargs.get("establishment_id")
