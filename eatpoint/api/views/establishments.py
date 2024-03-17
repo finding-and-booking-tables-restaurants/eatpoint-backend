@@ -14,7 +14,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.filters.establishments import (
+from api.v2.filters.establishments import (
     EstablishmentFilter,
     CityFilter,
 )
