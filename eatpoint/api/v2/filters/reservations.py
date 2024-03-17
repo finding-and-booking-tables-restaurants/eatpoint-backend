@@ -7,8 +7,6 @@ class SlotsFilter(FilterSet):
     """Фильтры слотов"""
 
     zone = filters.CharFilter(field_name="zone__zone")
-    date = filters.DateFilter(field_name="date")
-    seats = filters.NumberFilter(field_name="seats")
 
     class Meta:
         model = Slot
