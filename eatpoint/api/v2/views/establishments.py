@@ -1,4 +1,4 @@
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Prefetch
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
@@ -46,6 +46,7 @@ from establishments.models import (
     City,
     ImageEstablishment,
 )
+from users.models import User
 
 
 @extend_schema(
@@ -238,31 +239,23 @@ class EstablishmentBusinessViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return (
-            Establishment.objects
-            # .select_related("cities",
-            #                 "types",
-            #                 "kitchens",
-            #                 "services",
-            #                 "zones",
-            #                 "socials",
-            #                 "worked",
-            #                 "images",
-            #                 "review",)
-            .values(
-                "name",
-                "owner__email",
-                "cities__name",
-                "types__name",
-                "kitchens__name",
-                "services__name",
-                "zones__zone",
-                "socials__name",
-                "worked__day",
-                "worked__start",
-                "worked__end",
-                "images__image",
-                "review__score",
-            ).filter(owner=user)
+            Establishment.objects.prefetch_related(
+                "cities",
+                "types",
+                "kitchens",
+                "services",
+                "zones",
+                "socials",
+                "worked",
+                "images",
+                "review",
+                Prefetch("owner", queryset=User.objects.all().only("email")),
+            )
+            .filter(email=user.email)
+            .annotate(
+                review_count=Count("review", distinct=True),
+                rating=Avg("review__score"),
+            )
         ).order_by("id")
 
     def get_serializer_class(self):
@@ -295,9 +288,8 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
 
     queryset = (
         (
-            Establishment.objects.filter(is_verified=True)
-            .select_related("owner", "cities")
-            .prefetch_related(
+            Establishment.objects.filter(is_verified=True).prefetch_related(
+                "cities",
                 "types",
                 "kitchens",
                 "services",
@@ -306,10 +298,12 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
                 "worked",
                 "images",
                 "review",
+                "favorite",
+                Prefetch("owner", queryset=User.objects.all().only("email")),
             )
         )
         .annotate(
-            review_count=Count("review", distinct=True),
+            review_count=Count("review"),
             rating=Avg("review__score"),
         )
         .order_by("id")

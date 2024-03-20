@@ -1,11 +1,9 @@
-from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema_field,
 )
 
 from rest_framework import serializers
-from phonenumber_field.serializerfields import PhoneNumberField
 
 from core.choices import DAY_CHOICES
 from core.services import days_available
@@ -15,7 +13,6 @@ from establishments.models import (
     WorkEstablishment,
     Kitchen,
     ZoneEstablishment,
-    Favorite,
     Service,
     SocialEstablishment,
     ImageEstablishment,
@@ -193,44 +190,38 @@ class ZoneSmallSerializer(serializers.ModelSerializer):
 class EstablishmentSerializer(serializers.ModelSerializer):
     """Сериализация данных: Заведение"""
 
-    query_set = Establishment.objects.all().values(
-        "name",
-        "kitchens__name",
-        "types__name",
-        "services__name",
-        "cities__name",
-        "socials__name",
-    )
-    owner = serializers.CharField(source="owner.email")
-    kitchens = KitchenListField(
-        slug_field="name",
-        queryset=query_set,
+    owner = serializers.CharField(source="email")
+    types = serializers.SlugRelatedField(
         many=True,
-    )
-    types = TypeListField(
+        read_only=True,
         slug_field="name",
-        queryset=query_set,
-        many=True,
     )
-    services = ServiceListField(
-        slug_field="name",
-        queryset=query_set,
-        many=True,
-    )
-    is_favorited = serializers.SerializerMethodField("get_is_favorited")
+    cities = serializers.CharField(source="cities.name")
     images = ImageSerializer(many=True)
+    kitchens = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )
+    services = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name",
+    )
+    zones = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="zone",
+    )
+    socials = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name",
+    )
     worked = WorkEstablishmentSerializer(
         many=True,
         help_text="Время работы",
     )
-    zones = ZoneEstablishmentSerializer(many=True)
-    socials = SocialField(
-        slug_field="name",
-        queryset=query_set,
-        many=True,
-    )
+    is_favorited = serializers.SerializerMethodField("get_is_favorited")
     rating = serializers.SerializerMethodField("get_rating")
-    cities = serializers.CharField(source="cities.name")
     review_count = serializers.SerializerMethodField("get_review_count")
 
     class Meta:
@@ -260,13 +251,13 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         ]
 
     @extend_schema_field(OpenApiTypes.BOOL)
-    def get_is_favorited(self, obj):
+    def get_is_favorited(self, instance):
         """Отображение заведения в избранном"""
         request = self.context.get("request")
         user = request.user
         if request is None or user.is_anonymous:
             return False
-        return Favorite.objects.filter(establishment=obj, user=user).exists()
+        return instance.favorite.exists()
 
     @extend_schema_field(OpenApiTypes.FLOAT)
     def get_rating(self, instance):
@@ -282,35 +273,34 @@ class EstablishmentSerializer(serializers.ModelSerializer):
 class EstablishmentEditSerializer(serializers.ModelSerializer):
     """Сериализация данных(запись): Заведение"""
 
-    query_set = Establishment.objects.all().values(
-        "name",
-        "kitchens__name",
-        "types__name",
-        "services__name",
-        "cities__name",
-        "socials__name",
+    owner = serializers.CharField(source="email")
+    types = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name",
     )
-    poster = Base64ImageField()
-    owner = serializers.CharField(source="owner.email")
+    cities = serializers.CharField(source="cities.name")
+    kitchens = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )
+    services = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name",
+    )
+    zones = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="zone",
+    )
+    socials = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field="name",
+    )
     worked = WorkEstablishmentSerializer(
         many=True,
         help_text="Время работы",
-    )
-    zones = ZoneEstablishmentSerializer(
-        many=True,
-        help_text="Зоны заведения",
-    )
-    socials = serializers.ListField(required=False)
-    telephone = PhoneNumberField(
-        help_text="Номер телефона",
-    )
-    cities = CityListField(slug_field="name", queryset=query_set)
-    kitchens = KitchenListField(
-        slug_field="name", queryset=query_set, many=True
-    )
-    types = TypeListField(slug_field="name", queryset=query_set, many=True)
-    services = ServiceListField(
-        slug_field="name", queryset=query_set, many=True
     )
 
     class Meta:
