@@ -1,7 +1,13 @@
 import unittest
+
+from django.conf import settings
 from django.test import TestCase, Client
 from rest_framework import status
+
+from establishments.models import Establishment
+from reviews.models import Review
 from tests.config_tests import BASE_URL
+from users.models import User
 
 
 class ReviewGETUnauthTests(TestCase):
@@ -9,7 +15,17 @@ class ReviewGETUnauthTests(TestCase):
     Базовое тестирование эндпоинтов.
     """
 
+    @classmethod
+    def setUpTestData(cls):
+        Review.objects.create(
+            establishment=Establishment(),
+            author=User(),
+            text="Your review text",
+            score=5,
+        )
+
     def setUp(self):
+        settings.ALLOWED_HOSTS.append("testserver")
         self.client = Client()
         self.random_id = 1
 

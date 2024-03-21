@@ -2,6 +2,7 @@ import unittest
 from django.test import TestCase, Client
 from rest_framework import status
 from tests.config_tests import BASE_URL
+from django.conf import settings
 
 
 class KitchensGETUnauthTests(TestCase):
@@ -12,6 +13,7 @@ class KitchensGETUnauthTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.random_id = 1
+        settings.ALLOWED_HOSTS.append("testserver")
 
     def test_unauthorized_access_to_kitchens(self):
         response = self.client.get(f"{BASE_URL}/kitchens/")

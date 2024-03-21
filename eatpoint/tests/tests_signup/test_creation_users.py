@@ -24,13 +24,14 @@ class SignUpTests(TestCase):
             + "".join(random.choices("abcdefghijklmnopqrstuvwxyz", k=10)),
             "last_name": "lastname"
             + "".join(random.choices("abcdefghijklmnopqrstuvwxyz", k=10)),
-            "role": "client",
+            # "role": "client",
             "password": "!SOMEinterestpassword",
             "is_agreement": True,
             "confirm_code_send_method": "nothing",
         }
 
     def test_user_creation_role_client(self):
+        self.user_data["role"] = "client"
         response = self.client.post(
             f"{BASE_URL}/auth/signup/",
             data=self.user_data,
