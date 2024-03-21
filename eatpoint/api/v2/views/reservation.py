@@ -602,7 +602,7 @@ class AvailableSlotsViewSet(
             .filter(establishment__id=establishment_id)
             .filter(
                 Q(date=current_date, time__gte=current_time)
-                or Q(date__gt=current_date)
+                | Q(date__gt=current_date)
             )
             .order_by("id")
         )
