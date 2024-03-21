@@ -257,7 +257,7 @@ class EstablishmentSerializer(serializers.ModelSerializer):
         user = request.user
         if request is None or user.is_anonymous:
             return False
-        return instance.favorite.exists()
+        return instance.favorite.filter(user=user).exists()
 
     @extend_schema_field(OpenApiTypes.FLOAT)
     def get_rating(self, instance):
