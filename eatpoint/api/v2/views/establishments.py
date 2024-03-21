@@ -303,7 +303,7 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
             )
         )
         .annotate(
-            review_count=Count("review"),
+            review_count=Count("review", distinct=True),
             rating=Avg("review__score"),
         )
         .order_by("id")
@@ -361,7 +361,7 @@ class FavoriteViewSet(APIView):
             )
         Favorite.objects.create(user=user, establishment=establishment)
         return Response(
-            {"errors": f"Вы добавили {establishment.name} в {name}"},
+            {"complete": f"Вы добавили {establishment.name} в {name}"},
             status=status.HTTP_201_CREATED,
         )
 
