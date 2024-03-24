@@ -590,6 +590,7 @@ class AvailableSlotsViewSet(
         return (
             Slot.objects.all()
             .values(
+                "id",
                 "date",
                 "time",
                 "zone__zone",
