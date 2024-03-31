@@ -176,8 +176,7 @@ class ReservationsUserListViewSet(
     def get_queryset(self):
         user = self.request.user
         return Reservation.objects.filter(user=user).select_related(
-            "establishment", "slots", "zone", "table"
-        )
+            "establishment", "user").prefetch_related("slots")
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
