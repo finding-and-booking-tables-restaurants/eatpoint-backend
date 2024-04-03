@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.conf import settings as django_settings
 from django.core.mail import send_mail
-from django.db.models import Q
+from django.db.models import Q, F
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.shortcuts import get_object_or_404
@@ -175,8 +175,9 @@ class ReservationsUserListViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        return Reservation.objects.filter(user=user).select_related(
-            "establishment", "slots", "zone", "table"
+        return (Reservation.objects.filter(user=user)
+                .select_related("establishment", "user")
+                .prefetch_related("slots")
         )
 
     def destroy(self, request, *args, **kwargs):
