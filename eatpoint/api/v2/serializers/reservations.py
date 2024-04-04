@@ -88,9 +88,7 @@ class ReservationsHistoryEditSerializer(serializers.ModelSerializer):
 class ZoneReservationsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ZoneEstablishment
-        fields = (
-            "zone",
-        )
+        fields = ("zone",)
 
 
 class SpecialEstablishmentSerializer(serializers.ModelSerializer):
@@ -147,7 +145,7 @@ class ReservationsRestorateurListSerializer(serializers.ModelSerializer):
 
     establishment = serializers.CharField(source="establishment.name")
     slots = SpecialSlotSerializer(many=True)
-    user = serializers.StringRelatedField(source="user.name")
+    user = serializers.StringRelatedField(source="user.email")
 
     class Meta:
         model = Reservation

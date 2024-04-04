@@ -356,9 +356,14 @@ class ReservationsRestorateurListViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        return Reservation.objects.filter(
-            establishment__email=user.email,
-        ).order_by("date_reservation", "start_time_reservation")
+        return (
+            Reservation.objects.select_related("user")
+            .filter(
+                establishment__email=user.email,
+            )
+            .prefetch_related("slots")
+            .order_by("date_reservation", "start_time_reservation")
+        )
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
