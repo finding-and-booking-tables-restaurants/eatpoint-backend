@@ -175,8 +175,11 @@ class ReservationsUserListViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        return Reservation.objects.filter(user=user).select_related(
-            "establishment", "user").prefetch_related("slots")
+        return (
+            Reservation.objects.filter(user=user)
+            .select_related("establishment", "user")
+            .prefetch_related("slots")
+        )
 
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
@@ -353,9 +356,14 @@ class ReservationsRestorateurListViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        return Reservation.objects.filter(
-            establishment__email=user.email,
-        ).order_by("date_reservation", "start_time_reservation")
+        return (
+            Reservation.objects.select_related("establishment", "user")
+            .filter(
+                Q(establishment__email=user.email)
+                | Q(establishment__owner=user),
+            )
+            .order_by("date_reservation", "start_time_reservation")
+        )
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
