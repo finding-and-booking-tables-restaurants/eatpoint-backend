@@ -175,9 +175,10 @@ class ReservationsUserListViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        return (Reservation.objects.filter(user=user)
-                .select_related("establishment", "user")
-                .prefetch_related("slots")
+        return (
+            Reservation.objects.filter(user=user)
+            .select_related("establishment", "user")
+            .prefetch_related("slots")
         )
 
     def destroy(self, request, *args, **kwargs):
@@ -355,9 +356,14 @@ class ReservationsRestorateurListViewSet(
 
     def get_queryset(self):
         user = self.request.user
-        return Reservation.objects.filter(
-            establishment__email=user.email,
-        ).order_by("date_reservation", "start_time_reservation")
+        return (
+            Reservation.objects.select_related("establishment", "user")
+            .filter(
+                Q(establishment__email=user.email)
+                | Q(establishment__owner=user),
+            )
+            .order_by("date_reservation", "start_time_reservation")
+        )
 
     def get_serializer_class(self):
         """Выбор serializer_class в зависимости от типа запроса"""
@@ -621,18 +627,3 @@ class AvailableSlotsViewSet(
                     f"не существует или он занят"
                 },
             )
-
-
-class AvailabilityViewSet(viewsets.ModelViewSet):
-    """Вьюсет: Слоты -----ЭТО ДЛЯ V1 ---------"""
-
-
-#
-#     queryset = Availability.objects.all()
-#     serializer_class = AvailabilitySerializer
-#     http_method_names = ["get"]
-#     pagination_class = LargeResultsSetPagination
-#
-#     def get_queryset(self):
-#         establishment_id = self.kwargs.get("establishment_id")
-#         return Availability.objects.filter(establishment=establishment_id)

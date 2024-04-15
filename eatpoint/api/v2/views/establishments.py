@@ -288,18 +288,18 @@ class EstablishmentViewSet(viewsets.ModelViewSet):
 
     queryset = (
         (
-            Establishment.objects.filter(is_verified=True).prefetch_related(
+            Establishment.objects.filter(is_verified=True)
+            .prefetch_related(
                 "cities",
                 "types",
                 "kitchens",
                 "services",
                 "zones",
                 "socials",
-                "worked",
                 "images",
+                "worked",
                 "review",
                 "favorite",
-                Prefetch("owner", queryset=User.objects.all().only("email")),
             )
         )
         .annotate(
