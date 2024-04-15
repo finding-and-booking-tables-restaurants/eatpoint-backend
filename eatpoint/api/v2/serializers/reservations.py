@@ -109,8 +109,9 @@ class SpecialEstablishmentSerializer(serializers.ModelSerializer):
 class SpecialSlotSerializer(serializers.ModelSerializer):
     """Сериализация данных: Слот"""
 
-    table = serializers.StringRelatedField(source="table.number")
-    zone = serializers.StringRelatedField(source="zone.zone")
+    table = serializers.CharField(source="table.number")
+    zone = serializers.CharField(source="table.zone")
+    seats = serializers.CharField(source="table.seats")
 
     class Meta:
         model = Slot
@@ -127,7 +128,8 @@ class SpecialSlotSerializer(serializers.ModelSerializer):
 class ReservationsUserListSerializer(serializers.ModelSerializer):
     """Пользователь"""
 
-    establishment = SpecialEstablishmentSerializer()
+    # establishment = SpecialEstablishmentSerializer()
+    establishment = serializers.CharField(source="establishment.name")
     slots = SpecialSlotSerializer(many=True)
 
     class Meta:
