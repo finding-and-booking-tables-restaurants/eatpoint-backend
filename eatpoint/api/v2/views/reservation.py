@@ -181,6 +181,7 @@ class ReservationsUserListViewSet(
             .prefetch_related("slots")
         )
 
+
     def destroy(self, request, *args, **kwargs):
         user = self.request.user
         try:
