@@ -1,0 +1,300 @@
+[
+    {
+        "model": "establishments.event",
+        "pk": 1,
+        "fields": {
+            "name": "Октоберфест",
+            "establishment": 5,
+            "description": "Будем пить пиво",
+            "image": "establishment/images/event/original-1gxf.jpg",
+            "date_start": "2023-10-24T08:01:00",
+            "date_end": "2023-10-24T08:01:00"
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 1,
+        "fields": {
+            "establishment": 2,
+            "author": 2,
+            "text": "Супер делиссимо очень вкусно очень понравилось, но ходить больше не будут",
+            "created": "2023-10-16T20:37:28.365",
+            "score": 1
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 2,
+        "fields": {
+            "establishment": 19,
+            "author": 2,
+            "text": "Сногсшибательные сырники! Бугагагашеньки",
+            "created": "2023-10-16T20:37:41.895",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 3,
+        "fields": {
+            "establishment": 5,
+            "author": 15,
+            "text": "Много общительных собеседников. Рекомендую!",
+            "created": "2023-10-21T21:26:45.082",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 4,
+        "fields": {
+            "establishment": 14,
+            "author": 13,
+            "text": "Вежливые официанты, прекрасная кухня!",
+            "created": "2023-10-21T21:27:32.962",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 5,
+        "fields": {
+            "establishment": 13,
+            "author": 4,
+            "text": "Размер у шаурмы маленький, надо бы побольше",
+            "created": "2023-10-21T21:28:22.087",
+            "score": 4
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 7,
+        "fields": {
+            "establishment": 20,
+            "author": 16,
+            "text": "Лобио и чахохбили выше всяких похвал!",
+            "created": "2023-10-21T21:30:43.043",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 9,
+        "fields": {
+            "establishment": 22,
+            "author": 4,
+            "text": "Паста была недоварена!  говорят какое-то альденте",
+            "created": "2023-10-21T21:32:46.401",
+            "score": 3
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 10,
+        "fields": {
+            "establishment": 23,
+            "author": 26,
+            "text": "Готовят быстро и вкусно, очень удобно когда мало времени на поесть",
+            "created": "2023-10-21T21:34:32.799",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 11,
+        "fields": {
+            "establishment": 22,
+            "author": 11,
+            "text": "Превосходная кухня! Обязательно приду еще раз!",
+            "created": "2023-10-21T21:35:15.989",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 12,
+        "fields": {
+            "establishment": 8,
+            "author": 35,
+            "text": "Хорошее место, мне понравилось",
+            "created": "2023-10-21T21:36:04.131",
+            "score": 4
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 13,
+        "fields": {
+            "establishment": 13,
+            "author": 9,
+            "text": "Вкусненько",
+            "created": "2023-10-21T21:36:38.979",
+            "score": 4
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 14,
+        "fields": {
+            "establishment": 18,
+            "author": 11,
+            "text": "Понравилось. Вернусь еще не раз!",
+            "created": "2023-10-21T21:37:28.228",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 15,
+        "fields": {
+            "establishment": 14,
+            "author": 50,
+            "text": "Отличный кумыс и отличный барашек!",
+            "created": "2023-10-26T12:15:23.187",
+            "score": 4
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 16,
+        "fields": {
+            "establishment": 14,
+            "author": 113,
+            "text": "Супер, приду ещё!",
+            "created": "2023-10-26T12:24:38.950",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 17,
+        "fields": {
+            "establishment": 14,
+            "author": 109,
+            "text": "Барашка не было :(",
+            "created": "2023-10-26T13:35:39.570",
+            "score": 1
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 18,
+        "fields": {
+            "establishment": 49,
+            "author": 120,
+            "text": "Лучшее заведение в городе",
+            "created": "2023-10-27T12:32:01.656",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 20,
+        "fields": {
+            "establishment": 5,
+            "author": 1,
+            "text": "st",
+            "created": "2023-10-27T13:59:04.396",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 21,
+        "fields": {
+            "establishment": 46,
+            "author": 120,
+            "text": "Все супер!",
+            "created": "2023-10-27T13:59:17.388",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 22,
+        "fields": {
+            "establishment": 39,
+            "author": 120,
+            "text": "Всегда вкусная и свежая рыбка",
+            "created": "2023-10-27T14:04:22.792",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 23,
+        "fields": {
+            "establishment": 38,
+            "author": 120,
+            "text": "Очень вкусно!",
+            "created": "2023-10-27T14:27:55.539",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 24,
+        "fields": {
+            "establishment": 49,
+            "author": 50,
+            "text": "Настоящая пекинская утка!",
+            "created": "2023-10-27T15:08:08.096",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 25,
+        "fields": {
+            "establishment": 46,
+            "author": 50,
+            "text": "Ресторан Валера - мой любимый ресторан!",
+            "created": "2023-10-27T15:14:16.452",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 26,
+        "fields": {
+            "establishment": 38,
+            "author": 50,
+            "text": "Мне очень понравился лосось! обязательно приду и буду рекомендовать своим друзьям данный ресторан, просто сказка а не заведение, молодцы ребята, вау как вкусно!!!",
+            "created": "2023-10-27T15:25:00.673",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 27,
+        "fields": {
+            "establishment": 39,
+            "author": 50,
+            "text": "Вид просто супер!",
+            "created": "2023-10-27T15:32:22.779",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 28,
+        "fields": {
+            "establishment": 1,
+            "author": 120,
+            "text": "Маргарита топчик",
+            "created": "2023-10-27T15:41:41.172",
+            "score": 5
+        }
+    },
+    {
+        "model": "establishments.review",
+        "pk": 29,
+        "fields": {
+            "establishment": 7,
+            "author": 120,
+            "text": "Лучшее заведение в городе",
+            "created": "2023-10-27T15:47:36.056",
+            "score": 5
+        }
+    }
+]
